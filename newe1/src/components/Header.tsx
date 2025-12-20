@@ -57,7 +57,7 @@ export default function Header() {
             <Link href="/" className="flex items-center gap-2 shrink-0">
               <Logo />
               <p className="hidden sm:block text-sm text-[#333] leading-tight max-w-[180px]">
-                Шкафы купе в наличии и под заказ в Москве
+                Шкафы купе
               </p>
             </Link>
 
@@ -88,16 +88,9 @@ export default function Header() {
             {/* Working hours & Phone */}
             <div className="hidden xl:flex flex-col items-end text-right shrink-0 ml-auto">
               <div className="text-[11px] text-gray-500 leading-tight">с 07:00 до 20:00 мск</div>
-              <div className="text-[11px] text-gray-500 leading-tight">Горячая линия</div>
-              <div className="flex items-center gap-1.5">
-                <a href="tel:+74957447233" className="font-bold text-[17px] text-[#333] hover:text-[#62bb46] transition-colors">
-                  8 (495) 744-72-33
-                </a>
-                <span className="text-gray-400">•</span>
-                <a href="tel:+78001001211" className="font-bold text-[17px] text-[#333] hover:text-[#62bb46] transition-colors">
-                  8-800-100-12-11
-                </a>
-              </div>
+              <a href="tel:+78001001211" className="font-bold text-[17px] text-[#333] hover:text-[#62bb46] transition-colors">
+                8-800-100-12-11
+              </a>
               <button className="text-[#62bb46] text-[11px] font-medium hover:underline uppercase tracking-wide">
                 Заказать звонок
               </button>
@@ -134,7 +127,7 @@ export default function Header() {
                 href="https://booking.e-1.ru/check/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden sm:flex flex-col items-center justify-center w-14 h-12 hover:text-[#62bb46] transition-colors"
+                className="flex flex-col items-center justify-center w-14 h-12 hover:text-[#62bb46] transition-colors"
               >
                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -248,8 +241,8 @@ export default function Header() {
           </nav>
           {/* Mobile contacts */}
           <div className="container-custom py-4 space-y-3">
-            <a href="tel:+74957447233" className="flex items-center gap-2 font-bold text-lg text-[#333]">
-              8 (495) 744-72-33
+            <a href="tel:+78001001211" className="flex items-center gap-2 font-bold text-lg text-[#333]">
+              8-800-100-12-11
             </a>
             <div className="text-sm text-gray-500">с 07:00 до 20:00 мск</div>
             <button className="text-[#62bb46] font-medium text-sm uppercase">Заказать звонок</button>
