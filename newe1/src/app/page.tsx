@@ -1,6 +1,6 @@
 import HeroBanner from '@/components/HeroBanner';
-import CatalogSection from '@/components/CatalogSection';
 import FeaturesSection from '@/components/FeaturesSection';
+import CatalogSection from '@/components/CatalogSection';
 import ReviewsSection from '@/components/ReviewsSection';
 import CTASection from '@/components/CTASection';
 
@@ -10,11 +10,11 @@ export default function Home() {
       {/* Hero Banner */}
       <HeroBanner />
 
+      {/* Features strip with green icons */}
+      <FeaturesSection />
+
       {/* Catalog Categories */}
       <CatalogSection />
-
-      {/* Features / Advantages */}
-      <FeaturesSection />
 
       {/* Reviews */}
       <ReviewsSection />
