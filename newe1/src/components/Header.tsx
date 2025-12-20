@@ -53,7 +53,7 @@ const serviceSubmenu = [
       { label: 'Производство', href: '/about/production' },
       { label: 'Качество сервиса', href: '/about/quality' },
       { label: 'Вакансии', href: '/about/careers' },
-      { label: 'Партнерство', href: '/about/partnership' },
+      { label: 'Сотрудничество', href: '/about/partnership' },
     ]
   },
   {
@@ -69,7 +69,7 @@ const menuItems = [
   { label: 'СЕРИИ', href: '/series' },
   { label: 'ШКАФЫ НА ЗАКАЗ', href: '/custom' },
   { label: 'ГАРДЕРОБНЫЕ', href: '/catalog/garderobnye' },
-  { label: 'СЕРВИС', href: '/service', hasSubmenu: true },
+  { label: 'ПОКУПАТЕЛЮ', href: '/service', hasSubmenu: true },
   { label: 'ОТЗЫВЫ', href: '/reviews' },
   { label: 'АДРЕСА САЛОНОВ', href: '/stores' },
   { label: 'ГЕОГРАФИЯ ДОСТАВКИ', href: '/delivery' },
