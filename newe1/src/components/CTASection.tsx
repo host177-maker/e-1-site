@@ -26,7 +26,7 @@ export default function CTASection() {
   };
 
   return (
-    <section className="py-16 md:py-20 bg-gradient-to-r from-[#365edc] to-[#244ed5] text-white">
+    <section className="py-16 md:py-20 bg-gradient-to-r from-[#62bb46] to-[#5cb141] text-white">
       <div className="container-custom">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Text content */}

@@ -1,13 +1,11 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Primary Colors - Blue theme from original site */
-  --color-primary: #365edc;
-  --color-primary-hover: #5073e1;
-  --color-primary-dark: #244ed5;
-
-  /* Logo Color - Green */
-  --color-logo: #62bb46;
+  /* Primary Colors - GREEN theme from actual site */
+  --color-primary: #62bb46;
+  --color-primary-hover: #75c35c;
+  --color-primary-dark: #5cb141;
+  --color-primary-darker: #408931;
 
   /* Text Colors */
   --color-text-dark: #333333;
@@ -50,7 +48,13 @@ body {
 .container-custom {
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 30px;
+  padding: 0 15px;
+}
+
+@media (min-width: 768px) {
+  .container-custom {
+    padding: 0 30px;
+  }
 }
 
 /* Section styles */
@@ -64,8 +68,9 @@ body {
   color: white;
   padding: 12px 24px;
   border-radius: 4px;
-  font-weight: 500;
+  font-weight: 600;
   transition: background-color 0.2s ease;
+  text-transform: uppercase;
 }
 
 .btn-primary:hover {
@@ -75,10 +80,10 @@ body {
 .btn-outline {
   background-color: transparent;
   color: var(--color-primary);
-  border: 1px solid var(--color-primary);
+  border: 2px solid var(--color-primary);
   padding: 12px 24px;
   border-radius: 4px;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.2s ease;
 }
 
@@ -89,13 +94,13 @@ body {
 
 /* Link styles */
 a {
-  color: var(--color-primary);
+  color: var(--color-text-dark);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 a:hover {
-  color: var(--color-primary-hover);
+  color: var(--color-primary);
 }
 
 /* Heading styles */
@@ -108,5 +113,10 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Logo text color */
 .logo-text {
-  color: var(--color-logo);
+  color: var(--color-primary);
+}
+
+/* Green menu background */
+.menu-green {
+  background-color: var(--color-primary);
 }
