@@ -187,20 +187,20 @@ export default function Header() {
             {/* Messengers + Contact */}
             <div className="flex items-center gap-2 shrink-0 ml-auto lg:ml-0">
               {/* Telegram */}
-              <a href="https://t.me/+79384222111" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-[#54a9eb] rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform" title="Telegram">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <a href="https://t.me/+79384222111" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-[#54a9eb] rounded-full flex items-center justify-center hover:scale-110 transition-transform" title="Telegram">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white">
                   <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
                 </svg>
               </a>
               {/* WhatsApp */}
-              <a href="https://wa.me/79384222111" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-[#60d669] rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform" title="WhatsApp">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <a href="https://wa.me/79384222111" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-[#60d669] rounded-full flex items-center justify-center hover:scale-110 transition-transform" title="WhatsApp">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white">
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                 </svg>
               </a>
               {/* VK (Max) */}
-              <a href="https://vk.com/e1furniture" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-[#4c75a3] rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform" title="ВКонтакте">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <a href="https://vk.com/e1furniture" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-[#4c75a3] rounded-full flex items-center justify-center hover:scale-110 transition-transform" title="ВКонтакте">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white">
                   <path d="M12.785 16.241s.288-.032.436-.194c.136-.148.132-.427.132-.427s-.02-1.304.587-1.496c.596-.19 1.364 1.259 2.177 1.815.616.422 1.084.33 1.084.33l2.177-.03s1.14-.071.599-.974c-.044-.074-.314-.663-1.618-1.878-1.364-1.272-1.182-1.065.462-3.261.998-1.337 1.396-2.152 1.272-2.502-.118-.333-.848-.246-.848-.246l-2.45.015s-.182-.025-.317.055c-.132.079-.216.262-.216.262s-.388 1.028-.905 1.903c-1.092 1.85-1.529 1.948-1.708 1.834-.417-.267-.313-1.07-.313-1.64 0-1.782.271-2.525-.527-2.716-.265-.064-.46-.106-1.138-.113-.868-.008-1.604.003-2.02.207-.276.136-.49.438-.36.455.16.021.523.098.716.359.248.337.24 1.095.24 1.095s.142 2.095-.332 2.356c-.328.18-.776-.186-1.74-1.858-.493-.856-.866-1.804-.866-1.804s-.072-.177-.2-.272c-.156-.115-.373-.152-.373-.152l-2.327.015s-.35.01-.478.162c-.115.135-.009.415-.009.415s1.82 4.258 3.88 6.403c1.888 1.968 4.033 1.838 4.033 1.838h.973z"/>
                 </svg>
               </a>
@@ -256,16 +256,15 @@ export default function Header() {
       <nav className="bg-[#62bb46] hidden lg:block">
         <div className="container-custom">
           <ul className="flex items-center">
-            {menuItems.map((item, index) => (
+            {menuItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-2 px-5 py-3 text-white font-bold hover:bg-[#55a83d] transition-colors text-sm tracking-wide ${
-                    index === 0 ? '' : ''
-                  }`}
+                  className="flex items-center gap-2 px-5 py-3 font-bold hover:bg-[#55a83d] transition-colors text-sm tracking-wide"
+                  style={{ color: 'white' }}
                 >
                   {item.hasLightning && (
-                    <svg className="w-4 h-4 text-[#f5b800]" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#f5b800">
                       <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   )}
@@ -299,14 +298,14 @@ export default function Header() {
           {/* Mobile contacts row */}
           <div className="container-custom pb-3 flex items-center gap-3">
             {/* Telegram */}
-            <a href="https://t.me/+79384222111" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#54a9eb] rounded-full flex items-center justify-center text-white">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <a href="https://t.me/+79384222111" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#54a9eb] rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white">
                 <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
               </svg>
             </a>
             {/* WhatsApp */}
-            <a href="https://wa.me/79384222111" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#60d669] rounded-full flex items-center justify-center text-white">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <a href="https://wa.me/79384222111" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#60d669] rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
               </svg>
             </a>
@@ -322,11 +321,12 @@ export default function Header() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="flex items-center gap-2 px-4 py-3 text-white font-bold"
+                    className="flex items-center gap-2 px-4 py-3 font-bold"
+                    style={{ color: 'white' }}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {item.hasLightning && (
-                      <svg className="w-4 h-4 text-[#f5b800]" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#f5b800">
                         <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
                     )}
