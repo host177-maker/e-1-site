@@ -1,0 +1,231 @@
+<?php
+	require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
+$APPLICATION->SetTitle("Марафон удачи");
+
+	$APPLICATION->SetPageProperty("description","Наша Компания предлагает вашему вниманию большой ассортимент шкафов купе по низким ценам. Сделать индивидуальный заказ или выбрать из имеющихся образцов – решать Вам. Только высококачественная продукция по низкой цене! Наш телефон: (861) 290-85-10");
+
+		$APPLICATION->AddHeadScript('/everyday/js/maskedinput.js');
+	$APPLICATION->AddHeadScript('/everyday/js/everyday.js');
+	//$APPLICATION->SetAdditionalCss('/everyday/css/bootstrap.min.css');
+	$APPLICATION->SetAdditionalCss('/everyday/css/styles.css');
+
+	include_once($_SERVER["DOCUMENT_ROOT"]."/everyday/classes/vkOAuth.php");
+
+	$vkOAuth = new vkOAuth();
+
+	$user = array();
+	if (isset($_COOKIE['user'])) {
+		$user = unserialize($_COOKIE['user']);
+	}
+
+	if (empty($user)) {
+		if ($user = $vkOAuth->action()) {
+			setcookie('user', serialize($user), time() + 7776000, '/');//90 дней
+		}
+	}
+?><div class="everyday">
+	<div class="container" id="action">
+		<div class="block block_orange" id="step1" <?=(isset($user) && !empty($user)) || ($_GET['step']=='2') || ($_GET['step']=='3') ? 'style="display: none;"' : ''?>>
+			<div class="row">
+
+				<img style="width: 100%; margin-bottom: 35px; padding: 0 1rem;" class="img-fluid" src="images/subbanner.jpg" alt="">
+
+				<div class="col-md-12">
+					<h1 class="titleh1 block__title">Е1 возвращает деньги за шкаф</h1>
+					<p class="title__paragraph">Купите шкаф-купе Е1 в фирменном салоне или салоне нашего партнера и примите участие в акции!</p>
+				</div>
+
+				<div class="row">
+					<div class="col-md-6">
+						<ul class="everyday-list">
+							<div class="row no-gutters">
+									<div class="col-md-1">
+										<span class="list__el__sub"></span>
+									</div>
+									<div class="col-md-10">
+										<li class="list__el">Еженедельно разыгрываются 6 денежных призов. В розыгрыше участвуют уникальные коды, которые были зарегистрированы на сайте Е1 в течение недели.</li>
+									</div>
+							</div>
+						</ul>
+					</div>
+					<div class="col-md-6">
+						<ul class="everyday-list">
+							<div class="row no-gutters">
+									<div class="col-md-1">
+										<span class="list__el__sub"></span>
+									</div>
+									<div class="col-md-10">
+										<li class="list__el">Ежемесячный розыгрыш проводится среди всех участников акции. Разыгрываются 5 денежных призов.</li>
+									</div>
+							</div>
+						</ul>
+					</div>
+				</div>
+
+
+			</div>
+			<div class="row">
+				<div class="col-md-12 center">
+					<h3 class="title block__title">Четыре шага для участия в акции</h3>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-3 step-block">
+					<div class="step step_1">
+						<p class="step__title">Зарегистрируйтесь</p>
+						<p>Авторизуйтесь через Вконтакте и заполните форму участника</p>
+						<div class="step__arrow"></div>
+					</div>
+				</div>
+				<div class="col-md-3 step-block">
+					<div class="step step_2">
+						<p class="step__title">Вступите в нашу группу</p>
+						<p>Станьте участником группы Е1 Вконтакте <a target="_blank" href="https://vk.com/e_odin" class="everyday__link">vk.com/e_odin</a></p>
+						<div class="step__arrow"></div>
+					</div>
+				</div>
+				<div class="col-md-3 step-block">
+					<div class="step step_3">
+						<p class="step__title">Сделайте репост</p>
+						<p>Сделайте репост записи об акции, который закреплен на стене группы Вк</p>
+						<div class="step__arrow"></div>
+					</div>
+				</div>
+				<div class="col-md-3 step-block">
+					<div class="step step_4">
+						<p class="step__title">Дождитесь итогов</p>
+						<p><?php echo getNextMonday();?> мы объявим победителей</p>
+						<div class="step__arrow"></div>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12 center">
+					<a id="registr_akciya" href="<?=$vkOAuth->getLink()?>" class="btn new-vk-btn">Зарегистрироваться и участвовать</a>
+				</div>
+				<div class="col-md-12 center">
+					<a href="/sale/vozvrashchaem_dengi_za_shkaf/" class="everyday__link">Подробные условия акции</a>
+				</div>
+			</div>
+			<div class="clearfix"></div>
+		</div>
+
+		<div class="" id="step4"  <?=(isset($user) && !empty($user)) || ($_GET['step']=='2') ? '' : 'style="display: none;"'?>>
+            <? if (isset($user) && !empty($user)): ?>
+                <script>$('h1').text('Пройдите регистрацию').addClass('main_h')</script>
+            <? endif; ?>
+
+            <p id="load_error"></p>
+            <form action="/everyday/ajax/everyday.php" name="regaction" method="post" class="form everyday__form">
+                <input type="hidden" name="vkid" value="id188398426" />
+
+                <label class="form__label">Для связи с вами в случае победы</label><br />
+                <input type="tel" name="phone" id="inputPhone" class="form__input input_underline" placeholder="Ваш телефон" value="<?php
+                    //Из-за маски ввода последняя цифра номера телефона может обрезаться, если в номер попадет +7 или 8.
+                    if (isset($user['mobile_phone']) && !empty($user['mobile_phone'])) {
+                        $phone = preg_replace('/^(\+7|8)/', '', $user['mobile_phone']);
+                        echo $phone;
+                    } else if (isset($user['home_phone']) && !empty($user['home_phone'])) {
+                        $phone = preg_replace('/^(\+7|8)/', '', $user['home_phone']);
+                        echo $phone;
+                    }
+                ?>"/><br />
+
+                <div class="tooltip_wrap">
+                    <label class="form__label">Код нанесенный под защитным слоем</label><br />
+                    <input type="text" name="code" id="code" class="form__input input_underline" placeholder="Уникальный код" /><br />
+                    <div class="tooltip everyday__tooltip">
+                        <span class="shelveTitle">
+                            Проверьте, что вы вводите ноль, а не букву "O" или наоборот.<br />
+                            Сотрите до конца защитный слой, возможно что нужно ввести "E", а не "F".
+                        </span>
+                    </div>
+                </div>
+
+                <label class="form__label">Как нам к Вам обращаться</label><br />
+                <input type="text" name="name" id="name" class="form__input input_underline" placeholder="Имя и Фамилия" <?php echo isset($user['first_name']) && isset($user['last_name']) ? 'value="' . $user['first_name'] . ' ' . $user['last_name'] . '"' : ''; ?> /><br />
+
+                <label class="form__label" for="store">Где Вы купили шкаф-купе</label>
+                <input type="text" name="store" id="store" class="form__input input_underline" placeholder="Юридическое наименование организации" /><br />
+
+                <img class="form__loader" style="display: none;" src="images/loading.gif" />
+                <button type="submit" name="sendeveryday" class="everyday__btn">Участвовать в акции</button>
+
+                <span class="check_block">
+                    <p class="need_check">Все поля обязательны для заполнения</p>
+                    <input type="checkbox" name="agree" /> Я ознакомлен с <a href="/sale/vozvrashchaem_dengi_za_shkaf/" class="everyday__link">условиями акции</a>.<br />
+                </span>
+    		</form>
+		</div>
+
+		<div class="" id="step5" <?=($_GET['step']=='3') ? '' : 'style="display: none;"'?>>
+<div class="main-wrap">
+  <div id="main" class="about" style="background-color: white; padding: 30px;">
+            <div class="step step_1" style="background: url(/everyday/images/stepper.svg) left 0 no-repeat;padding-bottom: 5rem;padding-top: 5rem;margin: auto;width: 250px; text-align: center; background-position: center top;">
+                <p class="step__title" style="font-weight: 600; margin-bottom: 0.5rem;">Вступите в нашу группу</p>
+                <p>Станьте участником группы Е1 Вконтакте <a style="color: #578333;" href="https://vk.com/e_odin">vk.com/e_odin</a></p>
+            </div>
+            <!--<div class="step__arrow"></div>-->
+            <div class="step step_2" style="background: url(/everyday/images/stepper-2.svg) left 0 no-repeat;padding-bottom: 5rem;padding-top: 5rem;margin: auto;width: 250px; text-align: center; background-position: center top;">
+                <p class="step__title" style="font-weight: 600; margin-bottom: 0.5rem;">Сделайте репост</p>
+                <p>Сделайте репост записи об акции, который закреплен на стене группы Вк</p>
+            </div>
+  </div>
+</div>
+		</div>
+	</div>
+</div>
+<?php
+include($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");
+
+function getNextMonday () {
+		$result = '';
+
+		for ($i = 1; $i <= 8; $i++) {
+			if (date('w', strtotime('+' . $i . ' day')) == 1) {
+				$result .= date('d', strtotime('+' . $i . ' day'));
+				switch (date('m', strtotime('+' . $i . ' day'))) {
+					case 1:
+						$result .= '&nbsp;января&nbsp;';
+						break;
+					case 2:
+						$result .= '&nbsp;февраля&nbsp;';
+						break;
+					case 3:
+						$result .= '&nbsp;марта&nbsp;';
+						break;
+					case 4:
+						$result .= '&nbsp;апреля&nbsp;';
+						break;
+					case 5:
+						$result .= '&nbsp;мая&nbsp;';
+						break;
+					case 6:
+						$result .= '&nbsp;июня&nbsp;';
+						break;
+					case 7:
+						$result .= '&nbsp;июля&nbsp;';
+						break;
+					case 8:
+						$result .= '&nbsp;августа&nbsp;';
+						break;
+					case 9:
+						$result .= '&nbsp;сентября&nbsp;';
+						break;
+					case 10:
+						$result .= '&nbsp;октября&nbsp;';
+						break;
+					case 11:
+						$result .= '&nbsp;ноября&nbsp;';
+						break;
+					case 12:
+						$result .= '&nbsp;декабря&nbsp;';
+						break;
+				}
+				$result .= date('Y года', strtotime('+' . $i . ' day'));
+				break;
+			}
+		}
+		return $result;
+	}
+?>

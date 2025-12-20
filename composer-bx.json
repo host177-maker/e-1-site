@@ -1,0 +1,12 @@
+{
+	"require-dev": {
+		"symfony/console": "*@stable"
+	},
+	"require": {
+		"psr/log": "^3.0",
+		"psr/http-message": "^2.0",
+		"psr/http-client": "^1.0",
+		"psr/container": "^2.0",
+		"php-http/promise": "^1.1"
+	}
+}

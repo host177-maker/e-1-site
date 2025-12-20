@@ -1,0 +1,27 @@
+<?
+$MESS['SMARTSEO_UPM_SITE_DIR'] = 'Site root folder';
+$MESS['SMARTSEO_UPM_SERVER_NAME'] = 'Server URL';
+$MESS['SMARTSEO_UPM_SECTION_PAGE_URL'] = 'Section Page URL';
+$MESS['SMARTSEO_UPM_SECTION_PAGE_URL_WITH_PROPERTIES'] = 'Properties section page URL';
+$MESS['SMARTSEO_UPM_SECTION_PAGE_URL_WITH_PROPERTIES_WITHOUT_CODES'] = 'URL of a section page with properties without character codes';
+$MESS['SMARTSEO_UPM_SECTION_PAGE_URL_WITH_PRICE_PROPERTIES'] = 'URL of the section page with prices and properties';
+$MESS['SMARTSEO_UPM_SECTION_PAGE_URL_WITH_PRICE_PROPERTIES_WITHOUT_CODES'] = 'URL of the page with prices, properties without symbol codes';
+$MESS['SMARTSEO_UPM_SECTION_PAGE_URL_OTHER'] = 'More Options';
+$MESS["SMARTSEO_UPM_IBLOCK"] = "Info block fields";
+$MESS['SMARTSEO_UPM_IBLOCK_TYPE_ID'] = 'Information block type';
+$MESS['SMARTSEO_UPM_IBLOCK_ID'] = 'Information block ID';
+$MESS['SMARTSEO_UPM_IBLOCK_CODE'] = 'Infoblock symbolic code';
+$MESS['SMARTSEO_UPM_IBLOCK_EXTERNAL_ID'] = 'External information block code';
+$MESS["SMARTSEO_UPM_SECTION"] = "Section Fields";
+$MESS['SMARTSEO_UPM_SECTION_ID'] = 'Section ID';
+$MESS['SMARTSEO_UPM_SECTION_CODE'] = 'Section character code';
+$MESS['SMARTSEO_UPM_SECTION_CODE_PATH'] = 'Path from section character codes';
+$MESS['SMARTSEO_UPM_SECTION_EXTERNAL_ID'] = 'External section code';
+$MESS['SMARTSEO_UPM_PROPERTY'] = 'Property Fields';
+$MESS['SMARTSEO_UPM_PROPERTY_CODE'] = 'Enumerate character code';
+$MESS['SMARTSEO_UPM_PROPERTY_VALUE'] = 'Enumerating Values';
+$MESS['SMARTSEO_UPM_PROPERTY_CODE_VALUE'] = 'Enumeration of character code and values';
+$MESS['SMARTSEO_UPM_PRICE'] = 'Price Fields';
+$MESS['SMARTSEO_UPM_PRICE_CODE'] = 'Enumerate character code';
+$MESS['SMARTSEO_UPM_PRICE_VALUE'] = 'Enumerating Values';
+$MESS['SMARTSEO_UPM_PRICE_CODE_VALUE'] = 'Enumerate character code and values';

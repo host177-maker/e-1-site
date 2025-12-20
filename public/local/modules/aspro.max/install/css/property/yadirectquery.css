@@ -1,0 +1,22 @@
+.aspro-admin-waiter{background:rgba(0, 0, 0, 0) url("../../../images/aspro.max/waiter.gif") no-repeat scroll 0 0 / 100% auto;border:medium none;content:" ";display:block;height:37px;position:absolute;width:35px;top:0;left:0;}
+#bx-admin-prefix .aspro_property_yadirectquery .adm-info-message{margin-top:0;}
+.query_explanation{position:relative;}
+.query_explanation .hidden{display:none;}
+.query_explanation_btn{cursor:pointer;border-bottom:1px dashed;text-decoration:none;display:inline-block;position:relative;margin:7px 0 0 20px;}
+.query_explanation_btn:hover{text-decoration:none;border-bottom-color:transparent;}
+.query_explanation_btn i{background:url("/bitrix/panel/main/images/bx-admin-sprite.png?1") no-repeat 5px -92px #cfd7da;height:16px;border-radius:50%;color:#e3ecee;font-size:12px;left:-20px;position:absolute;top:0;width:16px;cursor:pointer;}
+.query_explanation_btn:hover i{background-color:#f5f9f9;}
+.query_explanation_content{min-height:40px;position:relative;padding:16px 0 0;}
+.query_explanation_content .aspro-admin-waiter{top:10px;}
+/*.query_explanation_content div.condition-container{padding-bottom:18px;}*/
+.query_explanation_content .condition-container .condition-container{margin-left:12px;}
+.query_explanation_content .tmpnote{color:#a5a5a5;}
+.query_explanation_content .errornote{color:#800f0f;}
+.query_explanation_content ul{margin:0;}
+.query_explanation_content> ul{padding:0 0 0 11px;}
+.query_explanation_content div.condition-simple-control{line-height:22px;white-space:nowrap;}
+.query_explanation_content div.condition-simple-control a, .query_explanation_content .condition-simple{color:#2c4b90;}
+.query_explanation_content div.condition-simple-control a{text-decoration:none;border-bottom:1px solid transparent;}
+.query_explanation_content div.condition-simple-control>a{margin-left:8px;margin-right:8px;}
+.query_explanation_content .condition-logic{cursor:default;}
+.query_explanation_content .control-string-no{color:red;}

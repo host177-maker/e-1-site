@@ -1,0 +1,29 @@
+<?
+$MESS["WZD_OPTION_0"] = "Баннер";
+$MESS["WZD_OPTION_1"] = "*Баннер";
+$MESS["WZD_OPTION_2"] = "Активность";
+$MESS["WZD_OPTION_3"] = "*Активность";
+$MESS["WZD_OPTION_4"] = "Начало активности";
+$MESS["WZD_OPTION_5"] = "*Начало активности";
+$MESS["WZD_OPTION_6"] = "Окончание активности";
+$MESS["WZD_OPTION_7"] = "*Окончание активности";
+$MESS["WZD_OPTION_8"] = "*Название";
+$MESS["WZD_OPTION_9"] = "**Название";
+$MESS["WZD_OPTION_10"] = "Символьный код";
+$MESS["WZD_OPTION_11"] = "*Символьный код";
+$MESS["WZD_OPTION_12"] = "Сортировка";
+$MESS["WZD_OPTION_13"] = "*Сортировка";
+$MESS["WZD_OPTION_14"] = "*Внешний код";
+$MESS["WZD_OPTION_15"] = "**Внешний код";
+$MESS["WZD_OPTION_16"] = "Открыть в окне";
+$MESS["WZD_OPTION_17"] = "*Открыть в окне";
+$MESS["WZD_OPTION_18"] = "Активная картинка";
+$MESS["WZD_OPTION_19"] = "*Активная картинка";
+$MESS["WZD_OPTION_20"] = "Связанные разделы каталога";
+$MESS["WZD_OPTION_21"] = "*Связанные разделы каталога";
+$MESS["WZD_OPTION_22"] = "Ссылка";
+$MESS["WZD_OPTION_23"] = "*Ссылка";
+$MESS["WZD_OPTION_24"] = "Регион";
+$MESS["WZD_OPTION_25"] = "*Регион";
+$MESS["WZD_OPTION_26"] = "";
+?>

@@ -1,0 +1,30 @@
+<?
+$MESS['E1_SS_TAB'] = "Основные настройки";
+$MESS['E1_SS_CUSTOM_SALE_BASKET'] = "Отключить кастомные скидки";
+$MESS['E1_SS_USE_PREPAYMENT'] = "Использовать предоплату";
+$MESS['E1_SS_IS_HOME_SHOW_BUTTON'] = "Скрывать кнопку Скачать каталог на главной";
+$MESS['E1_SS_PREPAYMENT_VALUE'] = "Сумма предоплаты";
+$MESS['E1_SS_PREPAYMENT_PAYMENT'] = "Способ оплаты для предоплаты";
+$MESS['E1_SS_NOT_CHOOSE_FIELD'] = "Не выбрано";
+$MESS['E1_SS_SHOW_DELIVERY_WAREHOUSES'] = "Показывать склады для доставки";
+$MESS['E1_SS_DEFAULT_PRICE'] = "Цены по умолчанию";
+$MESS['E1_SS_BASE_PRICE'] = "Базовая цена";
+$MESS['E1_SS_REGIONS_IBLOCK'] = "Инфоблок регионов";
+$MESS['E1_SS_UNDER_PAYMENT_BUTTONTEXT'] = "Текст под кнопкой оплаты";
+$MESS['E1_SS_USE_FILTER_SAVE_PRICE'] = "Сохранять (обновлять) свойство для фильтрации по цене в каталоге";
+$MESS['E1_SS_USE_FILTER_CLEAR_CACHE'] = "Сбрасывать кеш при фильтрации в каталоге, на странице фильтра";
+$MESS['E1_SS_FOOTER_PHONE'] = "Телефон в футере";
+$MESS['E1_SS_MODAL_ORDER_TITLE'] = "Название в модальном окне в заказе";
+$MESS['E1_SS_MODAL_ORDER_TEXT'] = "Текст в модальном окне в заказе";
+$MESS['E1_SS_MODAL_ORDER_BUTTON_YES'] = "Подтверждение в модальном окне в заказе";
+$MESS['E1_SS_MODAL_ORDER_BUTTON_NO'] = "Отказ в модальном окне в заказе";
+$MESS['E1_SS_SYSTEM_NUMBER_ZVONOK'] = "Системный номер заявки при обращении через Обратный звонок";
+$MESS['E1_SS_URL_TAGS_SECTION'] = "URL у тегов на главной и меню, из которого выводятся теги";
+$MESS['E1_SS_ID_TAGS_SECTION'] = "ID у тегов на главной и меню, из которого выводятся теги";
+$MESS['E1_SS_PRICE_MODULE_ASSEMBLY'] = "Цена у модулей, название";
+$MESS['E1_SS_USE_WARNING_MESSAGE'] = "Выводить сообщение о технических работах на сайте";
+$MESS['E1_SS_MODAL_WARNING_TITLE'] = "Название в модальном окне о технических работах на сайте";
+$MESS['E1_SS_MODAL_WARNING_TEXT'] = "Текст в модальном окне о технических работах на сайте";
+$MESS['E1_SS_MODAL_WARNING_BUTTON'] = "Подтверждение в модальном окне о технических работах на сайте";
+$MESS['E1_SS_UTM_BANNERY_HOME_CODE'] = "UTM код для баннеров на главной";
+?>

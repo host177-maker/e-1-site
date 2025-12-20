@@ -1,0 +1,4 @@
+<?
+$MESS['ASPRO_SMARTSEO_TAGS_NAME'] = 'Аспро';
+$MESS['ASPRO_SMARTSEO_TAGS_COMPONENT'] = 'Аспро: Умный SEO - Теги';
+$MESS['ASPRO_SMARTSEO_TAGS_DESCRIPTION'] = 'Вывод тегов';

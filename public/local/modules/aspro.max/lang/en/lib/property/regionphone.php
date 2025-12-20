@@ -1,0 +1,10 @@
+<?
+$MESS['MAX_REGION_PHONE_PROP_TITLE'] = 'Aspro: Max. Phone for the region ';
+$MESS['MAX_REGION_PHONE_ICON_TITLE'] = 'Icon';
+$MESS['MAX_REGION_PHONE_PHONE_TITLE'] = 'Title *';
+$MESS['MAX_REGION_PHONE_HREF_TITLE'] = 'Link';
+$MESS['MAX_REGION_PHONE_DESCRIPTION_TITLE'] = 'Description';
+$MESS['MAX_REGION_PHONE_DESCRIPTION_FIELD_DISABLED_NOTE'] = 'no description (field output is disabled)';
+$MESS['MAX_REGION_PHONE_DRAG_TITLE'] = 'Move';
+$MESS['MAX_REGION_PHONE_DELETE_TITLE'] = 'Delete';
+?>

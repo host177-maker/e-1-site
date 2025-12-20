@@ -1,0 +1,145 @@
+.product-view .equipment-block {
+
+}
+
+.product-view .equipment-block {
+    border-top: 1px solid #e1e1e1;
+    padding: 50px 60px 50px 60px;
+    position: relative;
+}
+
+.product-view .equipment-block .equipment-block-title {
+    margin: 0;
+    font-size: 18px;
+    color: #333333;
+    line-height: 2.3;
+    font-weight: 500;
+}
+
+.product-view .equipment-block .equipment-block-template {
+    margin: 15px -10px 0px;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-content: flex-start;
+    line-height: 0;
+}
+
+.product-view .equipment-block ul li {
+    flex: auto;
+    padding: 0;
+    margin: 4px 4px;
+    width: 200px;
+    height: 240px;
+    max-width: 200px;
+    max-height: 240px;
+    margin: 10px 10px 10px 10px;
+}
+
+.product-view .equipment-block ul li i {
+    display: block;
+    font-style: normal;
+    text-align: center;
+    margin-top: 15px;
+}
+
+.product-view .equipment-block ul li i:before {
+    content: attr(title);
+    display: block;
+    font-size: 13px;
+    line-height: 13px;
+}
+
+.product-view .equipment-block ul li .cnt1 {
+    width: 100%;
+    display: inline-block;
+    padding-top: 100%;
+    position: relative;
+    border: 1px solid #dddddd;
+    cursor: pointer;
+}
+
+.product-view .equipment-block ul li.active .cnt1, .product-view .equipment-block ul li:hover .cnt1 {
+    border-color: #7ea50b;
+}
+
+.product-view .equipment-block ul li.active .cnt_item:before, .product-view .equipment-block ul li.active .cnt_item:after {
+    content: '';
+    display: block;
+    position: absolute;
+}
+
+.product-view .equipment-block ul li.active .cnt_item:before {
+    width: 16px;
+    height: 16px;
+    background: #ffffff;
+    border: 1px solid #7ea50b;
+    z-index: 2;
+    top: 8px;
+    left: 8px;
+    margin: 0;
+}
+
+.product-view .equipment-block ul li .cnt_item {
+    line-height: 26px;
+    position: relative;
+    top: 0;
+    border-radius: 1px;
+    display: inline-block;
+    vertical-align: middle;
+    -webkit-background-size: cover;
+    background-size: cover;
+    border: 2px solid #fff;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.product-view .equipment-block ul li:before {
+	display: none;
+}
+
+.product-view .equipment-block ul li.active .cnt_item:after {
+    display: block;
+    font-family: 'FontAwesome';
+    line-height: 0.9;
+    font-size: 11px;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    content: "\f00c";
+    color: #7ea50b;
+    top: 12px;
+    left: 11px;
+    z-index: 3;
+    font-weight: 100;
+}
+
+.product-view .equipment-block .equipment-block-summ-cost {
+    position: absolute;
+    top: 50px;
+    right: 60px;
+    font-size: 13px;
+    font-weight: 100;
+    color: #888888;
+}
+
+.product-view .equipment-block .equipment-block-summ-cost span {
+    font-size: 24px;
+    font-weight: 800;
+    color: #81a90c;
+    display: block;
+}
+
+@media (max-width: 768px){
+
+    .product-view .equipment-block {
+        padding: 35px 10px 110px 10px;
+    }
+
+    .product-view .equipment-block .equipment-block-summ-cost {
+        top: auto;
+        bottom: 30px;
+        left: 10px;
+    }
+}

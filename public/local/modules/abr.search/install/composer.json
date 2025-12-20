@@ -1,0 +1,13 @@
+{
+    "require": {
+        "guzzlehttp/guzzle": "^7.8"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        },
+        "platform": {
+            "php": "7.4"
+        }
+    }
+}

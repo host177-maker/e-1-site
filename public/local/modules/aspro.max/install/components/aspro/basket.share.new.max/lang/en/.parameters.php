@@ -1,0 +1,43 @@
+<?
+$MESS['BSN_G_VISUAL_TITLE'] = 'Appearance';
+$MESS['BSN_G_MESSAGES_TITLE'] = 'Phrases';
+
+$MESS['BSN_P_SET_PAGE_TITLE_TITLE'] = 'Set page title (not in popup window)';
+$MESS['BSN_P_SITE_ID_TITLE'] = 'Site ID';
+$MESS['SITE_ID_TIP'] = 'The cart is being processed on the specified site. The default is empty, i.e. the cart is being processed on the current site ';
+$MESS['BSN_P_SITE_ID_EMPTY'] = '(current site)';
+$MESS['BSN_P_USER_ID_TITLE'] = 'User ID';
+$MESS['USER_ID_TIP'] = 'Processing the cart of the specified user. The default is empty, i.e. the cart of the current user is being processed ';
+$MESS['BSN_P_PATH_TO_SHARE_BASKET_TITLE'] = 'Path to Share Cart Page';
+$MESS['PATH_TO_SHARE_BASKET_TIP'] = 'The default is taken from the solution settings';
+$MESS['BSN_P_SHOW_SHARE_SOCIALS_TITLE'] = 'Display social media block';
+$MESS['BSN_P_SHARE_SOCIALS_TITLE'] = 'Social Networks and Services';
+$MESS['BSN_P_SHARE_SOCIALS_VKONTAKTE'] = 'VKontakte';
+$MESS['BSN_P_SHARE_SOCIALS_FACEBOOK'] = 'Facebook';
+$MESS['BSN_P_SHARE_SOCIALS_ODNOKLASSNIKI'] = 'Classmates';
+$MESS['BSN_P_SHARE_SOCIALS_MOIMIR'] = 'My World';
+$MESS['BSN_P_SHARE_SOCIALS_TWITTER'] = 'Twitter';
+$MESS['BSN_P_SHARE_SOCIALS_VIBER'] = 'Viber';
+$MESS['BSN_P_SHARE_SOCIALS_WHATSAPP'] = 'WhatsApp';
+$MESS['BSN_P_SHARE_SOCIALS_SKYPE'] = 'Skype';
+$MESS['BSN_P_SHARE_SOCIALS_TELEGRAM'] = 'Telegram';
+
+$MESS['BSN_P_USE_CUSTOM_MESSAGES_TITLE'] = 'Replace standard phrases with your own';
+$MESS['BSN_P_MESS_TITLE_TITLE'] = 'Title';
+$MESS['MESS_TITLE_TIP'] = 'Share Cart';
+$MESS['BSN_P_MESS_TITLE_DEFAULT'] = 'Share Cart';
+$MESS['BSN_P_MESS_URL_FIELD_TITLE'] = 'Field title with link';
+$MESS['MESS_URL_FIELD_TITLE_TIP'] = 'You can share your cart using the link:';
+$MESS['BSN_P_MESS_URL_FIELD_DEFAULT'] = 'You can share your shopping cart using the link:';
+$MESS['BSN_P_MESS_URL_COPY_HINT_TITLE'] = 'Description below the field with link';
+$MESS['MESS_URL_COPY_HINT_TIP'] = 'Click on the link to copy';
+$MESS['BSN_P_MESS_URL_COPY_HINT_DEFAULT'] = 'Click on the link to copy';
+$MESS['BSN_P_MESS_URL_COPIED_HINT_TITLE'] = 'Notification that the link has been copied';
+$MESS['MESS_URL_COPIED_HINT_TIP'] = 'Copied!';
+$MESS['BSN_P_MESS_URL_COPIED_HINT_DEFAULT'] = 'Copied!';
+$MESS['BSN_P_MESS_URL_COPY_ERROR_HINT_TITLE'] = 'Notification about link copy error';
+$MESS['MESS_URL_COPY_ERROR_HINT_TIP'] = 'Your browser does not allow using the clipboard';
+$MESS['BSN_P_MESS_URL_COPY_ERROR_HINT_DEFAULT'] = 'Your browser does not allow using the clipboard';
+$MESS['BSN_P_MESS_SHARE_SOCIALS_TITLE_TITLE'] = 'Social media block title';
+$MESS['MESS_SHARE_SOCIALS_TITLE_TIP'] = 'Share on social networks';
+$MESS['BSN_P_MESS_SHARE_SOCIALS_TITLE_DEFAULT'] = 'Share on social networks';

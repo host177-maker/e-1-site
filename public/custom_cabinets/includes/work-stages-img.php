@@ -1,0 +1,1 @@
+<img src="<?= SITE_TEMPLATE_PATH ?>/images/custom_cabinets/work-stages-1.png" alt="" />

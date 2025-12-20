@@ -1,0 +1,20 @@
+<?
+$MESS['SMARTSEO_GRID_SEARCH_ACTION_EDIT'] = 'Change';
+$MESS['SMARTSEO_GRID_SEARCH_ACTION_DEACTIVATE'] = 'Deactivate';
+$MESS['SMARTSEO_GRID_SEARCH_ACTION_ACTIVATE'] = 'Activate';
+$MESS['SMARTSEO_GRID_SEARCH_ACTION_DELETE'] = 'Delete';
+$MESS['SMARTSEO_GRID_SEARCH_ACTION_REINDEX'] = 'Reindex';
+
+$MESS['SMARTSEO_GRID_SEARCH_VALUE_CONDITION_DEFAULT'] = '[#ID#] <untitled condition>';
+$MESS['SMARTSEO_GRID_SEARCH_VALUE_Y'] = 'Yes';
+$MESS['SMARTSEO_GRID_SEARCH_VALUE_N'] = 'No';
+$MESS['SMARTSEO_GRID_SEARCH_NEW'] = 'New search terms';
+
+$MESS['SMARTSEO_GRID_STATUS_NOT_INDEXED'] = 'Re-indexing required';
+$MESS['SMARTSEO_GRID_SEARCH_STATUS_SUCCESS_INDEXED'] = 'Looking for';
+
+$MESS['SMARTSEO_POPUP_SEARCH_BTN_DELETE'] = 'Delete';
+$MESS['SMARTSEO_POPUP_SEARCH_BTN_CANCEL'] = 'Cancel';
+$MESS['SMARTSEO_POPUP_SEARCH_BTN_CLOSE'] = 'Close';
+$MESS['SMARTSEO_POPUP_SEARCHMESSGE_DELETE'] = 'All information associated with this post will be deleted! <br> Continue? ';
+$MESS['SMARTSEO_GRID_SEARCHMESSGE_REINDEX_SUCCESS'] = '<div class = "aspro-ui-notification"> <h4> #NAME# </h4> Successfully saved <br> Landing pages in search - <b> #COUNT# </b> </div>';

@@ -1,0 +1,53 @@
+<?
+$aMenuLinks = Array(
+	Array(
+		"Каталог", 
+		"/catalog/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Гардеробные", 
+		"/dressing_room/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Встроенные шкафы", 
+		"/built-in_wardrobe/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Адреса салонов", 
+		"/contacts/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Покупателю", 
+		"/client/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Отзывы", 
+		"/reviews/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Акции", 
+		"/sale/", 
+		Array(), 
+		Array(), 
+		"" 
+	)
+);
+?>

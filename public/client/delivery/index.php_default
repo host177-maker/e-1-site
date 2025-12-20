@@ -1,0 +1,17 @@
+<?
+require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
+$APPLICATION->SetTitle("Доставка и сборка");
+?><p>Срок доставки зависит от исполнения шкафа-купе и вашего региона. На основании данных нашей управленческой системы мы публикуем ежечасно обновляемую информацию по срокам поставки шкафа для каждого региона. Подробнее посмотреть можете на странице <a href="/client/company/quality/">онлайн-статистики</a> нашей компании.</p>
+
+<p>Узнать стоимость доставки, указать необходимость сборки и её стоимость вы сможете при оформлении заказа на нашем сайте.</p>
+
+<h3>Смотрите видео о сборке наших шкафов-купе</h3>
+<div class="youtube-section">
+	<div class="psevdo_h6">Серия «Экспресс» и «Оптим»</div>
+	<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/lP-xVdZDNsw" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div>
+
+<div class="youtube-section">
+	<div class="psevdo_h6">Серия «Эста»</div>
+	<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/W_5krAAgKkU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+</div><?require($_SERVER["DOCUMENT_ROOT"]."/bitrix/footer.php");?>

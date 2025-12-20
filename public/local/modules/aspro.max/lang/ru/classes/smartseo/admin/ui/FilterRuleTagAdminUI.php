@@ -1,0 +1,8 @@
+<?
+$MESS['SMARTSEO_TAG_UI_ENTITY_ID'] = 'ID';
+$MESS['SMARTSEO_TAG_UI_FILTER_CONDITION'] = 'Теги по условию';
+$MESS['SMARTSEO_TAG_UI_PARENT_FILTER_CONDITION'] = 'Условие родитель';
+$MESS['SMARTSEO_TAG_UI_ACTIVE'] = 'Активность';
+$MESS['SMARTSEO_TAG_UI_SECTION'] = 'Раздел';
+$MESS['SMARTSEO_TAG_UI_TEMPLATE'] = 'Шаблон';
+$MESS['SMARTSEO_TAG_UI_TYPE'] = 'Вывод на сайте';

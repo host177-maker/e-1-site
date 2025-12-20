@@ -1,0 +1,222 @@
+<?php
+
+use Bitrix\Main,
+	Bitrix\Sale;
+
+if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)
+{
+	die();
+}
+
+/**
+array (
+  'orderId' => '1030000005861',
+  'agentId' => '3563',
+  'paymentId' => '64756872942846',
+  'amount' => '19490.00',
+  'currency' => 'RUR',
+  'phone' => '+79222157468',
+  'preference' => '125',
+  'paymentStatus' => '1',
+  'paymentDate' => '17:37:34 14.01.2019',
+  'goods' => 'Шкаф купе Е1',
+  'agentName' => 'Шкафы купе Е1',
+  'course' => '1.00000000',
+  'inputId' => '1030000005861',
+  'outputId' => '015945-000998',
+  'signature' => 'fb8dfbea1bdab65511ad17837f598a3e',
+  'CustomerFio' => 'Назаренко Сергей Николаевич',
+  'OrderDate' => '14.01.2019',
+  'CustomerEmail' => 'nazarenkserjoga@rambler.ru',
+  'CustomerTime' => '08:30:42 14.01.2019',
+  'CustomerAmount' => '19490',
+  'OrderDetails' => 'Онлайн-оплата заказа на сайте www.e-1.ru',
+  'sign' => '69a2f94c417e2c0983843bee70cbd18b',
+)
+*/
+
+$request = Main\Context::getCurrent()->getRequest();
+
+$bAddLog = false;
+if(!empty($request['agentId'])){
+	$bAddLog = true;
+}
+
+$this->setFramemode(false);
+
+if (!CModule::IncludeModule("sale"))
+{
+	ShowError(GetMessage("SALE_MODULE_NOT_INSTALL"));
+	return;
+}
+
+global $APPLICATION, $USER;
+
+$APPLICATION->RestartBuffer();
+
+$bUseAccountNumber = Sale\Integration\Numerator\NumeratorOrder::isUsedNumeratorForOrder();
+
+$orderId = '';
+if(!empty($request["ORDER_ID"])){
+	$orderId = urldecode(urldecode($request["ORDER_ID"]));
+}
+elseif($request["orderId"]){
+	$orderId = urldecode(urldecode($request["orderId"]));
+}
+
+$paymentId = '';
+if(!empty($request["PAYMENT_ID"])){
+	$paymentId = $request["PAYMENT_ID"];
+}
+elseif(!empty($request["paymentId"])){
+	$paymentId = $request["paymentId"];
+}
+
+$hash = null;
+if(!empty($request["HASH"])){
+	$hash = $request["HASH"];
+}
+elseif(!empty($request["sign"])){
+	$hash = $request["sign"];
+}
+
+$returnUrl = $_REQUEST["RETURN_URL"] ?? '';
+
+$registry = Sale\Registry::getInstance(Sale\Registry::REGISTRY_TYPE_ORDER);
+/** @var Sale\Order $orderClassName */
+$orderClassName = $registry->getOrderClassName();
+
+$arOrder = false;
+$checkedBySession = false;
+
+if (!$USER->IsAuthorized() && is_array($_SESSION['SALE_ORDER_ID']) && empty($hash))
+{
+	$realOrderId = 0;
+
+	if ($bUseAccountNumber)
+	{
+		$dbRes = $orderClassName::getList([
+			'filter' => [
+				"LID" => SITE_ID,
+				"ACCOUNT_NUMBER" => $orderId
+			],
+			'order' => [
+				"DATE_UPDATE" => "DESC"
+			]
+		]);
+		$arOrder = $dbRes->fetch();
+		if ($arOrder)
+		{
+			$realOrderId = intval($arOrder["ID"]);
+		}
+	}
+	else
+	{
+		$realOrderId = intval($orderId);
+	}
+
+	$checkedBySession = in_array($realOrderId, $_SESSION['SALE_ORDER_ID']);
+}
+
+if ($bUseAccountNumber && !$arOrder)
+{
+	$arFilter = array(
+		"LID" => SITE_ID,
+		"ACCOUNT_NUMBER" => $orderId
+	);
+
+	if (empty($hash))
+	{
+		$arFilter["USER_ID"] = intval($USER->GetID());
+	}
+
+	$dbRes = $orderClassName::getList([
+		'filter' => $arFilter,
+		'order' => [
+			"DATE_UPDATE" => "DESC"
+		]
+	]);
+
+	$arOrder = $dbRes->fetch();
+}
+
+if (!$arOrder)
+{
+	$arFilter = array(
+		"LID" => SITE_ID,
+		"ID" => $orderId
+	);
+	if (!$checkedBySession && empty($hash))
+		$arFilter["USER_ID"] = intval($USER->GetID());
+
+	$dbRes = $orderClassName::getList([
+		'filter' => $arFilter,
+		'order' => [
+			"DATE_UPDATE" => "DESC"
+		]
+	]);
+
+	$arOrder = $dbRes->fetch();
+}
+
+if ($arOrder)
+{
+	/** @var Sale\Payment|null $paymentItem */
+	$paymentItem = null;
+
+	/** @var Sale\Order $order */
+	$order = $orderClassName::load($arOrder['ID']);
+
+	if ($order)
+	{
+		$guestStatuses = Main\Config\Option::get("sale", "allow_guest_order_view_status", "");
+		$guestStatuses = ($guestStatuses <> '') ?  unserialize($guestStatuses, ['allowed_classes' => false]) : array();
+
+		if (!Sale\OrderStatus::isAllowPay($order->getField('STATUS_ID')))
+		{
+			LocalRedirect('/');
+			return;
+		}
+
+		/** @var Sale\PaymentCollection $paymentCollection */
+		$paymentCollection = $order->getPaymentCollection();
+
+		if ($paymentCollection)
+		{
+			if ($paymentId)
+			{
+				$data = Sale\PaySystem\Manager::getIdsByPayment($paymentId);
+
+				if ($data[1] > 0)
+					$paymentItem = $paymentCollection->getItemById($data[1]);
+			}
+
+			if ($paymentItem === null)
+			{
+				/** @var Sale\Payment $item */
+				foreach ($paymentCollection as $item)
+				{
+					if (!$item->isInner() && !$item->isPaid())
+					{
+						$paymentItem = $item;
+						break;
+					}
+				}
+			}
+
+			if ($paymentItem !== null)
+			{
+
+				$service = Sale\PaySystem\Manager::getObjectById($paymentItem->getPaymentSystemId());
+
+				if ($service)
+					$service->processRequest($request);
+
+			}
+		}
+	}
+}
+else
+{
+	ShowError(GetMessage('SOP_ORDER_NOT_FOUND'));
+}

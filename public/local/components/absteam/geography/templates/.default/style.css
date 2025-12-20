@@ -1,0 +1,22 @@
+.city-tags {
+    align-content: space-between;
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0;
+    justify-content: space-between;
+    line-height: 1;
+    margin-bottom: 30px;
+}
+
+.city-tags .tag {
+    border: 1px solid #62BB46;
+    border-radius: 20px;
+    color: #777;
+    display: inline-block;
+    font-size: 15px;
+    margin: 0 15px 12px 0;
+    padding: 10px 20px;
+}
+.city-tags .tag:hover {
+    color: #62bb46;
+}

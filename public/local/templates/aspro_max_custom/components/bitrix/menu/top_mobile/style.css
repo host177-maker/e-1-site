@@ -1,0 +1,4 @@
+#mobilemenu .menu ul>li.tags__list-item {
+    width: calc((100% - 10px) / 2);
+    padding: 0;
+}

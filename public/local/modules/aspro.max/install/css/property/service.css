@@ -1,0 +1,6 @@
+#bx-admin-prefix .aspro_property_service .adm-warning-block-red{position:relative;background:initial;}
+#bx-admin-prefix .aspro_property_service .adm-warning-icon{margin: -9px 0 0 -15px;}
+#bx-admin-prefix .aspro_property_service_note{padding:1px 0 5px 25px;color:#881521;}
+#bx-admin-prefix .aspro_property_service a{border-bottom:1px dashed;text-decoration:none;margin-left:25px;}
+#bx-admin-prefix .aspro_property_service a:hover{border-bottom-color:transparent;text-decoration:none;}
+#bx-admin-prefix .aspro_property_service--hidden{display:none;}

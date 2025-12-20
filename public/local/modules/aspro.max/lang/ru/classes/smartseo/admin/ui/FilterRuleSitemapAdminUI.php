@@ -1,0 +1,7 @@
+<?
+$MESS['SMARTSEO_CSM_UI_ENTITY_ID'] = 'ID';
+$MESS['SMARTSEO_CSM_UI_FILTER_CONDITION'] = 'Условие';
+$MESS['SMARTSEO_CSM_UI_SITEMAP'] = 'Карта сайта';
+$MESS['SMARTSEO_CSM_UI_ACTIVE'] = 'Активность';
+$MESS['SMARTSEO_CSM_UI_CHANGEFREQ'] = 'Частота изменения';
+$MESS['SMARTSEO_CSM_UI_PRIORITY'] = 'Приоритет';

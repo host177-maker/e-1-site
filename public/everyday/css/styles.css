@@ -1,0 +1,443 @@
+body {
+    font-family: Helvetica, Arial, sans-serif;
+	background: #eeefeb;
+	font-size: 13px;
+}
+
+input[type="text"].error,  input[type="tel"].error {
+	border-bottom: 1px solid red!important;
+}
+
+input[type="text"].success,  input[type="tel"].success {
+	border-bottom: 1px solid green!important;
+}
+
+.articleImage.error {
+	border: 1px solid red!important;
+}
+
+input[type="checkbox"].error:after {
+	position: absolute;
+    top: -3px;
+    left: 1px;
+	content: 'X';
+	color: red;
+}
+
+a.btn.new-vk-btn {
+    background-color: #81a90c;
+    color: white;
+    display: inline-block;
+    font-weight: 500;
+    margin-top: 40px;
+    margin-bottom: 30px;
+    padding: 18px 27px;
+}
+
+.error {
+	position: relative;
+}
+
+#main.about {
+	margin-top: 0;
+}
+
+#main.about h1 {
+	display: none;
+}
+
+.center {
+	text-align: center;
+}
+
+.lead {
+	font-size: 15px;
+}
+
+#load_error {
+    position: relative;
+    top: -35px;
+}
+
+.everyday {
+	padding: 0 50px 50px;
+    background-color: white;
+}
+
+.everyday__form {
+	margin-top: -25px;
+    margin-left: 13%;
+    margin-right: 13%;
+}
+
+/*.block {
+	padding: 45px;
+	color: #000000;
+}*/
+
+.block_orange {
+	padding: 0 45px;
+	color: #000000;
+    background: white;
+    background-position: center;
+    background-size: 100%;
+    color: #000000;
+}
+
+.title {
+	font-size: 30px;
+	line-height: 55px;
+}
+
+.titleh1 {
+	font-size: 48px;
+	line-height: 55px;
+}
+
+#main.about h1 {
+	display: block;
+}
+
+.block__title {
+	margin-bottom: 40px;
+}
+
+.title__paragraph {
+	margin-bottom: 40px;
+	text-align: left;
+}
+
+.everyday-list {
+	margin: 0 auto;
+	list-style-type: square;
+}
+
+.list__el {
+    margin-bottom: 25px;
+    list-style: none;
+    padding: 1rem;
+    line-height: 20px;
+}
+span.list__el__sub {
+    border: 3px solid #81a90c;
+    padding: 10px 10px;
+    border-radius: 100px;
+    margin-top: 19px;
+    margin-left: 15px;
+    position: absolute;
+}
+
+/*.btn {
+	height: 60px;
+	min-width: 310px;
+	font-size: 17px;
+	font-weight: 700;
+	border: none;
+	background: inherit;
+	display: block;
+	box-sizing: border-box;
+	margin: 0 auto;
+}*/
+
+.btn_white {
+    margin-top: 60px !important;
+    background-color: #81a90c;
+    color: #ffffff;
+    font-weight: 400;
+    font-size: 16px;
+    padding: 9px 30px;
+    border-color: #fefefe;
+}
+
+.btn_white:hover {
+    background-color: #9ac51c
+    color: #ffffff;
+    font-weight: 400;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 9px 30px;
+    border-color: #fefefe;
+}
+
+.btn_gray {
+	color: #8f8f8f;
+	border: 2px solid;
+	cursor: none;
+}
+
+.btn_orange {
+	color: #e27121;
+	border: 2px solid;
+}
+
+.btn_orange:hover {
+	background-color: #e07320;
+	color: #fefefe;
+	border-color: #e07320;
+}
+
+.btn_vk {
+	color: #e27121;
+	border: 2px solid;
+	background: url('/everyday/images/new_temp/vk.png') 10px center no-repeat;
+	padding: 0 25px 0 90px;
+	max-width: 320px;
+	font-size: 17px;
+	line-height: 55px;
+}
+
+.btn_vk:hover {
+	color: #e27121;
+	text-decoration: none;
+}
+
+.block__btn {
+	margin-top: 30px;
+	margin-bottom: 30px;
+}
+
+.everyday__link {
+	text-decoration: none;
+	color: #9ac51c;
+	border-bottom: 1px solid;
+	padding-bottom: 2px;
+}
+
+.everyday__link:hover {
+	text-decoration: none;
+	color: inherit;
+}
+
+.step {
+	padding-top: 75px;
+	position: relative;
+}
+
+.step_1 {
+	background: url('/everyday/images/stepper.svg') left 0 no-repeat;
+}
+
+.step_2 {
+	background: url('/everyday/images/stepper-2.svg') left 0 no-repeat;
+}
+
+.everyday .registration .arrow {
+    background: url(../images/arrow.png) no-repeat left center;
+    height: 75px;
+    width: 9px;
+    position: absolute;
+	left: 114px;
+}
+
+.step_3 {
+	background: url('/everyday/images/stepper-3.svg') left 0 no-repeat;
+}
+
+.step_4 {
+	background: url('/everyday/images/stepper-4.svg') left 0 no-repeat;
+}
+
+.step__title {
+	margin-bottom: 10px;
+	font-weight: 700;
+}
+
+.step__arrow {
+    position: absolute;
+    top: 28px;
+    left: 91px;
+    right: -5px;
+    height: 14px;
+    background: url(/everyday/images/Arrow.svg) right no-repeat;
+}
+
+.vk-description {
+	margin-bottom: 25px;
+}
+
+.form__input {
+	width: 100%;
+	background: inherit;
+	margin-bottom: 25px;
+	border: none;
+}
+
+.form__loader {
+	display: none;
+}
+
+.input_underline {
+	border-bottom: 1px solid;
+}
+
+.title_orange {
+	color: #dd7128;
+}
+
+.g-recaptcha {
+	margin-top: 30px;
+}
+
+.congratulation {
+	line-height: 34px;
+	margin-bottom: 30px;
+}
+
+.step-block:last-child .step .step__arrow {
+	display: none;
+}
+
+.zvonok {
+    box-sizing: content-box;
+}
+
+.form__input.input_underline {
+    width: 100% !important;
+}
+
+input.form__input.input_underline {
+    padding: 0.7rem 0rem 0.5rem 0rem;
+    border: unset;
+    border-bottom: 1px solid #b1b1b1;
+    background-color: transparent;
+    margin-bottom: 25px;
+    border-radius: unset;
+}
+
+input.form__input.input_underline {
+    display: block;
+}
+
+input[type=email]:focus, input[type=password]:focus, input[type=tel]:focus, input[type=text]:focus, select:focus, textarea:focus {
+	border: none !important;
+    border-bottom: 1px solid #b1b1b1 !important;
+}
+
+.everyday__btn {
+    padding: 1rem 2rem;
+    color: white;
+    border: unset;
+    display: inline-block;
+    background-color: #81a90c;
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: none;
+    vertical-align: top;
+    height: 60px;
+    min-width: 310px;
+}
+
+span.check_block {
+    display: inline-block;
+    margin-left: 20px;
+}
+
+.need_check {
+    display: block;
+    margin-bottom: 0.4rem;
+}
+
+@media screen and (max-width: 1185px) {
+	.everyday {
+		padding: 0;
+	}
+}
+
+@media screen and (max-width: 1024px) {
+	.block_orange {
+		background: #e56f25 url('/everyday/images/new_temp/fon_md.png') no-repeat;
+		background-position: center;
+	}
+}
+
+@media screen and (max-width: 992px) {
+	.step {
+		margin-bottom: 50px;
+		text-align: center;
+	}
+
+	.title {
+		font-size: 24px;
+	}
+
+	.titleh1 {
+		font-size: 35px;
+	}
+
+	.step__arrow {
+		position: absolute;
+		top: -40px;
+		left: 50%;
+		height: 30px;
+		width: 5px;
+		background: url(/everyday/images/new_temp/strelka_ver.png) bottom no-repeat;
+	}
+
+	.step-block:first-child .step .step__arrow {
+		display: none;
+	}
+
+	.step-block:last-child .step .step__arrow {
+		display: block;
+	}
+}
+
+@media screen and (max-width: 830px) {
+	.everyday-list {
+		max-width: 500px;
+	}
+}
+
+@media screen and (max-width: 780px) {
+	.block_orange {
+   	  background: #ffffff;
+	}
+	.list__el {
+	   margin-left: 40px;
+}
+.step_1 {
+    background: url(/everyday/images/stepper.svg) center 0 no-repeat;
+}
+.step_2 {
+    background: url(/everyday/images/stepper-2.svg) center 0 no-repeat;
+}
+.step_3 {
+    background: url(/everyday/images/stepper-3.svg) center 0 no-repeat;
+}
+.step_4 {
+    background: url(/everyday/images/stepper-4.svg) center 0 no-repeat;
+}
+
+}
+
+@media screen and (max-width: 599px) {
+	#main.about {
+		padding: 0;
+	}
+
+	.container {
+		padding: 0;
+	}
+
+	.block {
+		padding: 40px;
+	}
+
+	/*.btn {
+		min-width: 200px;
+	}*/
+}
+
+@media screen and (max-width: 499px) {
+	.btn_vk {
+		line-height: 19px;
+		padding-top: 10px;
+	}
+
+	.g-recaptcha {
+		transform:scale(0.8);
+		-webkit-transform:scale(0.8);
+		transform-origin:0 0;
+		-webkit-transform-origin:0 0;
+	}
+}

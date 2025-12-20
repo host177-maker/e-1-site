@@ -1,0 +1,1 @@
+<? require($_SERVER["DOCUMENT_ROOT"]."/local/modules/abr.search/admin/search_reindex.php");?>

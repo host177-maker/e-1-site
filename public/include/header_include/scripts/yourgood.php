@@ -1,0 +1,1 @@
+<script data-skip-moving="true">(function () { var widget = document.createElement('script'); widget.defer = true; widget.dataset.pfId = '3f4c919f-baaa-42e5-8578-e2f5e9f0313e'; widget.src = 'https://widget.yourgood.app/script/widget.js?id=3f4c919f-baaa-42e5-8578-e2f5e9f0313e&now='+Date.now(); document.head.appendChild(widget); })()</script>

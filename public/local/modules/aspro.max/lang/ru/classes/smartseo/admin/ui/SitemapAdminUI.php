@@ -1,0 +1,16 @@
+<?
+$MESS['SMARTSEO_SM_UI_ID_FIELD'] = 'ID';
+$MESS['SMARTSEO_SM_UI_ACTIVE_FIELD'] = 'Активность';
+$MESS['SMARTSEO_SM_UI_SITE_ID_FIELD'] = 'Сайт';
+$MESS['SMARTSEO_SM_UI_NAME_FIELD'] = 'Название';
+$MESS['SMARTSEO_SM_UI_DATE_CREATE_FIELD'] = 'Дата создания';
+$MESS['SMARTSEO_SM_UI_DATE_CHANGE_FIELD'] = 'Дата изменения';
+$MESS['SMARTSEO_SM_UI_DATE_LAST_LAUNCH_FIELD'] = 'Дата последнего запуска';
+$MESS['SMARTSEO_SM_UI_PROTOCOL_FIELD'] = 'Протокол';
+$MESS['SMARTSEO_SM_UI_DOMAIN_FIELD'] = 'Домен сайта';
+$MESS['SMARTSEO_SM_UI_SITEMAP_ADDRESS'] = 'Адрес карты сайта';
+
+$MESS['SMARTSEO_SM_UI_MENU_ADD_ELEMENT'] = 'Создать карту сайта';
+$MESS['SMARTSEO_SM_UI_VALUE_Y'] = 'Да';
+$MESS['SMARTSEO_SM_UI_VALUE_N'] = 'Нет';
+$MESS['SMARTSEO_SM_UI_VALUE_ANY'] = '(любой)';

@@ -1,0 +1,10 @@
+<?
+$MESS['ASPRO_SMARTSEO_CONTENT_FILEDS'] = 'Свойства';
+$MESS['ASPRO_SMARTSEO_CONTENT_TOP_DESCRIPTION'] = 'Верхнее описание';
+$MESS['ASPRO_SMARTSEO_CONTENT_BOTTOM_DESCRIPTION'] = 'Нижнее описание';
+$MESS['ASPRO_SMARTSEO_CONTENT_ADDITIONAL_DESCRIPTION'] = 'Дополнительное описание';
+$MESS['ASPRO_SMARTSEO_CONTENT_SHOW_VIEW_CONTENT'] = 'Отображение через отложенные функции';
+$MESS['ASPRO_SMARTSEO_CONTENT_CODE_VIEW_CONTENT'] = 'Префикс буферизируемой области';
+
+$MESS['ASPRO_SMARTSEO_CONTENT_GROUP_ADDITIONAL_SETTINGS'] = 'Дополнительные настройки';
+$MESS['ASPRO_SMARTSEO_CONTENT_GROUP_BASE'] = 'Основные параметры';

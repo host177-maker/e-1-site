@@ -1,0 +1,40 @@
+{
+    "require": {
+        "wikimedia/composer-merge-plugin": "dev-master",
+        "monolog/monolog": "^3.7",
+        "hflabs/dadata": "^24.4",
+        "andrey-tech/bitrix24-api-php": "^1.8",
+        "phpoffice/phpspreadsheet": "^3.3",
+        "symfony/var-dumper": "^7.1",
+        "itsgoingd/clockwork": "^5.2",
+        "illuminate/database": "^11.27",
+        "illuminate/events": "^11.27",
+        "lazzard/php-ftp-client": "^1.7",
+        "illuminate/support": "^11.27"
+    },
+    "config": {
+        "platform": {
+            "php": "8.3"
+        },
+        "allow-plugins": {
+            "wikimedia/composer-merge-plugin": true,
+            "composer/installers": true
+        }
+    },
+    "extra": {
+        "merge-plugin": {
+            "require": [
+                "./public/bitrix/composer-bx.json"
+            ]
+        },
+        "installer-paths": {
+            "public/local/modules/{$name}/": [
+                "type:bitrix-module"
+            ]
+        }
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.68",
+        "andreyryabin/sprint.migration": "dev-master"
+    }
+}

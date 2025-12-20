@@ -1,0 +1,172 @@
+<?
+	include $_SERVER['DOCUMENT_ROOT']."/bitrix/modules/main/include.php";
+?>
+<?
+	if (isset($_POST['vkid'])) {
+		sleep(1);
+		$errors = array();
+		if (empty($_POST["vkid"])) {
+			$errors[] = 'Ошибка авторизации. Обратитесь к администратору сайта.';
+		}
+		if (empty($_POST["phone"])) {
+			$errors[] = 'Укажите номер телефона.';
+		} else {
+			if (!preg_match('/^\+7\s\(\d{3}\)\s\d{3}\s\d{2}\s\d{2}$/', $_POST["phone"])) {
+				$errors[] = 'Неверный номер телефона. (Формат номера телефона +7 (999) 999 99 99)';
+			}
+		}
+		if (empty($_POST["store"])) {
+			$errors[] = 'Укажите наименование организации, в которой вы купили шкаф-купе.';
+		} else {
+			$store = explode(' ', $_POST["store"]);
+			if (count($store) < 2) {
+				$errors[] = 'Неверное наименование организации.<br />Название организации должно содержать форму организации. (ООО, ИП и т.п.).';
+			}
+		}
+		if (empty($_POST["name"])) {
+			$errors[] = 'Укажите ваше имя.';
+		}
+		if (!$_POST["agree"]) {
+			$errors[] = 'Необходимо ваше согласие с условиями акции.';
+		}
+		if (empty($_POST["code"])) {
+			$errors[] = 'Укажите код со скретч карты.';
+		} else {
+			if (preg_match("/[А-Яа-я]/", $_POST["code"])) {
+				$errors[] = 'Не допустимы кирилические символы в коде.';
+			} else {
+				$str = str_replace('-', '', $_POST["code"]);
+				$part = strtoupper(substr($str, 0, 6));
+				$code = get_scrath_code($part);
+				$inptCode = implode('-', str_split(strtoupper($str), 3));
+				if ($code !== $inptCode) {
+					$errors[] = 'Такой код не существует.';
+					logger('CODE ERROR', 'Такой код не существует.' . PHP_EOL
+										. 'Vkid: ' . $_POST["vkid"] . PHP_EOL
+										. 'Имя: ' . $_POST["name"] . PHP_EOL
+										. 'Введен: ' . $inptCode . PHP_EOL
+										. 'Получен: ' . $code
+					);
+				}
+			}
+		}
+
+		/*if (CAPTCHA_TYPE == 'bitrix') {
+			if(!$APPLICATION->CaptchaCheckCode($_POST["captcha_word"], $_POST["captcha_code"])) {
+				$errors[] = 'Неверный код с картинки. Обновите страницу.';
+			}
+		} else {
+			$recaptcha=$_POST['recaptcha'];
+
+			if(!empty($recaptcha)) {
+				$google_url = 'https://www.google.com/recaptcha/api/siteverify';
+				$secret = GRECAPTCHASECRET;
+				$ip = $_SERVER['REMOTE_ADDR'];
+				$url = $google_url . '?secret=' . $secret . '&response=' . $recaptcha . '&remoteip=' . $ip;
+				$res = getCurlData($url);
+				$res = json_decode($res, true);
+
+				if(!$res['success']) {
+					$errors[] = 'Вы не прошли проверку \"Я не робот\". Ответ от гугла.';
+				}
+			} else {
+				$errors[] = 'Вы не прошли проверку \"Я не робот\". Пустое значение.';
+			}
+		}//*/
+
+		if (!empty($errors)) {
+			echo '{"error": "' . count($errors) . '", "textE": ["' . implode('","', $errors) . '"]}';
+		} else {
+			CModule::IncludeModule('iblock');
+
+			$el = new CIBlockElement;
+			$IBID = 50;
+
+			$arSelect = Array("ID", "NAME");
+			//Сюда добавить выборку кода.
+			$arFilter = Array("IBLOCK_ID"=>$IBID, "PROPERTY_CODE" => htmlspecialchars($_POST["code"]));
+			$res = CIBlockElement::GetList(Array(), $arFilter, false, Array("nPageSize"=>50), $arSelect);
+			if ($ob = $res->GetNextElement()) {
+				//проверять будем по уникальному коду, а не имени.
+				$arFields = $ob->GetFields();
+				echo "{\"error\": 1, \"code\": \"{$arFields['PROPERTY_CODE']}\"}";
+			} else {
+				$PROP = array();
+				$PROP = array(
+					"VKID"=>htmlspecialchars($_POST["vkid"]),
+					"PHONE"=>htmlspecialchars($_POST["phone"]),
+					"CODE"=>htmlspecialchars(strtoupper($_POST["code"])),
+					"SELLER" => htmlspecialchars($_POST["store"]),
+				);
+
+				$arLoadProductArray = Array(
+				  "IBLOCK_SECTION_ID"	=> false,
+				  "IBLOCK_ID"      		=> $IBID,
+				  "PROPERTY_VALUES"		=> $PROP,
+				  "NAME"           		=> htmlspecialchars($_POST["name"]),
+				  "ACTIVE"         		=> "Y",
+				);
+				if($ELEMENT_ID = $el->Add($arLoadProductArray, false, false, false))
+				{
+					$res1 = CIBlockElement::GetList(Array(), array("ID" => $ELEMENT_ID, "IBLOCK_ID" => $IBID), false, false, array("ID", "DATE_CREATE"));
+					if($ar_fields = $res1->GetNext()) {
+						CIBlockElement::SetPropertyValuesEx($ELEMENT_ID, $IBID, array("LEAD_CREATE" => $ar_fields["DATE_CREATE"]));
+					}
+					echo "{\"error\": 0}";
+				} else {
+					echo "{\"error\": 1, \"textE\": [\"Не Удалось создать пользователя.\"]}";
+				}
+			}
+		}
+	} else {
+		echo "{\"error\": 1, \"textE\": [\"Не передан vkid.\"]}";
+	}
+
+	function logger ($label, $message) {
+		$fileName = $_SERVER['DOCUMENT_ROOT'] . '/everyday/log.txt';
+		$maxFileSize = 1048576;//1Мб
+
+		if (file_exists($fileName)) {
+			if (filesize($fileName) < $maxFileSize) {
+				$fp = fopen($fileName, 'a+');
+			} else {
+				rename($fileName, 'log_1.txt');
+				$fp = fopen($fileName, 'w+');
+			}
+		} else {
+			$fp = fopen($fileName, 'w+');
+		}
+
+		if (!$fp) {
+			//echo 'Error: не удалось открыть файл лога.<br>';
+		} else {
+			fwrite($fp, PHP_EOL . date('d.m.Y H:i:s') . PHP_EOL);
+			fwrite($fp, $label . PHP_EOL);
+			fwrite($fp, '--------------------------------------------------------------------------------------------------------------' . PHP_EOL);
+			fwrite($fp, print_r($message, 1));
+			fwrite($fp, PHP_EOL . '--------------------------------------------------------------------------------------------------------------' . PHP_EOL);
+
+			fclose($fp);
+		}
+	}
+
+	function translit ($string) {
+        $tr = array(
+            "А" => "A", "Б" => "B", "В" => "V", "Г" => "G",
+            "Д" => "D", "Е" => "E", "Ё" => "E", "Ж" => "J", "З" => "Z", "И" => "I",
+            "Й" => "Y", "К" => "K", "Л" => "L", "М" => "M", "Н" => "N",
+            "О" => "O", "П" => "P", "Р" => "R", "С" => "S", "Т" => "T",
+            "У" => "U", "Ф" => "F", "Х" => "H", "Ц" => "TS", "Ч" => "CH",
+            "Ш" => "SH", "Щ" => "SCH", "Ъ" => "", "Ы" => "YI", "Ь" => "",
+            "Э" => "E", "Ю" => "YU", "Я" => "YA", "а" => "a", "б" => "b",
+            "в" => "v", "г" => "g", "д" => "d", "е" => "e", "ё" => "e", "ж" => "j",
+            "з" => "z", "и" => "i", "й" => "y", "к" => "k", "л" => "l",
+            "м" => "m", "н" => "n", "о" => "o", "п" => "p", "р" => "r",
+            "с" => "s", "т" => "t", "у" => "u", "ф" => "f", "х" => "h",
+            "ц" => "ts", "ч" => "ch", "ш" => "sh", "щ" => "sch", "ъ" => "y",
+            "ы" => "yi", "ь" => "", "э" => "e", "ю" => "yu", "я" => "ya",
+            " " => "_",
+        );
+        return strtr($string, $tr);
+	}
+?>

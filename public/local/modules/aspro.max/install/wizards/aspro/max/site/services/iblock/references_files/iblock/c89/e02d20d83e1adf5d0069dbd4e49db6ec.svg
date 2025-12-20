@@ -1,0 +1,43 @@
+<svg id="Наличными" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #f3c4b7;
+      }
+
+      .cls-1, .cls-2, .cls-6 {
+        fill-rule: evenodd;
+      }
+
+      .cls-2 {
+        fill: #d09889;
+        opacity: 0.5;
+      }
+
+      .cls-3 {
+        fill: #76a158;
+      }
+
+      .cls-4 {
+        fill: #89af6d;
+      }
+
+      .cls-5 {
+        fill: #9fd17d;
+        opacity: 0.7;
+      }
+
+      .cls-6 {
+        fill: #669248;
+      }
+    </style>
+  </defs>
+  <path id="Rounded_Rectangle_224_copy" data-name="Rounded Rectangle 224 copy" class="cls-1" d="M157,286a1,1,0,0,1,1,1v6a1,1,0,0,1-2,0v-6A1,1,0,0,1,157,286Zm3,2a1,1,0,0,1,1,1v6a1,1,0,0,1-2,0v-6A1,1,0,0,1,160,288Zm-6,0a1,1,0,0,1,1,1v5a1,1,0,0,1-2,0v-5A1,1,0,0,1,154,288Zm-3,2a1,1,0,0,1,1,1v4a1,1,0,0,1-2,0v-4A1,1,0,0,1,151,290Z" transform="translate(-146 -286)"/>
+  <path class="cls-2" d="M159,292.011v-1.026h2.011v1.026H159Zm-1,0h-2v-1.026h2v1.026Zm-5-1.026h2v1.026h-2v-1.026Zm-2.989,0H152v1.026h-1.989v-1.026Z" transform="translate(-146 -286)"/>
+  <path id="Rounded_Rectangle_226_copy" data-name="Rounded Rectangle 226 copy" class="cls-1" d="M163,297v5.931A6.479,6.479,0,0,1,157.5,306h-1a6.5,6.5,0,0,1-6.5-6.5v-1a6.136,6.136,0,0,1,.21-1.5H163Z" transform="translate(-146 -286)"/>
+  <rect id="Rectangle_100_copy" data-name="Rectangle 100 copy" class="cls-3" y="6" width="20" height="10"/>
+  <rect class="cls-4" y="6" width="20" height="1"/>
+  <circle class="cls-5" cx="5.5" cy="10.5" r="2.5"/>
+  <path id="Rounded_Rectangle_229" data-name="Rounded Rectangle 229" class="cls-6" d="M163,302v-1h3v1h-3Zm-6.859,0H146v-1h10a4,4,0,0,1,4-4v-2a1,1,0,0,1,2,0v2.555a4.055,4.055,0,0,1,.988.844V302h-6.847Z" transform="translate(-146 -286)"/>
+  <path id="Ellipse_50_copy" data-name="Ellipse 50 copy" class="cls-1" d="M163,301v1.937h-5.684A3.434,3.434,0,0,1,161,298.051V295a1,1,0,0,1,2,0v6h0Z" transform="translate(-146 -286)"/>
+</svg>

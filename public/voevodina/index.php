@@ -1,0 +1,127 @@
+<?
+	require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/include/prolog_before.php');
+	global $USER;
+	$counts = 6000;
+
+	CModule::IncludeModule('iblock');
+
+	if ($USER->IsAdmin()):
+		if (!empty($_REQUEST['period'])):
+			header('Content-Type: application/vnd.ms-excel; charset=utf-8;');
+			if ($_REQUEST['period'] == 'lastweek') {
+				header('Content-Disposition: attachment;filename="Прошедшая_неделя_' . date("d-m-Y") . '.xls"');
+			} elseif ($_REQUEST['period'] == 'all') {
+				header('Content-Disposition: attachment;filename="Все_записи_' . $_REQUEST['file'] . '_' . date("d-m-Y") . '.xls"');
+			}
+			header('Cache-Control: max-age=0');
+			header('Cache-Control: no-store, no-cache, must-revalidate');
+			header('Cache-Control: post-check=0, pre-check=0', FALSE);
+			header('Pragma: no-cache');
+
+			$arSelect = Array('ID', 'NAME', 'DATE_CREATE', 'PROPERTY_VKID', 'PROPERTY_PHONE', 'PROPERTY_SELLER', 'PROPERTY_CODE', 'PROPERTY_LEAD_CREATE');
+
+			if ($_REQUEST['period'] == 'lastweek') {
+				$arFilter = Array("IBLOCK_ID"=>50, 'ACTIVE' => 'Y', '>PROPERTY_LEAD_CREATE' => trim(CDatabase::CharToDateFunction(getLastMonday()),"\'"));
+				$arNav = Array("nPageSize"=>$counts);
+			} elseif ($_REQUEST['period'] == 'all') {
+				$arFilter = Array("IBLOCK_ID"=>50, 'ACTIVE' => 'Y', 'ACTIVE_DATE'=>'Y');
+				$arNav = Array('iNumPage' => $_REQUEST['file'], 'nPageSize' => $counts);
+			}
+
+			$res = CIBlockElement::GetList(Array('PROPERTY_LEAD_CREATE' => 'DESC', 'sort' => 'ASC'), $arFilter, false, $arNav, $arSelect);
+			?>
+
+			<html>
+				<head>
+				<title></title>
+				<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+				<style>
+					td {mso-number-format:\@;}
+					.number0 {mso-number-format:0;}
+					.number2 {mso-number-format:Fixed;}
+				</style>
+				</head>
+				<body>
+					<table border=\"1\">
+						<tr>
+							<td>vk id</td>
+							<?/*<td>Телефон</td>*/?>
+							<td>Имя</td>
+							<td>Дата регистрации</td>
+							<td>Код</td>
+							<td>Продавец</td>
+						</tr>
+
+			<?
+			while($ob = $res->GetNextElement()) {
+				$arFields = $ob->GetFields();
+				?>
+
+					<tr>
+						<td><?=$arFields['PROPERTY_VKID_VALUE']?></td>
+						<?/*<td><?=$arFields['PROPERTY_PHONE_VALUE']?></td>*/?>
+						<td><?=$arFields['NAME']?></td>
+						<td><?=$arFields['PROPERTY_LEAD_CREATE_VALUE']?></td>
+						<td><?=$arFields['PROPERTY_CODE_VALUE']?></td>
+						<td><?=$arFields['PROPERTY_SELLER_VALUE']?></td>
+					</tr>
+
+				<?
+			}
+			?>
+
+					</table>
+				</body>
+			</html>
+
+		<?
+		else:// if (!empty($_REQUEST))
+			$recs = CIBlockElement::GetList(array(), array('IBLOCK_ID' => 50, 'ACTIVE_DATE'=>'Y', 'ACTIVE'=>'Y'), array(), false, array('ID', 'NAME'));
+		?>
+
+			<html>
+				<head>
+					<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+					<meta name="viewport" content="width=device-width, initial-scale=1" />
+					<title>excel</title>
+
+					<link rel="stylesheet" href="css/style.css" />
+				</head>
+				<body>
+					<div class="wrap">
+						<form method="post" class="bx-admin-auth-form">
+							<div class="popup-title">Выгрузка заявок в excel</div>
+							<div class="popup-error"><?php echo !empty($error) ? $error : ''; ?></div>
+
+							<div class="popup-title-description popup-forget-pas">За последнюю неделю</div>
+							<a href="?period=lastweek" class="popup-link">с <?=getLastMonday()?></a>
+
+							<div class="popup-title-description popup-forget-pas">За все время</div>
+							<? for ($i = 1; $i <= ceil($recs / $counts); $i++): ?>
+								<a href="?period=all&file=<?=$i?>" class="popup-link">Файл <?=$i?></a><br />
+							<? endfor; ?>
+						</form>
+					</div>
+				</body>
+			</html>
+
+		<?
+		endif;// if (!empty($_REQUEST))
+	else:// if ($USER->IsAdmin())
+		LocalRedirect ("/404.html");
+	endif;// if ($USER->IsAdmin())
+
+	function getLastMonday () {
+		$result = '';   
+
+		for ($i = 1; $i <= 8; $i++) {   
+			if (date('w', strtotime('-' . $i . ' day')) == 1) {
+				$result .= date('d', strtotime('-' . $i . ' day'));
+				$result .= '.' . date('m', strtotime('-' . $i . ' day')) . '.';
+				$result .= date('Y', strtotime('-' . $i . ' day'));   
+				break;   
+			}   
+		}
+		return $result;
+	}
+?>

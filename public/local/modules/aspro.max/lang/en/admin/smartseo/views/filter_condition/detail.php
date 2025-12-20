@@ -1,0 +1,55 @@
+<?
+$MESS['SMARTSEO_PAGE_TITLE'] = 'Filter Condition';
+
+$MESS['SMARTSEO_FORM_ENTITY_ID'] = 'ID';
+$MESS['SMARTSEO_FORM_ENTITY_ACTIVE'] = 'Activity';
+$MESS['SMARTSEO_FORM_ENTITY_NAME'] = 'Name';
+$MESS['SMARTSEO_FORM_ENTITY_CONDITION'] = 'Condition';
+$MESS['SMARTSEO_FORM_ENTITY_FIELDSET_URL'] = 'CNC Settings';
+$MESS['SMARTSEO_FORM_ENTITY_URL_STRICT_COMPLIANCE'] = 'Strict Compliance';
+$MESS['SMARTSEO_FORM_ENTITY_URL_CLOSE_INDEXING'] = 'Close from Indexing';
+$MESS['SMARTSEO_FORM_ENTITY_DATE_CREATE'] = 'Created Date';
+$MESS['SMARTSEO_FORM_ENTITY_DATE_CHANGE'] = 'Date modified';
+$MESS['SMARTSEO_FORM_ENTITY_PRIORITY'] = 'Priority';
+$MESS['SMARTSEO_FORM_ENTITY_SORT'] = 'Sorting';
+$MESS['SMARTSEO_FORM_ENTITY_CREATED_BY'] = 'Code of the user who created the rule';
+$MESS['SMARTSEO_FORM_ENTITY_MODIFIED_BY'] = 'Id of the user who last modified the rule';
+$MESS['SMARTSEO_FORM_ENTITY_URL_TEMPLATE'] = 'New Link Template';
+$MESS['SMARTSEO_FORM_ENTITY_URL_TYPE_GENERATE'] = 'Link Generation Option';
+
+$MESS['SMARTSEO_FORM_ENTITY_SITEMAP'] = 'Attach to Map';
+$MESS['SMARTSEO_FORM_ENTITY_CHANGEFREQ'] = 'Frequency of page changes';
+
+$MESS['SMARTSEO_FORM_SEO_LEGEND_META_TAGS'] = 'Meta Tags';
+$MESS['SMARTSEO_FORM_SEO_LEGEND_INCLUDED'] = 'Included Areas';
+
+$MESS['SMARTSEO_FORM_SEO_ENTITY_META_TITLE'] = 'Title Meta Tag';
+$MESS['SMARTSEO_FORM_SEO_ENTITY_META_KEYWORDS'] = 'Meta Keywords';
+$MESS['SMARTSEO_FORM_SEO_ENTITY_META_DESCRIPTION'] = 'Meta Description Tag';
+$MESS['SMARTSEO_FORM_SEO_ENTITY_PAGE_TITLE'] = 'Page Title';
+$MESS['SMARTSEO_FORM_SEO_ENTITY_PAGE_BREADCRUMB_PAGE'] = 'Page title in breadcrumbs';
+$MESS['SMARTSEO_FORM_SEO_ENTITY_TOP_DESCRIPTION'] = 'Top Description';
+$MESS['SMARTSEO_FORM_SEO_ENTITY_BOTTOM_DESCRIPTION'] = 'Bottom Description';
+$MESS['SMARTSEO_FORM_SEO_ENTITY_ADDITIONAL_DESCRIPTION'] = 'Additional Description';
+
+$MESS['SMARTSEO_FORM_GROUP_SEO'] = 'Setting up SEO information';
+$MESS['SMARTSEO_FORM_GROUP_URL'] = 'Generate CNC';
+$MESS['SMARTSEO_FORM_GROUP_SITEMAP'] = 'Link to Sitemap';
+$MESS['SMARTSEO_FORM_GROUP_URL_PAGES'] = 'Customize Landing Pages';
+
+$MESS['SMARTSEO_FORM_BTN_SAVE'] = 'Save';
+$MESS['SMARTSEO_FORM_BTN_APPLY'] = 'Apply';
+$MESS['SMARTSEO_FORM_BTN_CANCEL'] = 'Cancel';
+$MESS['SMARTSEO_FORM_CHECKBOX_GENERATE_URLS'] = 'Generate Landing Pages';
+
+$MESS['SMARTSEO_FORM_HINT_SAVE'] = 'Save and Return';
+$MESS['SMARTSEO_FORM_HINT_APPLY'] = 'Save and Stay Fit';
+$MESS['SMARTSEO_FORM_HINT_CANCEL'] = 'Do not save and return';
+$MESS['SMARTSEO_FORM_LABEL_EDIT_THIS'] = 'Edit for this item';
+
+$MESS['SMARTSEOMESSGE_SAVE_SUCCESS'] = '<div class = "aspro-ui-notification"> <h4> #NAME# </h4> Successfully saved </div>';
+$MESS['SMARTSEO_DEFAULT_TAB_NAME'] = '[#ID#] <condition without name>';
+$MESS['SMARTSEOMESSGE_COUNT_CREATED_LINKS'] = '<div class = "aspro-ui-notification"> <h4> #NAME# </h4> Successfully saved <br> Landing pages created - <b> #COUNT# </b> </div> ';
+
+$MESS['SMARTSEO_FORM_PLACEHOLDER_SITEMAP'] = 'No';
+$MESS['SMARTSEO_FORM_VALUE_SITEMAP_DEFAULT'] = '[#ID#] <sitemap>';

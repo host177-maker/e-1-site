@@ -1,0 +1,2 @@
+<? if (!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED !== true) die(); ?>
+<a href="https://absteam.ru/" class="pagebottomtext">www.absteam.ru</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a class="pagebottomtext" href="https://absteam.ru/services/support/">Техподдержка AbsTeam</a>

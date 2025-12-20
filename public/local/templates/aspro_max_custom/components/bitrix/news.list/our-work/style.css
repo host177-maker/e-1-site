@@ -1,0 +1,16 @@
+.flexslider-custom img {
+	display: flex;
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: cover;
+	margin: 0 !important;
+}
+.our-works__slider-thumbnails .our-works__slider-item {
+	height: 120px;
+}
+.our-works__slider-thumbnails img {
+	width: 100%;
+}
+.flexslider.our-works__slider {
+	margin-bottom: 20px;
+}

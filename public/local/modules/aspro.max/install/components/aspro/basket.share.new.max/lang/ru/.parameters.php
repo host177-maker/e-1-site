@@ -1,0 +1,43 @@
+<?
+$MESS['BSN_G_VISUAL_TITLE'] = 'Внешний вид';
+$MESS['BSN_G_MESSAGES_TITLE'] = 'Фразы';
+
+$MESS['BSN_P_SET_PAGE_TITLE_TITLE'] = 'Устанавливать заголовок страницы (не в попап-окне)';
+$MESS['BSN_P_SITE_ID_TITLE'] = 'ID сайта';
+$MESS['SITE_ID_TIP'] = 'Обрабатывается корзина на указанном сайте. По умолчанию значение пустое, т.е. обрабатывается корзина на текущем сайте';
+$MESS['BSN_P_SITE_ID_EMPTY'] = '(текущий сайт)';
+$MESS['BSN_P_USER_ID_TITLE'] = 'ID пользователя';
+$MESS['USER_ID_TIP'] = 'Обрабатывается корзина указанного пользователя. По умолчанию значение пустое, т.е. обрабатывается корзина текущего пользователя';
+$MESS['BSN_P_PATH_TO_SHARE_BASKET_TITLE'] = 'Путь к странице "Поделиться корзиной"';
+$MESS['PATH_TO_SHARE_BASKET_TIP'] = 'По умолчанию берется значение из настроек решения';
+$MESS['BSN_P_SHOW_SHARE_SOCIALS_TITLE'] = 'Отображать блок соц.сетей';
+$MESS['BSN_P_SHARE_SOCIALS_TITLE'] = 'Cоц.сети и сервисы';
+$MESS['BSN_P_SHARE_SOCIALS_VKONTAKTE'] = 'ВКонтакте';
+$MESS['BSN_P_SHARE_SOCIALS_FACEBOOK'] = 'Facebook';
+$MESS['BSN_P_SHARE_SOCIALS_ODNOKLASSNIKI'] = 'Одноклассники';
+$MESS['BSN_P_SHARE_SOCIALS_MOIMIR'] = 'Мой Мир';
+$MESS['BSN_P_SHARE_SOCIALS_TWITTER'] = 'Twitter';
+$MESS['BSN_P_SHARE_SOCIALS_VIBER'] = 'Viber';
+$MESS['BSN_P_SHARE_SOCIALS_WHATSAPP'] = 'WhatsApp';
+$MESS['BSN_P_SHARE_SOCIALS_SKYPE'] = 'Skype';
+$MESS['BSN_P_SHARE_SOCIALS_TELEGRAM'] = 'Telegram';
+
+$MESS['BSN_P_USE_CUSTOM_MESSAGES_TITLE'] = 'Заменить стандартные фразы на свои';
+$MESS['BSN_P_MESS_TITLE_TITLE'] = 'Заголовок';
+$MESS['MESS_TITLE_TIP'] = 'Поделиться корзиной';
+$MESS['BSN_P_MESS_TITLE_DEFAULT'] = 'Поделиться корзиной';
+$MESS['BSN_P_MESS_URL_FIELD_TITLE'] = 'Заголовок поля с ссылкой';
+$MESS['MESS_URL_FIELD_TITLE_TIP'] = 'Вы можете поделиться корзиной с помощью ссылки:';
+$MESS['BSN_P_MESS_URL_FIELD_DEFAULT'] = 'Вы можете поделиться корзиной с помощью ссылки:';
+$MESS['BSN_P_MESS_URL_COPY_HINT_TITLE'] = 'Описание под полем с ссылкой';
+$MESS['MESS_URL_COPY_HINT_TIP'] = 'Нажмите на ссылку, чтобы скопировать';
+$MESS['BSN_P_MESS_URL_COPY_HINT_DEFAULT'] = 'Нажмите на ссылку, чтобы скопировать';
+$MESS['BSN_P_MESS_URL_COPIED_HINT_TITLE'] = 'Уведомление, что ссылка скопирована';
+$MESS['MESS_URL_COPIED_HINT_TIP'] = 'Скопировано!';
+$MESS['BSN_P_MESS_URL_COPIED_HINT_DEFAULT'] = 'Скопировано!';
+$MESS['BSN_P_MESS_URL_COPY_ERROR_HINT_TITLE'] = 'Уведомление об ошибке копирования ссылки';
+$MESS['MESS_URL_COPY_ERROR_HINT_TIP'] = 'Ваш браузер не позволяет использовать буфер обмена';
+$MESS['BSN_P_MESS_URL_COPY_ERROR_HINT_DEFAULT'] = 'Ваш браузер не позволяет использовать буфер обмена';
+$MESS['BSN_P_MESS_SHARE_SOCIALS_TITLE_TITLE'] = 'Заголовок блока соц.сетей';
+$MESS['MESS_SHARE_SOCIALS_TITLE_TIP'] = 'Поделиться в соц.сетях';
+$MESS['BSN_P_MESS_SHARE_SOCIALS_TITLE_DEFAULT'] = 'Поделиться в соц.сетях';

@@ -1,0 +1,19 @@
+<?
+$MESS['SMARTSEO_GRID_SITEMAP_ACTION_EDIT'] = 'Изменить';
+$MESS['SMARTSEO_GRID_SITEMAP_ACTION_DEACTIVATE'] = 'Деактивировать';
+$MESS['SMARTSEO_GRID_SITEMAP_ACTION_ACTIVATE'] = 'Активировать';
+$MESS['SMARTSEO_GRID_SITEMAP_ACTION_DELETE'] = 'Удалить';
+
+$MESS['SMARTSEO_GRID_SITEMAP_VALUE_CONDITION_DEFAULT'] = '[#ID#] <условие без названия>';
+$MESS['SMARTSEO_GRID_SITEMAP_VALUE_SITEMAP_DEFAULT'] = '[#ID#] <карта сайта>';
+$MESS['SMARTSEO_GRID_SITEMAP_VALUE_Y'] = 'Да';
+$MESS['SMARTSEO_GRID_SITEMAP_VALUE_N'] = 'Нет';
+$MESS['SMARTSEO_GRID_SITEMAP_CONDITION_N'] = '(условие не активно)';
+$MESS['SMARTSEO_GRID_SITEMAP_SITEMAP_N'] = '(карта сайта не активна)';
+$MESS['SMARTSEO_GRID_SITEMAP_DEFAULT_TAB_NAME'] = '[#ID#] <условие без названия>';
+$MESS['SMARTSEO_GRID_SITEMAP_NEW'] = 'Новая связь с картой сайта';
+
+$MESS['SMARTSEO_POPUP_SITEMAP_BTN_DELETE'] = 'Удалить';
+$MESS['SMARTSEO_POPUP_SITEMAP_BTN_CANCEL'] = 'Отмена';
+$MESS['SMARTSEO_POPUP_SITEMAP_BTN_CLOSE'] = 'Закрыть';
+$MESS['SMARTSEO_POPUP_SITEMAP_MESSAGE_DELETE'] = 'Будет удалена вся информация, связанная с этой записью! <br> Продолжить?';

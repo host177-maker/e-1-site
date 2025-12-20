@@ -1,0 +1,27 @@
+<?
+$MESS['SMARTSEO_UPM_SITE_DIR'] = 'Корневая папка сайта';
+$MESS['SMARTSEO_UPM_SERVER_NAME'] = 'URL сервера';
+$MESS['SMARTSEO_UPM_SECTION_PAGE_URL'] = 'URL страницы раздела';
+$MESS['SMARTSEO_UPM_SECTION_PAGE_URL_WITH_PROPERTIES'] = 'URL страницы раздела со свойствами';
+$MESS['SMARTSEO_UPM_SECTION_PAGE_URL_WITH_PROPERTIES_WITHOUT_CODES'] = 'URL страницы раздела со свойствами без символьных кодов';
+$MESS['SMARTSEO_UPM_SECTION_PAGE_URL_WITH_PRICE_PROPERTIES'] = 'URL страницы раздела с ценами и свойствами';
+$MESS['SMARTSEO_UPM_SECTION_PAGE_URL_WITH_PRICE_PROPERTIES_WITHOUT_CODES'] = 'URL страницы раздела с ценами, свойствами без символьных кодов';
+$MESS['SMARTSEO_UPM_SECTION_PAGE_URL_OTHER'] = 'Другие варианты';
+$MESS["SMARTSEO_UPM_IBLOCK"] = "Поля инфоблока";
+$MESS['SMARTSEO_UPM_IBLOCK_TYPE_ID'] = 'Тип инфоблока';
+$MESS['SMARTSEO_UPM_IBLOCK_ID'] = 'ID инфоблока';
+$MESS['SMARTSEO_UPM_IBLOCK_CODE'] = 'Символьный код инфоблока';
+$MESS['SMARTSEO_UPM_IBLOCK_EXTERNAL_ID'] = 'Внешний код инфоблока';
+$MESS["SMARTSEO_UPM_SECTION"] = "Поля раздела";
+$MESS['SMARTSEO_UPM_SECTION_ID'] = 'ID раздела';
+$MESS['SMARTSEO_UPM_SECTION_CODE'] = 'Символьный код раздела';
+$MESS['SMARTSEO_UPM_SECTION_CODE_PATH'] = 'Путь из символьных кодов раздела';
+$MESS['SMARTSEO_UPM_SECTION_EXTERNAL_ID'] = 'Внешний код раздела';
+$MESS['SMARTSEO_UPM_PROPERTY'] = 'Поля свойств';
+$MESS['SMARTSEO_UPM_PROPERTY_CODE'] = 'Перечисление символьного кода';
+$MESS['SMARTSEO_UPM_PROPERTY_VALUE'] = 'Перечисление значений';
+$MESS['SMARTSEO_UPM_PROPERTY_CODE_VALUE'] = 'Перечисление символьного кода и значений';
+$MESS['SMARTSEO_UPM_PRICE'] = 'Поля цен';
+$MESS['SMARTSEO_UPM_PRICE_CODE'] = 'Перечисление символьного кода';
+$MESS['SMARTSEO_UPM_PRICE_VALUE'] = 'Перечисление значений';
+$MESS['SMARTSEO_UPM_PRICE_CODE_VALUE'] = 'Перечисление символьного кода и значений';

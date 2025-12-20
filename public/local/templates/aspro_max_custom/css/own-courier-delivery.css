@@ -1,0 +1,124 @@
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost {
+
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block {
+	display: inline-block;
+	vertical-align: top;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block label {
+	position: relative;
+    padding: 0 0 0 50px;
+    font-size: 13px;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block label:before,
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block label:after {
+    top: 0;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_desc {
+    display: inline-block;
+    vertical-align: top;
+    font-size: 13px;
+    color: #777;
+    margin-top: -1px;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .onoff input[type=checkbox]:checked+label:after {
+    left: 16px;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .onoff input[type=checkbox]:checked+label:before {
+	color: #FFF;
+    background: #7ea50b;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter {
+    position: relative;
+    border: 1px solid #eaeaea;
+    border-radius: 3px;
+    width: 100px;
+    height: 34px;
+    margin-top: 5px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter .minus, #bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter .plus {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    height: auto;
+    cursor: pointer;
+    z-index: 1;
+    -webkit-transition: all 0.4s;
+    -o-transition: all 0.4s;
+    transition: all 0.4s;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter .minus {
+    background: #f8f8f8;
+    left: 0;
+    width: 30px;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter .plus {
+    background: #f8f8f8;
+    right: 0;
+    width: 30px;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter>span .svg {
+    position: absolute;
+    left: -50%;
+    top: -50%;
+    bottom: -50%;
+    right: -50%;
+    margin: auto;
+    width: 11px;
+    height: 11px;
+    line-height: 12px;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter .minus .svg {
+    height: 1px;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter>span .svg svg path,
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter>span .svg svg rect {
+    fill: #6c6c6d;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter input[type=text] {
+    width: 100%;
+    color: #333;
+    font-size: 13px;
+    border-radius: 0;
+    text-align: center;
+    line-height: 13px;
+    padding: 7px 3px 7px;
+    font-size: 13px;
+    color: #888888;
+    height: 100%;
+    background: #f8f8f8;
+    border: none;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter:not(.disabled) .minus:hover, 
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter:not(.disabled) .plus:hover {
+    background: #81a90c;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter:not(.disabled) .minus:hover .svg svg rect, 
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter:not(.disabled) .plus:hover .svg svg path {
+    fill: #FFFFFF;
+}
+
+#bx-soa-order-form #bx-soa-order .delivery-lifting-cost .switch_block_counter_label {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 5px 0px 0px 10px;
+    font-size: 12px;
+}

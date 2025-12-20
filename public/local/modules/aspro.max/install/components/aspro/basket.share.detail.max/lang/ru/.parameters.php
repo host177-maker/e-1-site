@@ -1,0 +1,45 @@
+<?
+$MESS['BSD_G_VISUAL_TITLE'] = 'Внешний вид';
+$MESS['BSD_G_MESSAGES_TITLE'] = 'Фразы';
+
+$MESS['BSD_P_CODE_TITLE'] = 'Символьный код корзины';
+$MESS['BSD_P_SET_PAGE_TITLE_TITLE'] = 'Устанавливать заголовок страницы';
+$MESS['BSD_P_ACTUAL_TITLE'] = 'Отображать актуальные цены и количество';
+$MESS['BSD_P_SHOW_VERSION_SWITCHER_TITLE'] = 'Отображать переключатель версии корзины';
+$MESS['BSD_P_USE_COMPARE_TITLE'] = 'Разрешить сравнение товаров';
+$MESS['BSD_P_USE_DELAY_TITLE'] = 'Отображать кнопку "Отложить товары"';
+$MESS['USE_DELAY_TIP'] = 'Не выводится, если отключено в модуле';
+$MESS['BSD_P_USE_FAST_VIEW_TITLE'] = 'Использовать быстрый просмотр товаров';
+$MESS['USE_FAST_VIEW_TIP'] = 'Не выводится, если отключено в модуле';
+$MESS['BSD_P_SHOW_ONE_CLICK_BUY_TITLE'] = 'Отображать кнопку "Покупка в 1 клик"';
+$MESS['BSD_P_SHOW_STICKERS_TITLE'] = 'Отображать стикеры';
+$MESS['BSD_P_STIKERS_PROP_TITLE'] = 'Символьный код свойства со стикерами';
+$MESS['BSD_P_SALE_STIKER_TITLE'] = 'Свойство со стикером акций';
+$MESS['BSD_P_SHOW_AMOUNT_TITLE'] = 'Отображать наличие';
+$MESS['BSD_P_SHOW_OLD_PRICE_TITLE'] = 'Отображать старую цену без скидки';
+$MESS['BSD_P_SHOW_DISCOUNT_PERCENT_TITLE'] = 'Показывать экономию';
+$MESS['BSD_P_SHOW_DISCOUNT_PERCENT_NUMBER_TITLE'] = 'Показывать процент экономии';
+$MESS['BSD_P_PRODUCT_PROPERTIES_TITLE'] = 'Отображаемые значения свойств у товаров';
+
+$MESS['BSD_P_USE_CUSTOM_MESSAGES_TITLE'] = 'Заменить стандартные фразы на свои';
+$MESS['BSD_P_MESS_TITLE_TITLE'] = 'Заголовок';
+$MESS['MESS_TITLE_TIP'] = 'Поделиться корзиной';
+$MESS['BSD_P_MESS_TITLE_DEFAULT'] = 'Поделиться корзиной';
+$MESS['BSD_P_MESS_SHOW_ACTUAL_PRICES_TITLE'] = 'Текст для переключателя версии корзины';
+$MESS['MESS_SHOW_ACTUAL_PRICES_TIP'] = 'Актуальные цены и наличие';
+$MESS['BSD_P_MESS_SHOW_ACTUAL_PRICES_DEFAULT'] = 'Актуальные цены и наличие';
+$MESS['BSD_P_MESS_TOTAL_PRICE_TITLE'] = 'Текст для общей стоимости корзины';
+$MESS['MESS_TOTAL_PRICE_TIP'] = 'Общая стоимость корзины';
+$MESS['BSD_P_MESS_TOTAL_PRICE_DEFAULT'] = 'Общая стоимость корзины';
+$MESS['BSD_P_MESS_ADD_TO_BASKET_TITLE'] = 'Текст на кнопке добавления в корзину';
+$MESS['MESS_ADD_TO_BASKET_TIP'] = 'Добавить в корзину';
+$MESS['BSD_P_MESS_ADD_TO_BASKET_DEFAULT'] = 'Добавить в корзину';
+$MESS['BSD_P_MESS_REPLACE_BASKET_TITLE'] = 'Текст на кнопке замены корзины';
+$MESS['MESS_REPLACE_BASKET_TIP'] = 'Заменить корзину';
+$MESS['BSD_P_MESS_REPLACE_BASKET_DEFAULT'] = 'Заменить корзину';
+$MESS['BSD_P_MESS_PRODUCT_ECONOMY_TITLE'] = 'Текст для экономии';
+$MESS['MESS_PRODUCT_ECONOMY_TIP'] = 'Экономия';
+$MESS['BSD_P_MESS_PRODUCT_ECONOMY_DEFAULT'] = 'Экономия';
+$MESS['BSD_P_MESS_PRODUCT_NOT_EXISTS_TITLE'] = 'Текст для несуществующего товара';
+$MESS['MESS_PRODUCT_NOT_EXISTS_TIP'] = 'Товар удален из каталога';
+$MESS['BSD_P_MESS_PRODUCT_NOT_EXISTS_DEFAULT'] = 'Товар удален из каталога';

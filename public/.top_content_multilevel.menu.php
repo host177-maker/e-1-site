@@ -1,0 +1,67 @@
+<?
+$aMenuLinks = Array(
+	Array(
+		"Каталог", 
+		"/catalog/", 
+		Array(), 
+		Array("NOT_VISIBLE"=>"Y", "CLASS"=>"catalog wide_menu", "ICON"=>"icon_catalog"), 
+		"" 
+	),
+	Array(
+		"Гардеробные", 
+		"/dressing_room/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Шкафы на заказ", 
+		"/custom_cabinets/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Адреса салонов", 
+		"/contacts/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Покупателю", 
+		"/client/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Отзывы", 
+		"/reviews/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Акции", 
+		"/sale/", 
+		Array(), 
+		Array("ICON"=>"icon_discount"), 
+		"" 
+	),
+	Array(
+		"Партнерство", 
+		"/partnership/", 
+		Array(), 
+		Array(), 
+		"" 
+	),
+	Array(
+		"Поставщикам", 
+		"#", 
+		Array(), 
+		Array("formaction"=>"SUPPLIERS"), 
+		"" 
+	)
+);
+?>

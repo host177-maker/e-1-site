@@ -1,0 +1,254 @@
+@-webkit-keyframes iconset_item_add_animate{
+    0%{-webkit-transform:scale(.1);}
+    75%{-webkit-transform:scale(1.2);}
+    100%{-webkit-transform:scale(1);}
+}
+@keyframes iconset_item_add_animate{
+    0%{transform:scale(.1);}
+    75%{transform:scale(1.2);}
+    100%{transform:scale(1);}
+}
+@-webkit-keyframes iconset_item_delete_animate{
+    0%{-webkit-transform:scale(1);}
+    25%{-webkit-transform:scale(1.2);}
+    100%{-webkit-transform:scale(.1);}
+}
+@keyframes iconset_item_delete_animate{
+    0%{transform:scale(1);}
+    25%{transform:scale(1.2);}
+    100%{transform:scale(.1);}
+}
+@-webkit-keyframes iconset_error_show_animate{
+    0%{-webkit-transform:scale(1.2) translate(-42%, -42%);}
+    100%{-webkit-transform:scale(1) translate(-50%, -50%);}
+}
+@keyframes iconset_error_show_animate{
+    0%{transform:scale(1.2) translate(-42%, -42%);}
+    100%{transform:scale(1) translate(-50%, -50%);}
+}
+.iconset{
+    position:relative;
+    display:block !important;
+    overflow:hidden;
+}
+.iconset--sending:before{
+    content:"";
+    display:block;
+    position:absolute;
+    top:0px;
+    left:0px;
+    right:0px;
+    bottom:0px;
+    background:#fff url(/bitrix/images/aspro.max/waiter.gif) center no-repeat;
+    z-index:1000;
+    opacity:0.8;
+}
+.iconset .adm-detail-subtabs-block{
+    position:relative;
+    z-index:1;
+}
+.iconset .adm-detail-content-item-block-view-tab{
+    position:relative;
+}
+#view_tab_iconset_add_icon:before{
+    background:url(/bitrix/panel/main/images/bx-admin-sprite-small-2.png) 2px -670px #1c53a2;
+    content:" ";
+    display:inline-block;
+    height:17px;
+    margin:0px 10px 0 -5px;
+    opacity:1;
+    position:static;
+    vertical-align:top;
+    width:17px;
+    border-radius:50%;
+}
+#view_tab_iconset_add.adm-detail-subtab-active:before{
+    background-position:3px -2427px;
+    background-color:transparent;
+}
+.iconset_error{
+    position:absolute;
+    z-index:1;
+    left:0;
+    bottom:0;
+    top:0;
+    right:0;
+    background:#fff;
+    padding:17px 22px 22px;
+    transition:opacity .3s ease-in-out;
+    opacity:0;
+}
+.iconset_error--visible{
+    opacity:1;
+}
+#bx-admin-prefix .adm-info-message-red.iconset_error .adm-info-message{
+    background:#e5d6dc;
+    margin:0;
+    transform:translate(-50%, -50%);
+    left:50%;
+    top:50%;
+}
+#bx-admin-prefix .adm-info-message-red.iconset_error.iconset_error--visible .adm-info-message{
+    -webkit-animation:iconset_error_show_animate .15s linear;
+    animation:iconset_error_show_animate .15s linear;
+}
+.iconset_wrap{
+	margin:0;
+    padding:3px;
+    overflow:auto;
+    height:126px;
+}
+.iconset_item{
+    position:relative;
+    margin:5px 2px;
+    width:32px;
+    height:32px;
+    float:left;
+}
+.iconset_item--empty{
+    width:122px;
+    margin-right:calc(100% - 122px - 34px);
+}
+.iconset_item_middle{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background-color:#fff;
+    height:100%;
+    width:100%;
+    position:relative;
+    border:1px solid #dce7ed;
+    border-radius:4px;
+    box-sizing:border-box;
+    overflow:hidden;
+    transition:box-shadow .3s ease-in-out;
+}
+.iconset_item--added .iconset_item_middle{
+    -webkit-animation:iconset_item_add_animate .5s linear;
+    animation:iconset_item_add_animate .5s linear;
+}
+.iconset_item--deleted .iconset_item_middle{
+    -webkit-animation:iconset_item_delete_animate .5s linear;
+    animation:iconset_item_delete_animate .5s linear;
+}
+.iconset_item--selected .iconset_item_middle{
+	border-width:2px;
+    border-color:#365edc;
+}
+.iconset_item:not(.iconset_item--selected):hover{
+    cursor:pointer;
+}
+.iconset_item:not(.iconset_item--selected):hover .iconset_item_middle{
+    border-color:#fff;
+	box-shadow:0px 0px 5px rgba(0,0,0,0.15);
+}
+.iconset_item--empty .iconset_item_middle{
+    width:32px;
+    display:block;
+    float:left;
+}
+.iconset_item--empty .iconset_item_text{
+    font-size:13px;
+    float:left;
+    margin:9px 0 0 12px;
+}
+.iconset_icon{
+    max-width:100%;
+    max-height:100%;
+    overflow:hidden;
+    font-size:0;
+}
+.iconset_icon--svg{
+	text-align:center;
+}
+.iconset_icon--svg svg:not(:root){
+	overflow:hidden;
+    max-width:100%;
+    max-height:100%;
+    display:inline-block;
+    vertical-align:middle;
+}
+.iconset .adm-detail-title-view-tab{
+    display:none;
+}
+.iconset_form{
+    position:relative;
+}
+.iconset_btn--delete{
+    width:16px;
+    height:16px;
+    cursor:pointer;
+    border-radius:50%;
+    position:absolute;
+    z-index:1;
+    left:calc(50% - 8px);
+    top:-12px;
+    opacity:0;
+    background-color:#FF6347;
+    overflow:hidden;
+    transition:opacity .15s ease-in-out,top .15s ease-in-out,background-color 0.15s;
+}
+.iconset_btn--delete:hover{
+    background-color:red;
+}
+.iconset_item:hover .iconset_btn--delete{
+    transition:opacity .15s ease-in-out 1s,top .15s ease-in-out 1s,background-color 0.15s;
+    top:-8px;
+    opacity:1;
+}
+.iconset_btn--delete:before, .iconset_btn--delete:after{
+    background-color:#fff;
+    content:'';
+    height:10px;
+    width:2px;
+    position:absolute;
+    left:calc(50% - 1px);
+    top:3px;
+    transform:rotate(45deg);
+}
+.iconset_btn--delete:after{
+    transform:rotate(-45deg);
+}
+#bx-admin-prefix .iconset_form .adm-input-file-top-shift{
+    top:0;
+    width:100%;
+    height:35px;
+}
+.adm-workarea .iconset_form input[type="text"]{
+    width:calc(100% - 73px);
+    height:29px;
+}
+#bx-admin-prefix .iconset_form .adm-input-file-control .adm-input-file{
+    max-width:calc(100% - 103px);
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.adm-workarea input[type="button"].iconset_btn--load{
+    margin:9px 0 0 0;
+}
+#bx-admin-prefix .adm-info-message.iconset_form_message{
+    margin-top:0;
+    width:100%;
+    box-sizing:border-box;
+}
+
+.iconset_value{
+    width:32px;
+    display:inline-block;
+    height:32px;
+    border:1px solid #c1d2db;
+    border-radius:4px;
+    vertical-align:middle !important;
+    background-color:#fff;
+}
+.iconset_value:hover{
+    border-color:#fff;
+    box-shadow:0px 0px 5px rgba(0,0,0,0.15);
+    cursor:pointer;
+}
+.iconset_value_wrap{
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}

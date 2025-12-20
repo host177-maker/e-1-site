@@ -1,0 +1,351 @@
+@keyframes asproUiAlertVisible {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+@keyframes asproUiAlertUnvisible {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+@keyframes asproUiAlertLoading {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: .3;
+  }
+}
+@keyframes asproUiSlideInDown {
+  from {
+    transform: translate3d(0, -100%, 0);
+    visibility: visible;
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes asproUiSlideInUp {
+  from {
+    transform: translate3d(0, 200%, 0);
+    visibility: visible;
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes asproUiFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+/**
+* aspro-ui--loading
+*/
+.aspro-ui--loading {
+  display: block;
+  
+  background-image: url(../../../../images/aspro.max/smartseo/loadings/loading.svg);
+  background-position: center center;
+  background-repeat: no-repeat;  
+  color: rgba(0, 0, 0, 0) !important;
+  cursor: default !important;
+  -webkit-transition: none;
+  transition: none !important;
+  border-color: transparent !important;
+}
+.aspro-ui--loading-white {  
+  background-image: url(../../../../images/aspro.max/smartseo/loadings/loading_white.svg);
+  background-position: center center;
+  background-repeat: no-repeat;  
+  color: rgba(0, 0, 0, 0) !important;
+  cursor: default !important;
+  -webkit-transition: none;
+  transition: none !important;
+  border-color: transparent !important;
+}
+.aspro-ui--loading-white::after {
+  display: none !important;
+}
+.aspro-ui-loading--puff-white {  
+  background-image: url(../../../../images/aspro.max/smartseo/loadings/loading_puff_white.svg);
+  background-position: center center;
+  background-repeat: no-repeat;  
+  color: rgba(0, 0, 0, 0) !important;
+  cursor: default !important;
+  -webkit-transition: none;
+  transition: none !important;
+  border-color: transparent !important;
+}
+.aspro-ui-loading--puff-white::after,
+.aspro-ui-loading--puff-white::before {
+  display: none !important;
+}
+
+/**
+* aspro-ui-form
+*/
+.aspro-ui-form {
+  
+}
+.aspro-ui-form__alert {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+}
+.aspro-ui-form__alert--visible {
+  animation-name: asproUiAlertVisible;
+  animation-duration: .3s;
+}
+.aspro-ui-form__alert--unvisible {
+/*  animation-name: asproUiAlertUnvisible;
+  animation-duration: .3s;*/
+  opacity: 0;
+}
+.aspro-ui-form__alert--loading {
+  animation-name: asproUiAlertLoading;
+  animation-duration: .3s;
+}
+
+/**
+* aspro-ui-tabs
+*/
+.aspro-ui-tabs {
+  position: relative;
+}
+.aspro-ui-tabs__tabs {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: -1px;
+  padding-right: 40px;
+}
+.aspro-ui-tabs__tab {
+  position: relative;
+  background: url(../../../../images/aspro.max/smartseo/bx-admin-sprite-small.png) repeat-x 0 -2728px;
+  border-radius: 2px 2px 0 0;
+  display: inline-block;
+  cursor: pointer; 
+  text-shadow: 0 1px #fff;
+  margin-right: 7px;
+  vertical-align: top;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  padding-bottom: 2px;
+}
+.aspro-ui-tabs__tab::after {
+  content: ' ';
+  position: absolute;
+}
+.aspro-ui-tabs__tab__name  {
+  color: #1c53a2;
+  font-size: 13px;
+  font-weight: bold;
+  text-decoration: none;
+  padding: 12px 15px 0;
+  display: block;
+  min-height: 26px;
+  
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  
+  max-width: 340px;
+}
+.aspro-ui-tabs__tab.aspro-ui-tabs__tab--active {
+  background: #fff;
+  border: 1px solid #c6cfd0;
+  border-bottom: 0;
+  border-bottom: none;
+  color: #000;
+}
+.aspro-ui-tabs__tab.aspro-ui-tabs__tab--arrow::before {
+  background: url(../../../../images/aspro.max/smartseo/bx-admin-sprite-small.png) repeat-x 0 -4332px;
+  content: ' ';
+  display: block;
+  position: absolute;
+  width: 20px;
+  height: 14px;
+  right: -28px;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+}
+.aspro-ui-tabs__tab.aspro-ui-tabs__tab--arrow + .aspro-ui-tabs__tab {
+  margin-left: 25px;
+}
+.aspro-ui-tabs__tab--active .aspro-ui-tabs__tab__name {
+  color: #000;
+}
+.aspro-ui-tabs__tab__action-close {
+  background: url(../../../../images/aspro.max/smartseo/bx-admin-sprite-small.png) repeat-x 0 -2452px;
+  width: 10px;
+  height: 10px;
+  margin-left: 10px;
+  opacity: .6;
+  position: absolute;
+  right: 12px;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+}
+.aspro-ui-tabs__tab__action-close + .aspro-ui-tabs__tab__name {
+  padding-right: 34px;
+}
+.aspro-ui-tabs__tab__action-close:hover {
+  opacity: 1;
+}
+.aspro-ui-tabs__view-tabs {  
+  border: 1px solid #c5cecf;
+  padding: 17px 22px 22px;
+  background: #fff;
+  overflow: hidden;
+}
+.aspro-ui-tabs__view-tab {  
+  min-height: 300px;
+  position: relative;
+  z-index: 10;
+}
+.aspro-ui-tabs__view-tab__title {
+  border-bottom: 1px solid #ddd;
+  font-size: 18px;
+  margin-bottom: 14px;
+  text-align: left;
+  padding: 0 0 15px;
+}
+.aspro-ui-tabs__toggle-fix {
+  background: url(../../../../images/aspro.max/smartseo/bx-admin-sprite-small.png) no-repeat center -3039px;
+  cursor: pointer;
+  height: 31px;
+  width: 35px;
+  position: absolute;
+  right: 0;
+  top: 0px;
+  cursor: pointer;
+}
+.aspro-ui-tabs__toggle-fix[data-state="on"] {
+  background-position: center -3039px;
+}
+.aspro-ui-tabs__toggle-fix[data-state="off"] {
+  background-position: center -3070px;
+}
+
+.aspro-ui-tabs__wrapper-tabs.bx-fixed-top {
+  padding-top: 10px;
+  margin-top: -4px;
+  z-index: 12;
+  background-color: #f5f9f9;
+  animation-name: asproUiSlideInDown;
+  animation-duration: .3s;
+}
+.aspro-ui-tabs__wrapper-tabs.bx-fixed-top:after {
+  background: url(../../../../images/aspro.max/smartseo/bx-admin-sprite-small.png) repeat-x 0 -1088px;
+  bottom: -13px;
+  content: "";
+  height: 13px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  pointer-events: none;
+}
+.aspro-ui-tabs__wrapper-tabs.bx-fixed-top .aspro-ui-tabs__tab {
+  /*border: 1px solid #c6cfd0;
+  border-bottom: 1px solid #c6cfd0;
+  padding-bottom: 0px;
+  padding-bottom: 0px; 
+  margin-bottom: 2px;*/
+}
+.aspro-ui-tabs__wrapper-tabs.bx-fixed-top .aspro-ui-tabs__toggle-fix {
+  top: 12px;
+}
+/**
+* aspro-ui-popup
+*/
+.aspro-ui-popup__content {
+  padding: 30px 20px;
+  min-width: 400px;
+  border-bottom: 1px rgba(0, 0, 0, .05) solid;
+  text-align: center;
+  line-height: 25px;
+  font: 14px/30px "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.aspro-ui--animate-slide-top {  
+  animation-name: asproUiSlideInUp;
+  animation-duration: .3s;
+}
+.aspro-ui--animate-fade-in {  
+  animation-name: asproUiFadeIn;
+  animation-duration: .3s;
+}
+.aspro-ui--animate-slide-down {  
+  animation-name: asproUiSlideInDown;
+  animation-duration: .3s;
+}
+
+.aspro-ui-notification h4 {
+  margin-bottom: 8px;
+  margin-top: 0;
+}
+
+/**
+* aspro-ui-utils
+*/
+.aspro-ui-util--block {
+  display: block;
+}
+.aspro-ui-util--mt10 {
+  margin-top: 10px;
+}
+.aspro-ui-util--mb10 {
+  margin-bottom: 10px;
+}
+.aspro-ui-util--border1 {
+  border: 1px solid;
+}
+
+/**
+* aspro-ui-text
+*/
+.aspro-ui-text {
+  
+}
+.aspro-ui-text.aspro-ui-text--color-dark-blue {
+  color: #113c7d;
+}
+/**
+* aspro-ui__btn-icon-pair
+*/
+
+.aspro-ui__btn-icon-pair {
+  display: flex;
+  display: -ms-flexbox;
+  align-items: center;
+}
+.aspro-ui__btn-icon-pair button {
+  margin-right: 16px;
+}
+
+.aspro-ui__btn-icon-pair span {
+  display: block;
+  font-weight: bold; 
+  color: #6a7c8a;
+  text-transform: uppercase;
+  font-size: 10px;
+}

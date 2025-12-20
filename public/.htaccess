@@ -1,0 +1,92 @@
+Options -Indexes 
+ErrorDocument 404 /404.php
+
+<IfModule mod_php5.c>
+    php_flag allow_call_time_pass_reference 1
+    php_flag session.use_trans_sid off
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    Options +FollowSymLinks
+    RewriteEngine On
+    RewriteBase /
+    
+    # Редирект на HTTPS
+    RewriteCond %{ENV:HTTPS} !on
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+	
+    # Редирект с домена e-1.ru на www.e-1.ru
+    RewriteCond %{HTTP_HOST} ^e-1\.ru$ [NC]
+    RewriteRule ^(.*)$ https://www.e-1.ru/$1 [R=301,L]
+
+    # Редирект с index.php на чистый URL
+    RewriteCond %{REQUEST_URI} !^/bitrix
+    RewriteRule ^(.*)index\.php$ $1 [R=301,L]
+    
+    # Убираем index.php из URL
+    RewriteCond %{THE_REQUEST} ^GET.*/index\.php [NC]
+    RewriteRule (.*?)index\.php/*(.*) /$1$2 [R=301,NE,L]
+
+    # Убираем index.html
+    RewriteCond %{THE_REQUEST} ^GET.*/index\.html [NC]
+    RewriteRule (.*?)index\.html/*(.*) /$1$2 [R=301,NE,L]
+
+    # Убираем дублирующиеся слеши
+    RewriteCond %{THE_REQUEST} //
+    RewriteCond %{QUERY_STRING} !http(s|)://
+    RewriteRule .* /$0 [R=301,L]
+
+    # Обработка sitemap.xml
+    RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteCond %{REQUEST_FILENAME} !-l
+    RewriteRule ^([^/]+)/sitemap.xml$ /sitemap.php [E=REGION:$1,L,QSA,NC]
+    RewriteRule sitemap.xml sitemap.php [E=REGION:moskva,L,QSA,NC]
+
+    ## Региональные правила
+	# Главная страница с регионом
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteCond %{REQUEST_FILENAME} !-l
+	RewriteCond %{REQUEST_URI} ^/([^/]+)/?$  [NC]
+    RewriteRule ^([^/]+)/?$ / [E=REGION:$1,L,QSA]
+
+	# Обрабатываем URL с регионом для разделов
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteCond %{REQUEST_FILENAME} !-l
+	RewriteRule ^([^/]+)/contacts/(.*)$ /contacts/$2 [E=REGION:$1,QSA,NC]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteCond %{REQUEST_FILENAME} !-l
+    RewriteRule ^([^/]+)/catalog/(.*)$ /catalog/$2 [E=REGION:$1,QSA,NC]
+
+    # Основное правило для битрикса
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-l
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !/bitrix/urlrewrite.php$
+    RewriteRule ^(.*)$ /bitrix/urlrewrite.php [L]
+
+	## Модифицированное правило для удаления слеша ##
+	RewriteCond %{REQUEST_FILENAME} !-d 
+    RewriteCond %{REQUEST_URI} ^(.+)/$
+    RewriteRule ^(.+)/$ /$1 [R=301,L]
+
+    # Передача заголовка авторизации
+    RewriteRule .* - [E=REMOTE_USER:%{HTTP:Authorization}]
+</IfModule>
+
+<IfModule mod_dir.c>
+    DirectoryIndex index.php
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive on 
+    ExpiresByType image/jpeg "access plus 3 day"
+    ExpiresByType image/gif "access plus 3 day"
+    ExpiresByType text/html "modification plus 5 seconds"
+    ExpiresByType text/javascript "modification plus 5 seconds"
+    ExpiresDefault "access plus 2 days"
+</IfModule>

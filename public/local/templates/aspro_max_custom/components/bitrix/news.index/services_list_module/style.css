@@ -1,0 +1,70 @@
+.basket-wrap-service-module {
+    display: flex;
+}
+
+.basket-wrap-service-module .basket-item-property.basket-item-property-scu-text {
+    display: flex;
+    margin-right: 10px;
+}
+
+/*styles for module*/
+.basket-item-block-image.basket-image-module-service {
+    position: absolute;
+    left: 30px;
+}
+.services_in_product .services-item-module{margin-top: -1px;}
+.services_in_product .services-item-module:first-of-type{margin-top:0;}
+.services_in_product .services-item-module:not(.services_on) .counter_wrapp{display:none;}
+
+.services_in_product .services-item-module:not(.services_on) .cost.prices > div:not(.js-info-block)  .price{opacity: 0.5;}
+.services_in_product.services_compact .services-item-module{border:none;}
+
+.services_in_product.services_compact .services-item-module.services_on .services-item__wrapper{position: relative;}
+.services_in_product.services_compact .services-item-module .services-item__inner{align-items: flex-start;justify-content: space-between;}
+.services_in_product.services_compact .services-item-module .services-item__cost,
+.services_in_product.services_compact .services-item-module.services_on .services-item__cost{justify-content: flex-end;}
+
+.services_in_product.services_compact .services-item-module.services_on .services-item__info{padding-top: 0;}
+.services_in_product.services_compact .services-item-module.services_on .services-item__buy{position: absolute; bottom: 0; left: 46px;}
+
+.services_in_product.services_compact .services-item-module .services-item__cost{padding-left: 2px;}
+.services_in_basket.buy_services_wrap .services_in_product.services_compact .services-item-module .services-item__cost{padding-left: 4px;}
+.services_compact .services-item-module.hide_service{display: none;}
+.services_compact .services-item-module.order_top_service,
+.services_compact .services-item-module.show_service{order: -1;}
+.buy_services_wrap.show_all .services_compact .services-item-module.hide_service{display: flex;}
+.services_compact .services-item-module{display: flex; flex-direction: column;}
+.services_in_basket_page.buy_services_wrap .services_in_product.services_compact .services-item-module .services-item__cost{padding-left: 4px;}
+
+.basket-delete-module {
+    float: right;
+    position: relative;
+    bottom: 90px;
+}
+
+@media(min-width:601px){
+    .services_in_product:not(.services_compact) .services-item-module.services_on .services-item__info{padding-right: 75px;}
+    .services_in_product:not(.services_compact) .services-item-module.services_on .services-item__buy{position: absolute; right:0;}
+}
+
+@media(max-width:600px){
+    .services_in_product .services-item-module.services_on .services-item__wrapper{position: relative;}
+    .services_in_product .services-item-module .services-item__inner{align-items: flex-start;}
+    .services_in_product .services-item-module .services-item__cost,
+    .services_in_product .services-item-module.services_on .services-item__cost{justify-content: flex-end;}
+    .services_in_product .services-item-module.services_on .services-item__info{padding-bottom: 33px;}
+    .services_in_product .services-item-module.services_on .services-item__buy{position: absolute; bottom: -1px; left: 53px;}
+}
+
+@media (max-width: 550px) {
+    #basket-items-list-wrapper .services_compact .services-item {
+        display: flex;
+        flex-direction: column-reverse;
+    }
+
+    .basket-item-block-image.basket-image-module-service {
+        position: inherit;
+        left: 30px;
+        bottom: 80px;
+    }
+}

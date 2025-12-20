@@ -1,0 +1,2 @@
+2007–<?=date("Y")?> &copy; Мебельная компания Е1 – шкафы купе <?=IN_CITY;?><br />
+<a href="/include/licenses_detail.php">Политика защиты и обработки персональных данных</a> | <a href="/include/security_policy.php">Политика безопасности</a>  | <a href="/include/offer_detail.php">Публичная оферта</a>

@@ -1,0 +1,126 @@
+@-webkit-keyframes aspro_property_regionphone_item_delete_animate{
+    0%{-webkit-transform:scale(1);}
+    25%{-webkit-transform:scale(1.2);}
+    100%{-webkit-transform:scale(.1);}
+}
+@keyframes aspro_property_regionphone_item_delete_animate{
+    0%{transform:scale(1);}
+    25%{transform:scale(1.2);}
+    100%{transform:scale(.1);}
+}
+.aspro_property_regionphone_item{
+    font-size:13px;
+}
+tr+tr .aspro_property_regionphone_item{
+    margin-top:10px;
+}
+.aspro_property_regionphone_item--admlistview{
+    text-align:left;
+    margin:0 0 10px 0;
+    min-width:180px;
+}
+.aspro_property_regionphone_item--admlistedit{
+    width:max-content;
+    min-width:466px;
+}
+.aspro_property_regionphone_item--deleted{
+    -webkit-animation:aspro_property_regionphone_item_delete_animate .5s linear;
+    animation:aspro_property_regionphone_item_delete_animate .5s linear;
+}
+.aspro_property_regionphone_item *{
+    box-sizing:border-box;
+}
+.aspro_property_regionphone_item .wrapper{
+    position:relative;
+}
+.aspro_property_regionphone_item:not(.aspro_property_regionphone_item--admlistview) .wrapper{
+    padding-right:20px;
+    padding-left:30px;
+}
+.aspro_property_regionphone_item .inner_wrapper{
+    display:inline-block;
+    position:relative;
+}
+.aspro_property_regionphone_item:not(.aspro_property_regionphone_item--admlistview) .inner_wrapper{
+    font-size:0;
+}
+.aspro_property_regionphone_item .inner{
+    display:inline-block;
+    position:relative;
+    vertical-align:middle;
+}
+.aspro_property_regionphone_item:not(.aspro_property_regionphone_item--admlistview) .inner{
+    width:50%;
+}
+.aspro_property_regionphone_item:not(.aspro_property_regionphone_item--admlistview) .inner:nth-of-type(3){
+    width:initial;
+}
+.aspro_property_regionphone_item:not(.aspro_property_regionphone_item--admlistview) .inner:nth-of-type(4){
+    width:calc(100% - 36px);
+}
+.aspro_property_regionphone_item .value_wrapper{
+    margin:5px 2px;
+    font-size:13px;
+}
+.aspro_property_regionphone_item .wrapper.has_title{
+    height:22px;
+    overflow:hidden;
+    margin:0 0 -5px 0;
+}
+.aspro_property_regionphone_item .wrapper.has_title .value_wrapper{
+    visibility:hidden;
+    margin:0 2px;
+    height:0;
+    overflow:hidden;
+}
+.aspro_property_regionphone_item .subtitle{
+    margin:0px 0px 7px;
+    font-size:13px;
+    color:#000;
+}
+.adm-workarea .aspro_property_regionphone_item input[type=text]{
+    height:33px;
+    box-shadow:none;
+    border-color:#c1d2db;
+    padding-left:8px;
+    padding-right:8px;
+    width:100%;
+    /*max-width:222px;*/
+}
+.aspro_property_regionphone_item .remove{
+    display:block;
+    position:absolute;
+    width:20px;
+    height:20px;
+    background:url(../../../images/aspro.max/delete.svg) center center no-repeat;
+    cursor:pointer;
+    opacity:0.7;
+    top:50%;
+    margin-top:-11px;
+    right:-29px;
+}
+.aspro_property_regionphone_item .remove:hover {
+    opacity:1;
+}
+.aspro_property_regionphone_item .drag{
+    opacity:0.4;
+    text-align:center;
+    position:absolute;
+    left:-28px;
+    top:50%;
+    margin-top:-11px;
+    width:20px;
+    height:20px;
+    cursor:move;
+    cursor:-webkit-grabbing;
+    background:url(../../../images/aspro.max/dragarrow_admin.svg) center center no-repeat;
+}
+.aspro_property_regionphone_item .drag:hover {
+    opacity:1;
+}
+.aspro_property_regionphone_item--hiddendrag .drag{
+    display:none;
+}
+.aspro_property_regionphone_item .description_disabled_note{
+    margin:0 0 0 10px;
+}
