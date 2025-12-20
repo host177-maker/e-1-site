@@ -51,70 +51,72 @@ export default function HeroBanner() {
   const handleMouseLeave = () => setIsAutoPlay(true);
 
   return (
-    <section className="relative bg-[#f5f5f5]">
-      <div
-        className="relative overflow-hidden"
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        {/* Slides container */}
+    <section className="relative bg-[#f5f5f5] py-4">
+      <div className="container-custom">
         <div
-          className="flex transition-transform duration-500 ease-out"
-          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          className="relative overflow-hidden rounded-lg"
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
-          {banners.map((banner) => (
-            <div key={banner.id} className="w-full flex-shrink-0">
-              <Link href={banner.link} className="block relative">
-                <div className="relative w-full h-[180px] sm:h-[250px] md:h-[320px] lg:h-[380px] xl:h-[420px]">
-                  <Image
-                    src={banner.image}
-                    alt={banner.alt}
-                    fill
-                    className="object-cover object-center"
-                    priority={banner.id === 1}
-                    sizes="100vw"
-                  />
-                </div>
-              </Link>
-            </div>
-          ))}
-        </div>
+          {/* Slides container */}
+          <div
+            className="flex transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          >
+            {banners.map((banner) => (
+              <div key={banner.id} className="w-full flex-shrink-0">
+                <Link href={banner.link} className="block relative">
+                  <div className="relative w-full h-[160px] sm:h-[220px] md:h-[280px] lg:h-[340px] xl:h-[380px]">
+                    <Image
+                      src={banner.image}
+                      alt={banner.alt}
+                      fill
+                      className="object-cover object-center"
+                      priority={banner.id === 1}
+                      sizes="(max-width: 1348px) 100vw, 1288px"
+                    />
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
 
-        {/* Navigation arrows */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-6 md:left-10 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all z-10 group"
-          aria-label="Предыдущий слайд"
-        >
-          <svg className="w-5 h-5 md:w-6 md:h-6 text-[#3d4543] group-hover:text-[#62bb46] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
+          {/* Navigation arrows */}
+          <button
+            onClick={prevSlide}
+            className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-9 h-9 md:w-11 md:h-11 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all z-10 group"
+            aria-label="Предыдущий слайд"
+          >
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-[#3d4543] group-hover:text-[#62bb46] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
 
-        <button
-          onClick={nextSlide}
-          className="absolute right-6 md:right-10 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all z-10 group"
-          aria-label="Следующий слайд"
-        >
-          <svg className="w-5 h-5 md:w-6 md:h-6 text-[#3d4543] group-hover:text-[#62bb46] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
+          <button
+            onClick={nextSlide}
+            className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-9 h-9 md:w-11 md:h-11 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all z-10 group"
+            aria-label="Следующий слайд"
+          >
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-[#3d4543] group-hover:text-[#62bb46] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
 
-        {/* Dots navigation */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`h-2.5 rounded-full transition-all ${
-                index === currentSlide
-                  ? 'bg-[#62bb46] w-6'
-                  : 'bg-white/70 hover:bg-white w-2.5'
-              }`}
-              aria-label={`Слайд ${index + 1}`}
-            />
-          ))}
+          {/* Dots navigation */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {banners.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                className={`h-2 rounded-full transition-all ${
+                  index === currentSlide
+                    ? 'bg-[#62bb46] w-5'
+                    : 'bg-white/70 hover:bg-white w-2'
+                }`}
+                aria-label={`Слайд ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
