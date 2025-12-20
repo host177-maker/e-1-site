@@ -127,13 +127,18 @@ export default function Header() {
 
             {/* Right icons */}
             <div className="flex items-center gap-0.5 ml-auto xl:ml-0">
-              {/* Login */}
-              <Link href="/login" className="hidden sm:flex flex-col items-center justify-center w-12 h-12 hover:text-[#62bb46] transition-colors">
+              {/* Order Status */}
+              <a
+                href="https://booking.e-1.ru/check/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:flex flex-col items-center justify-center w-14 h-12 hover:text-[#62bb46] transition-colors"
+              >
                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
-                <span className="text-[10px] text-gray-500 mt-0.5">войти</span>
-              </Link>
+                <span className="text-[9px] text-gray-500 mt-0.5 whitespace-nowrap">Статус заказа</span>
+              </a>
 
               {/* Compare */}
               <Link href="/compare" className="hidden sm:flex flex-col items-center justify-center w-12 h-12 hover:text-[#62bb46] transition-colors relative">
@@ -171,7 +176,7 @@ export default function Header() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2.5 text-white font-medium hover:bg-[#55a83d] transition-colors text-[13px] tracking-wide ${
+                  className={`flex items-center gap-2 px-5 py-3 text-white font-semibold hover:bg-[#55a83d] transition-colors text-sm tracking-wide ${
                     index === 0 ? 'border-l border-r border-[#4a9a35]' : 'border-r border-[#4a9a35]'
                   }`}
                 >
