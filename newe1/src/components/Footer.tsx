@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="bg-[#3d3d3d] text-white mt-16">
       {/* Main footer content */}
-      <div className="container-custom pt-12 pb-10">
+      <div className="container-custom pt-16 pb-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-6">
           {/* Column 1 - ДОСТАВКА */}
           <div>
