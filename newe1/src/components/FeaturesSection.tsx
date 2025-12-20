@@ -3,8 +3,23 @@ const features = [
     id: 1,
     title: 'Гарантия качества до 10 лет',
     icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      <svg className="w-8 h-8" viewBox="0 0 40 40" fill="none">
+        {/* Shield with warranty badge */}
+        <path
+          d="M20 4L6 10v10c0 9.55 5.98 18.48 14 20 8.02-1.52 14-10.45 14-20V10L20 4z"
+          stroke="white"
+          strokeWidth="2"
+          fill="none"
+        />
+        <path
+          d="M14 20l4 4 8-8"
+          stroke="white"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        <text x="20" y="32" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">10</text>
       </svg>
     ),
   },
@@ -12,8 +27,14 @@ const features = [
     id: 2,
     title: 'Быстрая доставка от 24-х часов',
     icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+      <svg className="w-8 h-8" viewBox="0 0 40 40" fill="none">
+        {/* Delivery truck */}
+        <rect x="4" y="12" width="20" height="14" rx="2" stroke="white" strokeWidth="2" fill="none"/>
+        <path d="M24 18h8l4 6v4h-12v-10z" stroke="white" strokeWidth="2" fill="none"/>
+        <circle cx="10" cy="28" r="3" stroke="white" strokeWidth="2" fill="none"/>
+        <circle cx="30" cy="28" r="3" stroke="white" strokeWidth="2" fill="none"/>
+        <path d="M13 28h14" stroke="white" strokeWidth="2"/>
+        <path d="M28 18v6" stroke="white" strokeWidth="1.5"/>
       </svg>
     ),
   },
@@ -21,8 +42,12 @@ const features = [
     id: 3,
     title: 'Экологически чистая и безопасная ДСП класса Е1',
     icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+      <svg className="w-8 h-8" viewBox="0 0 40 40" fill="none">
+        {/* Eco certificate with E1 */}
+        <rect x="6" y="4" width="28" height="32" rx="3" stroke="white" strokeWidth="2" fill="none"/>
+        <path d="M12 12h16M12 18h16M12 24h10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="28" cy="28" r="6" stroke="white" strokeWidth="2" fill="none"/>
+        <text x="28" y="31" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">E1</text>
       </svg>
     ),
   },
@@ -30,8 +55,13 @@ const features = [
     id: 4,
     title: 'Края защищены от сколов и повреждений',
     icon: (
-      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01" />
+      <svg className="w-8 h-8" viewBox="0 0 40 40" fill="none">
+        {/* Gift box / protection icon */}
+        <rect x="6" y="16" width="28" height="20" rx="2" stroke="white" strokeWidth="2" fill="none"/>
+        <rect x="6" y="10" width="28" height="6" rx="1" stroke="white" strokeWidth="2" fill="none"/>
+        <path d="M20 10v26" stroke="white" strokeWidth="2"/>
+        <path d="M6 22h28" stroke="white" strokeWidth="1.5"/>
+        <path d="M14 10c0-4 6-6 6-6s6 2 6 6" stroke="white" strokeWidth="2" fill="none"/>
       </svg>
     ),
   },
@@ -39,19 +69,19 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section className="py-4 bg-[#f5f5f5]">
+    <section className="py-4 bg-[#f0f0f0]">
       <div className="container-custom">
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg shadow-sm py-6 px-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature) => (
               <div
                 key={feature.id}
-                className="flex items-center gap-3 p-2"
+                className="flex items-center gap-4"
               >
-                <div className="w-10 h-10 bg-[#62bb46] rounded-full flex items-center justify-center text-white shrink-0">
+                <div className="w-14 h-14 bg-[#62bb46] rounded-full flex items-center justify-center shrink-0">
                   {feature.icon}
                 </div>
-                <span className="text-sm font-medium text-text-dark leading-tight">
+                <span className="text-sm font-medium text-[#333] leading-tight">
                   {feature.title}
                 </span>
               </div>

@@ -6,13 +6,39 @@ import { useState, useEffect } from 'react';
 // E1 Logo for banner
 function E1LogoSmall() {
   return (
-    <svg viewBox="0 0 80 56" className="h-8 w-auto inline-block ml-2">
+    <svg viewBox="0 0 80 56" className="h-10 w-auto inline-block ml-2 align-middle">
       <g fill="#62BB46">
         <polygon points="76.82,9.79 76.82,51.74 65.78,51.74 65.78,15.47 69.73,15.47 58.69,9.94 58.69,4.26 65.78,4.26" />
         <polygon points="47.48,15.47 11.05,15.47 0,10.03 0,4.26 36.43,4.26 47.48,9.79" />
         <polygon points="11.06,15.47 11.06,22.4 36.43,22.4 47.48,27.92 47.48,33.6 11.22,33.6 0,28.08 0,15.47" />
         <polygon points="47.48,46.06 47.48,51.74 11.05,51.74 0,46.22 0,33.6 11.22,33.6 11.22,40.53 36.43,40.53" />
       </g>
+    </svg>
+  );
+}
+
+// Santa Hat SVG for the -60% badge
+function SantaHat() {
+  return (
+    <svg viewBox="0 0 60 50" className="absolute -top-8 -left-2 w-14 h-14 z-10">
+      {/* Hat body (red) */}
+      <path
+        d="M5 45 Q10 25 20 20 L45 15 Q55 25 50 45 Z"
+        fill="#e32636"
+        stroke="#c41e2d"
+        strokeWidth="1"
+      />
+      {/* White fur trim at bottom */}
+      <ellipse cx="28" cy="45" rx="25" ry="6" fill="white" />
+      {/* White pompom at top */}
+      <circle cx="48" cy="12" r="7" fill="white" />
+      {/* Hat tip curve */}
+      <path
+        d="M45 15 Q52 8 48 12"
+        fill="#e32636"
+        stroke="#c41e2d"
+        strokeWidth="1"
+      />
     </svg>
   );
 }
@@ -24,11 +50,20 @@ const slides = [
     subtitle: 'Новогодние скидки в',
     hasLogo: true,
     discount: '-60%',
+    hasSantaHat: true,
     description: 'Серия Экспресс, фасад Зеркало',
     details: 'В декорах Белый снег, Бетон, Крафт Табачный',
     date: '1-28 декабря',
     buttonText: 'СМОТРЕТЬ',
     buttonLink: '/sales',
+    finePrint: [
+      'Акция действует с 01.12.25 по 28.12.25,',
+      'на шкафы серии «Экспресс» 2-дв. фасад зеркало',
+      'в декоре «Белый снег» и «Бетон», 3-дв. фасад',
+      'зеркало в декоре «Крафт Табачный».',
+      'Рекламодатель: ООО «Е1-ЮГ» г. Белореченск,',
+      'ул. Луценко, 125. ОГРН 1222300027344',
+    ],
   },
   {
     id: 2,
@@ -65,30 +100,33 @@ export default function HeroBanner() {
   const slide = slides[currentSlide];
 
   return (
-    <section className="relative bg-[#f5f5f5]">
+    <section className="bg-[#f0f0f0] py-4">
       <div className="container-custom">
         <div className="relative bg-white rounded-lg overflow-hidden shadow-sm">
-          <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[400px] lg:min-h-[500px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[450px] lg:min-h-[520px]">
             {/* Left side - Content */}
             <div className="p-8 lg:p-12 flex flex-col justify-center">
-              <h1 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-text-dark mb-4">
+              <h1 className="text-3xl lg:text-4xl xl:text-[42px] font-bold text-[#333] mb-3 leading-tight">
                 {slide.title}
               </h1>
-              <div className="text-xl lg:text-2xl text-text-dark mb-6 italic font-light">
+              <div className="text-xl lg:text-2xl text-[#333] mb-8" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
                 {slide.subtitle}
                 {slide.hasLogo && <E1LogoSmall />}
               </div>
 
-              <div className="flex items-start gap-6 mb-6">
-                {/* Discount badge */}
-                <div className="text-[#62bb46] text-6xl lg:text-7xl font-bold leading-none">
-                  {slide.discount}
+              <div className="flex items-start gap-4 mb-6">
+                {/* Discount badge with Santa hat */}
+                <div className="relative">
+                  {slide.hasSantaHat && <SantaHat />}
+                  <div className="text-[#62bb46] text-6xl lg:text-7xl xl:text-8xl font-bold leading-none">
+                    {slide.discount}
+                  </div>
                 </div>
-                <div className="border-l-2 border-[#62bb46] pl-4">
-                  <div className="font-bold text-lg text-text-dark">{slide.description}</div>
-                  <div className="text-text-medium text-sm">{slide.details}</div>
+                <div className="border-l-2 border-[#62bb46] pl-4 pt-1">
+                  <div className="font-bold text-lg text-[#333]">{slide.description}</div>
+                  <div className="text-[#666] text-sm">{slide.details}</div>
                   {slide.date && (
-                    <div className="text-text-dark font-medium mt-1">{slide.date}</div>
+                    <div className="text-[#333] font-medium mt-2 text-lg">{slide.date}</div>
                   )}
                 </div>
               </div>
@@ -96,30 +134,66 @@ export default function HeroBanner() {
               <div className="mb-6">
                 <Link
                   href={slide.buttonLink}
-                  className="inline-block px-8 py-4 bg-[#62bb46] text-white font-bold rounded hover:bg-[#75c35c] transition-colors uppercase tracking-wide"
+                  className="inline-block px-10 py-4 bg-[#62bb46] text-white font-bold rounded hover:bg-[#75c35c] transition-colors uppercase tracking-wide text-lg"
                 >
                   {slide.buttonText}
                 </Link>
               </div>
 
-              {slide.id === 1 && (
-                <div className="text-xs text-text-muted leading-relaxed">
-                  Акция действует с 01.12.25 по 28.12.25,<br />
-                  на шкафы серии «Экспресс» 2-дв. фасад зеркало<br />
-                  в декоре «Белый снег» и «Бетон», 3-дв. фасад<br />
-                  зеркало в декоре «Крафт Табачный».<br />
-                  Рекламодатель: ООО «Е1-ЮГ» г. Белореченск
+              {slide.finePrint && (
+                <div className="text-xs text-[#999] leading-relaxed">
+                  {slide.finePrint.map((line, index) => (
+                    <span key={index}>
+                      {line}
+                      {index < slide.finePrint.length - 1 && <br />}
+                    </span>
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* Right side - Image placeholder */}
-            <div className="relative bg-gradient-to-br from-gray-100 to-gray-200 hidden lg:flex items-center justify-center">
-              <div className="text-center text-text-muted">
-                <svg className="w-24 h-24 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            {/* Right side - Image */}
+            <div className="relative hidden lg:block">
+              {/* Background image placeholder - wardrobe with fireplace */}
+              <div
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                style={{
+                  backgroundImage: `url('/images/banner-wardrobe.jpg')`,
+                  backgroundColor: '#e8e4e0',
+                }}
+              >
+                {/* Fallback content when image is not available */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center p-8">
+                    {/* Decorative wardrobe illustration */}
+                    <svg className="w-64 h-80 mx-auto text-[#666]" viewBox="0 0 200 280" fill="none" stroke="currentColor">
+                      {/* Wardrobe frame */}
+                      <rect x="20" y="20" width="160" height="240" rx="4" strokeWidth="2" fill="#f5f5f5"/>
+                      {/* Left door */}
+                      <rect x="25" y="25" width="75" height="230" rx="2" strokeWidth="1.5" fill="#e0e0e0"/>
+                      {/* Right door (mirror effect) */}
+                      <rect x="100" y="25" width="75" height="230" rx="2" strokeWidth="1.5" fill="#d0d8e0"/>
+                      {/* Mirror reflection lines */}
+                      <line x1="110" y1="35" x2="165" y2="35" strokeWidth="0.5" opacity="0.5"/>
+                      <line x1="115" y1="50" x2="160" y2="50" strokeWidth="0.5" opacity="0.5"/>
+                      {/* Door handles */}
+                      <rect x="90" y="130" width="4" height="20" rx="2" fill="#888"/>
+                      <rect x="106" y="130" width="4" height="20" rx="2" fill="#888"/>
+                      {/* Vertical divider line */}
+                      <line x1="100" y1="25" x2="100" y2="255" strokeWidth="1"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Christmas decoration overlay */}
+              <div className="absolute top-0 right-0 w-20 h-20 opacity-70">
+                <svg viewBox="0 0 100 100" className="w-full h-full">
+                  {/* Christmas garland hint */}
+                  <path d="M0 20 Q25 30 50 20 Q75 10 100 20" stroke="#228B22" strokeWidth="8" fill="none"/>
+                  <circle cx="25" cy="22" r="5" fill="#c41e2d"/>
+                  <circle cx="75" cy="18" r="5" fill="#ffd700"/>
                 </svg>
-                <p className="text-sm">Изображение шкафа</p>
               </div>
             </div>
           </div>
@@ -131,7 +205,9 @@ export default function HeroBanner() {
                 key={index}
                 onClick={() => setCurrentSlide(index)}
                 className={`w-3 h-3 rounded-full transition-all ${
-                  index === currentSlide ? 'bg-[#62bb46] w-6' : 'bg-gray-300 hover:bg-gray-400'
+                  index === currentSlide
+                    ? 'bg-[#62bb46] w-6'
+                    : 'bg-gray-300 hover:bg-gray-400'
                 }`}
                 aria-label={`Слайд ${index + 1}`}
               />
