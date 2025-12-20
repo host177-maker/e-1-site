@@ -2,13 +2,13 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="bg-[#3d3d3d] text-white mt-12">
+    <footer className="bg-[#3d3d3d] text-white mt-16">
       {/* Main footer content */}
-      <div className="container-custom py-10">
+      <div className="container-custom pt-10 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-6">
           {/* Column 1 - ДОСТАВКА */}
           <div>
-            <h4 className="font-bold text-white text-sm mb-4 uppercase tracking-wide">Доставка</h4>
+            <h4 className="font-bold text-gray-300 text-sm mb-4 uppercase tracking-wide">Доставка</h4>
             <ul className="space-y-2">
               <li><Link href="/service/delivery" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">Доставка и сборка</Link></li>
               <li><Link href="/service/order-path" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">Путь заказа</Link></li>
@@ -18,7 +18,7 @@ export default function Footer() {
 
           {/* Column 2 - ПОМОЩЬ В ВЫБОРЕ */}
           <div>
-            <h4 className="font-bold text-white text-sm mb-4 uppercase tracking-wide">Помощь в выборе</h4>
+            <h4 className="font-bold text-gray-300 text-sm mb-4 uppercase tracking-wide">Помощь в выборе</h4>
             <ul className="space-y-2">
               <li><Link href="/service/about-wardrobes" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">О шкафах-купе</Link></li>
               <li><Link href="/service/photo-print" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">Каталог фотопечати</Link></li>
@@ -31,7 +31,7 @@ export default function Footer() {
 
           {/* Column 3 - О КОМПАНИИ */}
           <div>
-            <h4 className="font-bold text-white text-sm mb-4 uppercase tracking-wide">О компании</h4>
+            <h4 className="font-bold text-gray-300 text-sm mb-4 uppercase tracking-wide">О компании</h4>
             <ul className="space-y-2">
               <li><Link href="/about/production" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">Производство</Link></li>
               <li><Link href="/about/quality" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">О качестве сервиса</Link></li>
@@ -43,7 +43,7 @@ export default function Footer() {
 
           {/* Column 4 - ПОКУПКА И ГАРАНТИИ */}
           <div>
-            <h4 className="font-bold text-white text-sm mb-4 uppercase tracking-wide">Покупка и гарантии</h4>
+            <h4 className="font-bold text-gray-300 text-sm mb-4 uppercase tracking-wide">Покупка и гарантии</h4>
             <ul className="space-y-2">
               <li><Link href="/service/purchase-terms" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">Условия покупки</Link></li>
               <li><Link href="/service/warranty" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">Гарантия</Link></li>
@@ -79,7 +79,7 @@ export default function Footer() {
               </a>
               <a href="https://max.ru/79384222111" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#4d4d4d] rounded flex items-center justify-center text-gray-300 hover:bg-[#62bb46] hover:text-white transition-colors" title="Max">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.38 5.07L2 22l4.93-1.38C8.42 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 3.5c2.49 0 4.5 2.01 4.5 4.5s-2.01 4.5-4.5 4.5-4.5-2.01-4.5-4.5 2.01-4.5 4.5-4.5z"/>
+                  <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.38 5.07L2 22l4.93-1.38C8.42 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 4c3.31 0 6 2.69 6 6 0 .93-.21 1.8-.59 2.58l-.82-2.28c-.15-.4-.52-.67-.95-.67-.43 0-.8.27-.95.67L12 19l-2.69-6.7c-.15-.4-.52-.67-.95-.67-.43 0-.8.27-.95.67l-.82 2.28C6.21 13.8 6 12.93 6 12c0-3.31 2.69-6 6-6z"/>
                 </svg>
               </a>
               <a href="https://t.me/+79384222111" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#4d4d4d] rounded flex items-center justify-center text-gray-300 hover:bg-[#62bb46] hover:text-white transition-colors" title="Telegram">
