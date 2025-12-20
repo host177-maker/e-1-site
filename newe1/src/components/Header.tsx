@@ -17,13 +17,60 @@ function Logo() {
   );
 }
 
+// Service submenu structure
+const serviceSubmenu = [
+  {
+    title: 'Доставка',
+    items: [
+      { label: 'Доставка и сборка', href: '/service/delivery' },
+      { label: 'Путь заказа', href: '/service/order-path' },
+      { label: 'Сроки изготовления', href: '/service/production-time' },
+    ]
+  },
+  {
+    title: 'Покупка и гарантии',
+    items: [
+      { label: 'Условия покупки', href: '/service/purchase-terms' },
+      { label: 'Гарантия', href: '/service/warranty' },
+      { label: 'Рассрочка', href: '/service/installment' },
+      { label: 'Возврат товара', href: '/service/returns' },
+    ]
+  },
+  {
+    title: 'Помощь в выборе',
+    items: [
+      { label: 'О шкафах', href: '/service/about-wardrobes' },
+      { label: 'Каталог фотопечати', href: '/service/photo-print' },
+      { label: 'Вопросы и ответы', href: '/service/faq' },
+      { label: 'Советы от Е1', href: '/service/tips' },
+      { label: 'Наши работы', href: '/service/portfolio' },
+      { label: 'Брошюра', href: '/service/brochure' },
+    ]
+  },
+  {
+    title: 'О компании',
+    items: [
+      { label: 'Производство', href: '/about/production' },
+      { label: 'Качество сервиса', href: '/about/quality' },
+      { label: 'Вакансии', href: '/about/careers' },
+      { label: 'Партнерство', href: '/about/partnership' },
+    ]
+  },
+  {
+    title: 'Инструкции к мебели',
+    href: '/service/instructions',
+    items: []
+  },
+];
+
 const menuItems = [
   { label: 'КАТАЛОГ', href: '/catalog' },
   { label: 'АКЦИИ', href: '/sales', hasLightning: true },
   { label: 'СЕРИИ', href: '/series' },
   { label: 'ШКАФЫ НА ЗАКАЗ', href: '/custom' },
   { label: 'ГАРДЕРОБНЫЕ', href: '/catalog/garderobnye' },
-  { label: 'СЕРВИС', href: '/service' },
+  { label: 'СЕРВИС', href: '/service', hasSubmenu: true },
+  { label: 'ОТЗЫВЫ', href: '/reviews' },
   { label: 'АДРЕСА САЛОНОВ', href: '/stores' },
   { label: 'ГЕОГРАФИЯ ДОСТАВКИ', href: '/delivery' },
 ];
@@ -257,10 +304,10 @@ export default function Header() {
         <div className="container-custom">
           <ul className="flex items-center justify-between">
             {menuItems.map((item) => (
-              <li key={item.href}>
+              <li key={item.href} className={item.hasSubmenu ? 'relative group' : ''}>
                 <Link
                   href={item.href}
-                  className="flex items-center gap-1.5 px-2 xl:px-4 py-3 font-bold hover:bg-[#55a83d] transition-colors text-[13px] xl:text-sm whitespace-nowrap"
+                  className="flex items-center gap-1.5 px-2 xl:px-3 py-3 font-bold hover:bg-[#55a83d] transition-colors text-[12px] xl:text-[13px] whitespace-nowrap"
                   style={{ color: 'white' }}
                 >
                   {item.hasLightning && (
@@ -269,7 +316,47 @@ export default function Header() {
                     </svg>
                   )}
                   {item.label}
+                  {item.hasSubmenu && (
+                    <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  )}
                 </Link>
+                {/* Dropdown for СЕРВИС */}
+                {item.hasSubmenu && (
+                  <div className="absolute left-0 top-full bg-white shadow-xl rounded-b-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[700px] -ml-4">
+                    <div className="flex p-4 gap-6">
+                      {serviceSubmenu.map((section) => (
+                        <div key={section.title} className="min-w-[120px]">
+                          {section.items.length > 0 ? (
+                            <>
+                              <div className="font-bold text-[#3d4543] text-sm mb-2 pb-1 border-b border-gray-200">{section.title}</div>
+                              <ul className="space-y-1">
+                                {section.items.map((subItem) => (
+                                  <li key={subItem.href}>
+                                    <Link
+                                      href={subItem.href}
+                                      className="block text-[13px] text-gray-600 hover:text-[#62bb46] transition-colors py-0.5"
+                                    >
+                                      {subItem.label}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </>
+                          ) : (
+                            <Link
+                              href={section.href || '#'}
+                              className="font-bold text-[#3d4543] text-sm hover:text-[#62bb46] transition-colors"
+                            >
+                              {section.title}
+                            </Link>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
