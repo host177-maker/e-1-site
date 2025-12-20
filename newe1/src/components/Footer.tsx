@@ -15,7 +15,7 @@ const footerLinks = {
     links: [
       { label: 'О компании', href: '/about' },
       { label: 'Отзывы', href: '/reviews' },
-      { label: 'Вакансии', href: '/jobs' },
+      { label: 'Акции', href: '/sales' },
       { label: 'Новости', href: '/news' },
     ],
   },
@@ -32,9 +32,9 @@ const footerLinks = {
     title: 'Помощь',
     links: [
       { label: 'Контакты', href: '/contacts' },
-      { label: 'Магазины', href: '/stores' },
-      { label: 'FAQ', href: '/faq' },
-      { label: 'Акции', href: '/sales' },
+      { label: 'Адреса салонов', href: '/stores' },
+      { label: 'Производители', href: '/brands' },
+      { label: 'Услуги', href: '/services' },
     ],
   },
 };
@@ -69,6 +69,20 @@ const socialLinks = [
   },
 ];
 
+// E1 Logo for footer (green)
+function FooterLogo() {
+  return (
+    <svg viewBox="0 0 80 56" className="h-12 w-auto">
+      <g fill="#62BB46">
+        <polygon points="76.82,9.79 76.82,51.74 65.78,51.74 65.78,15.47 69.73,15.47 58.69,9.94 58.69,4.26 65.78,4.26" />
+        <polygon points="47.48,15.47 11.05,15.47 0,10.03 0,4.26 36.43,4.26 47.48,9.79" />
+        <polygon points="11.06,15.47 11.06,22.4 36.43,22.4 47.48,27.92 47.48,33.6 11.22,33.6 0,28.08 0,15.47" />
+        <polygon points="47.48,46.06 47.48,51.74 11.05,51.74 0,46.22 0,33.6 11.22,33.6 11.22,40.53 36.43,40.53" />
+      </g>
+    </svg>
+  );
+}
+
 export default function Footer() {
   return (
     <footer className="bg-bg-dark text-white">
@@ -77,9 +91,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Logo and description */}
           <div className="lg:col-span-1">
-            <div className="text-2xl font-bold text-primary mb-4">E-1</div>
+            <div className="mb-4">
+              <FooterLogo />
+            </div>
             <p className="text-text-muted text-sm mb-4">
-              Шкафы-купе и гардеробные системы на заказ. Производство и продажа мебели с 2005 года.
+              Шкафы-купе и гардеробные системы на заказ. Производство и продажа мебели.
             </p>
             {/* Social links */}
             <div className="flex gap-4">
@@ -122,33 +138,33 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-gray-700">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-primary mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-primary mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
               <div>
-                <div className="font-medium">+7 (495) 123-45-67</div>
+                <a href="tel:+78000000000" className="font-medium hover:text-primary">+7 800 000-00-00</a>
                 <div className="text-sm text-text-muted">Пн-Вс: 9:00 - 21:00</div>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-primary mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-primary mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
               <div>
-                <div className="font-medium">info@e-1.ru</div>
+                <a href="mailto:best@e-1.ru" className="font-medium hover:text-primary">best@e-1.ru</a>
                 <div className="text-sm text-text-muted">Для заказов и вопросов</div>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-primary mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-primary mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               <div>
                 <div className="font-medium">Москва</div>
-                <div className="text-sm text-text-muted">ул. Примерная, д. 1</div>
+                <div className="text-sm text-text-muted">МЦ &quot;Мир Мебели&quot;, м. Щелковская, Щёлковское ш., д.100</div>
               </div>
             </div>
           </div>

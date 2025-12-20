@@ -11,7 +11,7 @@ const slides = [
     description: 'Производство шкафов-купе любой сложности с гарантией 5 лет',
     buttonText: 'Рассчитать стоимость',
     buttonLink: '/calculator',
-    bgColor: 'from-gray-900 to-gray-700',
+    bgClass: 'bg-[#365edc]',
   },
   {
     id: 2,
@@ -20,7 +20,7 @@ const slides = [
     description: 'Эргономичные решения для хранения вашей одежды',
     buttonText: 'Смотреть каталог',
     buttonLink: '/catalog/garderobnye',
-    bgColor: 'from-primary to-primary-dark',
+    bgClass: 'bg-gradient-to-r from-[#365edc] to-[#244ed5]',
   },
   {
     id: 3,
@@ -29,7 +29,7 @@ const slides = [
     description: 'Успейте заказать мебель по выгодной цене',
     buttonText: 'Узнать подробнее',
     buttonLink: '/sales',
-    bgColor: 'from-gray-800 to-gray-600',
+    bgClass: 'bg-gradient-to-r from-[#2954da] to-[#365edc]',
   },
 ];
 
@@ -46,7 +46,7 @@ export default function HeroBanner() {
   const slide = slides[currentSlide];
 
   return (
-    <section className={`relative bg-gradient-to-r ${slide.bgColor} text-white transition-all duration-500`}>
+    <section className={`relative ${slide.bgClass} text-white transition-all duration-500`}>
       <div className="container-custom py-16 md:py-24 lg:py-32">
         <div className="max-w-2xl">
           <span className="inline-block px-4 py-1 bg-white/20 rounded-full text-sm mb-4">
@@ -61,13 +61,13 @@ export default function HeroBanner() {
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
               href={slide.buttonLink}
-              className="btn-primary inline-block text-center"
+              className="inline-block px-6 py-3 bg-white text-[#365edc] rounded font-medium hover:bg-gray-100 transition-colors text-center"
             >
               {slide.buttonText}
             </Link>
             <Link
               href="/catalog"
-              className="inline-block px-6 py-3 border-2 border-white text-white rounded hover:bg-white hover:text-gray-900 transition-colors text-center"
+              className="inline-block px-6 py-3 border-2 border-white text-white rounded hover:bg-white hover:text-[#365edc] transition-colors text-center"
             >
               Весь каталог
             </Link>
