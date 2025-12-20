@@ -42,23 +42,12 @@ export default function FeaturesSection() {
             <p className="text-xs text-gray-500 mb-3 leading-relaxed">
               Проекты хранения • наполнение • стиль
             </p>
-            <div className="space-y-1.5">
-              <Link
-                href="/catalog/garderobnye"
-                className="block w-full text-center bg-[#62bb46] text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-[#55a83d] transition-colors"
-              >
-                Популярные решения
-              </Link>
-              <Link
-                href="/consultant"
-                className="flex items-center justify-center gap-1.5 w-full text-center text-gray-500 text-xs py-1.5 hover:text-[#62bb46] transition-colors"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-                Умный консультант
-              </Link>
-            </div>
+            <Link
+              href="/catalog/garderobnye"
+              className="block w-full text-center bg-[#62bb46] text-white text-xs font-bold py-2 px-3 rounded-full hover:bg-[#55a83d] transition-colors"
+            >
+              Популярные решения
+            </Link>
           </div>
 
           {/* Card 3 - Мебель по вашим размерам */}
@@ -75,7 +64,7 @@ export default function FeaturesSection() {
                 href="/custom"
                 className="block w-full text-center border border-[#62bb46] text-[#62bb46] text-xs font-bold py-1.5 px-3 rounded-full hover:bg-[#62bb46] hover:text-white transition-colors"
               >
-                Вызвать замер
+                Вызвать замерщика
               </Link>
               <Link
                 href="/quiz"
@@ -84,7 +73,7 @@ export default function FeaturesSection() {
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
-                Квиз-расчёт
+                Быстрый расчёт
               </Link>
             </div>
           </div>
