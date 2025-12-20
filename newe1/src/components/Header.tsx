@@ -78,6 +78,7 @@ const menuItems = [
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileServiceOpen, setMobileServiceOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50">
@@ -387,19 +388,79 @@ export default function Header() {
             <ul className="divide-y divide-[#55a83d]">
               {menuItems.map((item) => (
                 <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="flex items-center gap-2 px-4 py-3 font-bold"
-                    style={{ color: 'white' }}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.hasLightning && (
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#f5b800">
-                        <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
-                    )}
-                    {item.label}
-                  </Link>
+                  {item.hasSubmenu ? (
+                    <div>
+                      <button
+                        onClick={() => setMobileServiceOpen(!mobileServiceOpen)}
+                        className="flex items-center justify-between w-full px-4 py-3 font-bold"
+                        style={{ color: 'white' }}
+                      >
+                        <span>{item.label}</span>
+                        <svg
+                          className={`w-4 h-4 transition-transform ${mobileServiceOpen ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      {mobileServiceOpen && (
+                        <div className="bg-white">
+                          {serviceSubmenu.map((section) => (
+                            <div key={section.title} className="border-b border-gray-100 last:border-b-0">
+                              {section.items.length > 0 ? (
+                                <>
+                                  <div className="px-4 py-2 bg-gray-50 font-bold text-[#3d4543] text-sm">{section.title}</div>
+                                  <ul>
+                                    {section.items.map((subItem) => (
+                                      <li key={subItem.href}>
+                                        <Link
+                                          href={subItem.href}
+                                          className="block px-6 py-2 text-sm text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
+                                          onClick={() => {
+                                            setMobileServiceOpen(false);
+                                            setIsMobileMenuOpen(false);
+                                          }}
+                                        >
+                                          {subItem.label}
+                                        </Link>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </>
+                              ) : (
+                                <Link
+                                  href={section.href || '#'}
+                                  className="block px-4 py-2 bg-gray-50 font-bold text-[#3d4543] text-sm hover:text-[#62bb46] transition-colors"
+                                  onClick={() => {
+                                    setMobileServiceOpen(false);
+                                    setIsMobileMenuOpen(false);
+                                  }}
+                                >
+                                  {section.title}
+                                </Link>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className="flex items-center gap-2 px-4 py-3 font-bold"
+                      style={{ color: 'white' }}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {item.hasLightning && (
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#f5b800">
+                          <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      )}
+                      {item.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
