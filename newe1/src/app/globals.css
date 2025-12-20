@@ -1,10 +1,13 @@
 @import "tailwindcss";
 
 @theme inline {
-  /* Primary Colors */
-  --color-primary: #dc2f2f;
-  --color-primary-hover: #e04949;
-  --color-primary-dark: #b82828;
+  /* Primary Colors - Blue theme from original site */
+  --color-primary: #365edc;
+  --color-primary-hover: #5073e1;
+  --color-primary-dark: #244ed5;
+
+  /* Logo Color - Green */
+  --color-logo: #62bb46;
 
   /* Text Colors */
   --color-text-dark: #333333;
@@ -27,7 +30,7 @@
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* Container */
-  --container-max: 1172px;
+  --container-max: 1348px;
   --sidebar-width: 244px;
 }
 
@@ -69,6 +72,21 @@ body {
   background-color: var(--color-primary-hover);
 }
 
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-outline:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
 /* Link styles */
 a {
   color: var(--color-primary);
@@ -86,4 +104,9 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   line-height: 1.2;
   color: var(--color-text-dark);
+}
+
+/* Logo text color */
+.logo-text {
+  color: var(--color-logo);
 }
