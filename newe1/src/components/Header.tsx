@@ -366,7 +366,7 @@ export default function Header() {
 
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-t border-gray-200 bg-white">
+        <div className="lg:hidden fixed left-0 right-0 top-[88px] bottom-0 bg-white overflow-y-auto z-40">
           {/* Mobile search */}
           <div className="container-custom py-3">
             <div className="flex border border-gray-300 rounded overflow-hidden">

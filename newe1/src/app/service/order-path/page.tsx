@@ -118,73 +118,19 @@ export default function OrderPathPage() {
         </div>
       </div>
 
-      {/* Benefits section */}
-      <div className="bg-[#62bb46] text-white py-12">
-        <div className="container-custom">
-          <h2 className="text-2xl font-bold mb-8 text-center">Наши преимущества</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-lg mb-2">Гарантия до 10 лет</h3>
-              <p className="text-white/80">Мы уверены в качестве нашей продукции</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-lg mb-2">Доставка от 3-х дней</h3>
-              <p className="text-white/80">Быстрое изготовление и доставка</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <h3 className="font-bold text-lg mb-2">20 регионов России</h3>
-              <p className="text-white/80">Фирменные салоны по всей стране</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Online tracking */}
-      <div className="container-custom py-12">
-        <div className="bg-[#f9f9fa] rounded-lg p-8 flex flex-col md:flex-row items-center gap-6">
-          <div className="shrink-0">
-            <div className="w-20 h-20 rounded-full bg-[#62bb46]/10 flex items-center justify-center">
-              <svg className="w-10 h-10 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-          </div>
-          <div className="flex-1 text-center md:text-left">
-            <h3 className="text-xl font-bold text-[#3d4543] mb-2">
-              Отслеживание заказа онлайн
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Е1 является единственным производителем мебели, публикующим в онлайн-режиме статистику выполнения текущих заказов. Вы всегда можете проверить статус своего заказа.
-            </p>
-            <a
-              href="https://booking.e-1.ru/check/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[#62bb46] text-white px-6 py-3 rounded font-bold hover:bg-[#55a83d] transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-              Проверить статус заказа
-            </a>
-          </div>
-        </div>
+      {/* Check order status button */}
+      <div className="container-custom py-12 text-center">
+        <a
+          href="https://booking.e-1.ru/check/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-[#62bb46] text-white px-6 py-3 rounded font-bold hover:bg-[#55a83d] transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+          Проверить статус заказа
+        </a>
       </div>
     </div>
   );
