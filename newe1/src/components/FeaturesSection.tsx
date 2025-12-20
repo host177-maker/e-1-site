@@ -1,91 +1,117 @@
-const features = [
-  {
-    id: 1,
-    title: 'Гарантия качества до 10 лет',
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 40 40" fill="none">
-        {/* Shield with warranty badge */}
-        <path
-          d="M20 4L6 10v10c0 9.55 5.98 18.48 14 20 8.02-1.52 14-10.45 14-20V10L20 4z"
-          stroke="white"
-          strokeWidth="2"
-          fill="none"
-        />
-        <path
-          d="M14 20l4 4 8-8"
-          stroke="white"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-        <text x="20" y="32" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">10</text>
-      </svg>
-    ),
-  },
-  {
-    id: 2,
-    title: 'Быстрая доставка от 24-х часов',
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 40 40" fill="none">
-        {/* Delivery truck */}
-        <rect x="4" y="12" width="20" height="14" rx="2" stroke="white" strokeWidth="2" fill="none"/>
-        <path d="M24 18h8l4 6v4h-12v-10z" stroke="white" strokeWidth="2" fill="none"/>
-        <circle cx="10" cy="28" r="3" stroke="white" strokeWidth="2" fill="none"/>
-        <circle cx="30" cy="28" r="3" stroke="white" strokeWidth="2" fill="none"/>
-        <path d="M13 28h14" stroke="white" strokeWidth="2"/>
-        <path d="M28 18v6" stroke="white" strokeWidth="1.5"/>
-      </svg>
-    ),
-  },
-  {
-    id: 3,
-    title: 'Экологически чистая и безопасная ДСП класса Е1',
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 40 40" fill="none">
-        {/* Eco certificate with E1 */}
-        <rect x="6" y="4" width="28" height="32" rx="3" stroke="white" strokeWidth="2" fill="none"/>
-        <path d="M12 12h16M12 18h16M12 24h10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-        <circle cx="28" cy="28" r="6" stroke="white" strokeWidth="2" fill="none"/>
-        <text x="28" y="31" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">E1</text>
-      </svg>
-    ),
-  },
-  {
-    id: 4,
-    title: 'Края защищены от сколов и повреждений',
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 40 40" fill="none">
-        {/* Gift box / protection icon */}
-        <rect x="6" y="16" width="28" height="20" rx="2" stroke="white" strokeWidth="2" fill="none"/>
-        <rect x="6" y="10" width="28" height="6" rx="1" stroke="white" strokeWidth="2" fill="none"/>
-        <path d="M20 10v26" stroke="white" strokeWidth="2"/>
-        <path d="M6 22h28" stroke="white" strokeWidth="1.5"/>
-        <path d="M14 10c0-4 6-6 6-6s6 2 6 6" stroke="white" strokeWidth="2" fill="none"/>
-      </svg>
-    ),
-  },
-];
+import Link from 'next/link';
 
 export default function FeaturesSection() {
   return (
-    <section className="py-4 bg-[#f0f0f0]">
+    <section className="py-6 bg-[#f5f5f5]">
       <div className="container-custom">
-        <div className="bg-white rounded-lg shadow-sm py-6 px-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature) => (
-              <div
-                key={feature.id}
-                className="flex items-center gap-4"
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1 - Шкафы */}
+          <div className="bg-white rounded-2xl p-5 border-2 border-dashed border-[#c5e1a5] hover:border-[#62bb46] transition-colors">
+            <span className="inline-block bg-[#62bb46] text-white text-xs font-bold px-3 py-1 rounded-full mb-3">
+              ХИТ
+            </span>
+            <h3 className="text-xl font-bold text-[#3d4543] mb-2">Шкафы</h3>
+            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+              В наличии и под заказ • подбор по размерам
+            </p>
+            <div className="space-y-2">
+              <Link
+                href="/catalog/shkafi"
+                className="block w-full text-center bg-[#62bb46] text-white text-sm font-bold py-2.5 px-4 rounded-full hover:bg-[#55a83d] transition-colors"
               >
-                <div className="w-14 h-14 bg-[#62bb46] rounded-full flex items-center justify-center shrink-0">
-                  {feature.icon}
-                </div>
-                <span className="text-sm font-medium text-[#333] leading-tight">
-                  {feature.title}
-                </span>
-              </div>
-            ))}
+                Смотреть витрину
+              </Link>
+              <Link
+                href="/catalog/shkafi?filter=size"
+                className="flex items-center justify-center gap-2 w-full text-center text-[#3d4543] text-sm py-2 hover:text-[#62bb46] transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Быстрый подбор
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 2 - Гардеробные */}
+          <div className="bg-white rounded-2xl p-5 border-2 border-dashed border-[#c5e1a5] hover:border-[#62bb46] transition-colors">
+            <span className="inline-block bg-[#3d4543] text-white text-xs font-bold px-3 py-1 rounded-full mb-3">
+              НОВОЕ
+            </span>
+            <h3 className="text-xl font-bold text-[#3d4543] mb-2">Гардеробные</h3>
+            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+              Проекты хранения • наполнение • стиль
+            </p>
+            <div className="space-y-2">
+              <Link
+                href="/catalog/garderobnye"
+                className="block w-full text-center bg-[#62bb46] text-white text-sm font-bold py-2.5 px-4 rounded-full hover:bg-[#55a83d] transition-colors"
+              >
+                Популярные решения
+              </Link>
+              <Link
+                href="/consultant"
+                className="flex items-center justify-center gap-2 w-full text-center text-[#3d4543] text-sm py-2 hover:text-[#62bb46] transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                Умный консультант
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 3 - На заказ под нишу */}
+          <div className="bg-white rounded-2xl p-5 border-2 border-dashed border-[#c5e1a5] hover:border-[#62bb46] transition-colors">
+            <span className="inline-block border border-[#3d4543] text-[#3d4543] text-xs font-bold px-3 py-1 rounded-full mb-3">
+              ИНДИВИДУАЛЬНО
+            </span>
+            <h3 className="text-xl font-bold text-[#3d4543] mb-2">На заказ под нишу</h3>
+            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+              Встроенный • нестандарт • замер и проект
+            </p>
+            <div className="space-y-2">
+              <Link
+                href="/custom"
+                className="block w-full text-center border-2 border-[#62bb46] text-[#62bb46] text-sm font-bold py-2 px-4 rounded-full hover:bg-[#62bb46] hover:text-white transition-colors"
+              >
+                Вызвать замер
+              </Link>
+              <Link
+                href="/quiz"
+                className="flex items-center justify-center gap-2 w-full text-center text-[#3d4543] text-sm py-2 hover:text-[#62bb46] transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Квиз-расчёт
+              </Link>
+            </div>
+          </div>
+
+          {/* Card 4 - Серии и стили */}
+          <div className="bg-white rounded-2xl p-5 border-2 border-dashed border-[#c5e1a5] hover:border-[#62bb46] transition-colors">
+            <span className="inline-block bg-[#ff6b6b] text-white text-xs font-bold px-3 py-1 rounded-full mb-3">
+              -10%
+            </span>
+            <h3 className="text-xl font-bold text-[#3d4543] mb-2">Серии и стили</h3>
+            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+              Эста • Локер • Прайм • Оптим
+            </p>
+            <div className="flex gap-2">
+              <Link
+                href="/series"
+                className="flex-1 text-center bg-[#62bb46] text-white text-sm font-bold py-2.5 px-4 rounded-full hover:bg-[#55a83d] transition-colors"
+              >
+                Открыть
+              </Link>
+              <Link
+                href="/sales"
+                className="flex-1 text-center border-2 border-[#62bb46] text-[#62bb46] text-sm font-bold py-2 px-4 rounded-full hover:bg-[#62bb46] hover:text-white transition-colors"
+              >
+                Акции
+              </Link>
+            </div>
           </div>
         </div>
       </div>
