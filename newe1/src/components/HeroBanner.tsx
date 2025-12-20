@@ -7,19 +7,19 @@ import { useState, useEffect, useCallback } from 'react';
 const banners = [
   {
     id: 1,
-    image: '/images/banners/banner-50.jpg',
+    image: '/images/banner-50.jpg',
     alt: '-50% на весь ассортимент - Новогоднее чудо с Е1!',
     link: '/sales',
   },
   {
     id: 2,
-    image: '/images/banners/banner-loker.jpg',
+    image: '/images/banner-loker.jpg',
     alt: 'Серия Локер в декоре Белый снег -60%',
     link: '/catalog/loker',
   },
   {
     id: 3,
-    image: '/images/banners/banner-express.jpg',
+    image: '/images/banner-express.jpg',
     alt: 'Серия Экспресс, фасад Зеркало -60%',
     link: '/catalog/express',
   },
@@ -65,7 +65,7 @@ export default function HeroBanner() {
           {banners.map((banner) => (
             <div key={banner.id} className="w-full flex-shrink-0">
               <Link href={banner.link} className="block relative">
-                <div className="relative w-full" style={{ paddingBottom: '37.5%' }}>
+                <div className="relative w-full" style={{ paddingBottom: '28%' }}>
                   <Image
                     src={banner.image}
                     alt={banner.alt}
