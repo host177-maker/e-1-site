@@ -113,7 +113,7 @@ export default function Footer() {
 
       {/* Bottom section */}
       <div className="border-t border-[#555555]">
-        <div className="container-custom pt-10 pb-8">
+        <div className="container-custom pt-14 pb-8">
           <div className="mb-5">
             <div className="text-[#d1d5db] text-sm mb-2">
               2007–2025 © Мебельная компания Е1 – шкафы купе в Москве
@@ -122,11 +122,11 @@ export default function Footer() {
               <Link href="/privacy-policy" className="text-[#62bb46] hover:underline">
                 Политика защиты и обработки персональных данных
               </Link>
-              <span className="text-[#6b7280] px-2">|</span>
+              <span className="text-[#6b7280] px-6">|</span>
               <Link href="/security-policy" className="text-[#62bb46] hover:underline">
                 Политика безопасности
               </Link>
-              <span className="text-[#6b7280] px-2">|</span>
+              <span className="text-[#6b7280] px-6">|</span>
               <Link href="/public-offer" className="text-[#62bb46] hover:underline">
                 Публичная оферта
               </Link>
