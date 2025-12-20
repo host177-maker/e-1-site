@@ -123,7 +123,7 @@ export default function FeaturesSection() {
               <div className="space-y-1.5">
                 <Link
                   href="/custom"
-                  className="block w-full text-center bg-transparent border-2 border-[#62bb46] text-[#62bb46] text-xs font-bold py-1.5 px-3 rounded-full hover:bg-[#62bb46] hover:text-white transition-all"
+                  className="block w-full text-center bg-transparent border-2 border-[#62bb46] text-[#62bb46] text-xs font-bold py-1.5 px-3 rounded-full hover:bg-[#4a9e36] hover:text-white hover:border-[#4a9e36] transition-all"
                 >
                   Вызвать замерщика
                 </Link>
@@ -162,7 +162,7 @@ export default function FeaturesSection() {
                 </Link>
                 <Link
                   href="/sales"
-                  className="flex-1 text-center bg-transparent border-2 border-[#62bb46] text-[#62bb46] text-xs font-bold py-1.5 px-2 rounded-full hover:bg-[#62bb46] hover:text-white transition-all"
+                  className="flex-1 text-center bg-transparent border-2 border-[#62bb46] text-[#62bb46] text-xs font-bold py-1.5 px-2 rounded-full hover:bg-[#4a9e36] hover:text-white hover:border-[#4a9e36] transition-all"
                 >
                   Акции
                 </Link>
