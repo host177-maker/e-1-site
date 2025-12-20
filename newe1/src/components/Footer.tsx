@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-6">
           {/* Column 1 - ДОСТАВКА */}
           <div>
-            <h4 className="font-bold text-gray-300 text-sm mb-4 uppercase tracking-wide">Доставка</h4>
+            <h4 className="font-medium text-gray-400 text-sm mb-4 uppercase tracking-wide">Доставка</h4>
             <ul className="space-y-2">
               <li><Link href="/service/delivery" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">Доставка и сборка</Link></li>
               <li><Link href="/service/order-path" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">Путь заказа</Link></li>
@@ -18,7 +18,7 @@ export default function Footer() {
 
           {/* Column 2 - ПОМОЩЬ В ВЫБОРЕ */}
           <div>
-            <h4 className="font-bold text-gray-300 text-sm mb-4 uppercase tracking-wide">Помощь в выборе</h4>
+            <h4 className="font-medium text-gray-400 text-sm mb-4 uppercase tracking-wide">Помощь в выборе</h4>
             <ul className="space-y-2">
               <li><Link href="/service/about-wardrobes" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">О шкафах-купе</Link></li>
               <li><Link href="/service/photo-print" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">Каталог фотопечати</Link></li>
@@ -31,7 +31,7 @@ export default function Footer() {
 
           {/* Column 3 - О КОМПАНИИ */}
           <div>
-            <h4 className="font-bold text-gray-300 text-sm mb-4 uppercase tracking-wide">О компании</h4>
+            <h4 className="font-medium text-gray-400 text-sm mb-4 uppercase tracking-wide">О компании</h4>
             <ul className="space-y-2">
               <li><Link href="/about/production" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">Производство</Link></li>
               <li><Link href="/about/quality" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">О качестве сервиса</Link></li>
@@ -43,7 +43,7 @@ export default function Footer() {
 
           {/* Column 4 - ПОКУПКА И ГАРАНТИИ */}
           <div>
-            <h4 className="font-bold text-gray-300 text-sm mb-4 uppercase tracking-wide">Покупка и гарантии</h4>
+            <h4 className="font-medium text-gray-400 text-sm mb-4 uppercase tracking-wide">Покупка и гарантии</h4>
             <ul className="space-y-2">
               <li><Link href="/service/purchase-terms" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">Условия покупки</Link></li>
               <li><Link href="/service/warranty" className="text-gray-300 hover:text-[#62bb46] text-sm transition-colors">Гарантия</Link></li>
