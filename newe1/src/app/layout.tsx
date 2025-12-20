@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "Е1.RU | Шкафы и гардеробные",
+  title: "E-1.RU | Шкафы и гардеробные",
   description: "Шкафы-купе и гардеробные системы на заказ в Москве. Производство и продажа качественной мебели с доставкой и установкой.",
   keywords: "шкафы-купе, гардеробные, встроенные шкафы, мебель на заказ, Москва",
   icons: {

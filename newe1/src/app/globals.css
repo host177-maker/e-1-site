@@ -48,12 +48,14 @@ body {
 .container-custom {
   max-width: var(--container-max);
   margin: 0 auto;
-  padding: 0 15px;
+  padding-left: 15px;
+  padding-right: 15px;
 }
 
 @media (min-width: 768px) {
   .container-custom {
-    padding: 0 30px;
+    padding-left: 30px;
+    padding-right: 30px;
   }
 }
 
@@ -92,23 +94,37 @@ body {
   color: white;
 }
 
-/* Link styles - only for main content, not header/footer */
-main a, .content a, article a {
+/* Link styles - only for plain text links in content areas */
+/* Exclude buttons and links with explicit background/border styling */
+main a:not([class*="bg-"]):not([class*="border-"]):not([class*="btn"]),
+.content a:not([class*="bg-"]):not([class*="border-"]):not([class*="btn"]),
+article a:not([class*="bg-"]):not([class*="border-"]):not([class*="btn"]) {
   color: var(--color-text-dark);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
-main a:hover, .content a:hover, article a:hover {
+main a:not([class*="bg-"]):not([class*="border-"]):not([class*="btn"]):hover,
+.content a:not([class*="bg-"]):not([class*="border-"]):not([class*="btn"]):hover,
+article a:not([class*="bg-"]):not([class*="border-"]):not([class*="btn"]):hover {
   color: var(--color-primary);
 }
 
-/* Heading styles */
-h1, h2, h3, h4, h5, h6 {
+/* Heading styles - only in main content, not footer */
+main h1, main h2, main h3, main h4, main h5, main h6,
+.content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
   font-family: var(--font-heading), Arial, sans-serif;
   font-weight: 700;
   line-height: 1.2;
   color: var(--color-text-dark);
+}
+
+/* Headings in footer/header use their own styling */
+header h1, header h2, header h3, header h4, header h5, header h6,
+footer h1, footer h2, footer h3, footer h4, footer h5, footer h6 {
+  font-family: var(--font-heading), Arial, sans-serif;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 /* Logo text color */
