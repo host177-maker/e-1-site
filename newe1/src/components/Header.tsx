@@ -198,7 +198,7 @@ export default function Header() {
             </button>
 
             {/* Logo + Brand */}
-            <Link href="/" className="flex items-center gap-3 shrink-0">
+            <Link href="/" className="flex items-center gap-3 shrink-0" onClick={() => setIsMobileMenuOpen(false)}>
               <Logo />
               <div className="hidden sm:flex flex-col leading-tight">
                 <span className="text-[#3d4543] font-black text-lg tracking-tight">ШКАФЫ</span>
