@@ -56,8 +56,12 @@ export default function ProtectedLayout({
 
   const menuItems = [
     { href: '/adminka/dashboard', label: 'Главная', icon: '🏠' },
+    { href: '/adminka/banners', label: 'Баннеры', icon: '🖼️' },
     { href: '/adminka/pages', label: 'Страницы', icon: '📄' },
     { href: '/adminka/menu', label: 'Меню', icon: '📋' },
+    { href: '/adminka/footer', label: 'Подвал', icon: '📝' },
+    { href: '/adminka/messengers', label: 'Мессенджеры', icon: '💬' },
+    { href: '/adminka/contacts', label: 'Контакты', icon: '📞' },
     { href: '/adminka/users', label: 'Пользователи', icon: '👥' },
     { href: '/adminka/settings', label: 'Настройки', icon: '⚙️' },
   ];
