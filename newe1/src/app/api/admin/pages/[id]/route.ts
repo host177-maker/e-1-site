@@ -49,9 +49,10 @@ export async function PUT(
 
     // Проверка slug если он изменился
     if (slug) {
-      if (!/^[a-z0-9-]+$/.test(slug)) {
+      const cleanSlug = slug.replace(/^\/+|\/+$/g, '');
+      if (!/^[a-z0-9-]+(\/[a-z0-9-]+)*$/.test(cleanSlug)) {
         return NextResponse.json(
-          { error: 'URL может содержать только латинские буквы, цифры и дефисы' },
+          { error: 'URL может содержать только латинские буквы, цифры, дефисы и слэши' },
           { status: 400 }
         );
       }

@@ -167,12 +167,14 @@ export default function EditPagePage({ params }: { params: Promise<{ id: string 
                   type="text"
                   id="slug"
                   value={slug}
-                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-/]/g, '').replace(/\/+/g, '/'))}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                   disabled={saving}
+                  placeholder="service/instructions"
                 />
               </div>
+              <p className="text-xs text-gray-500 mt-1">Можно указывать вложенность через / (например: service/delivery)</p>
             </div>
           </div>
 

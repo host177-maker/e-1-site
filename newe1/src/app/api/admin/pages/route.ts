@@ -35,10 +35,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Проверка формата slug
-    if (!/^[a-z0-9-]+$/.test(slug)) {
+    // Проверка формата slug (разрешены буквы, цифры, дефисы и слэши для вложенности)
+    const cleanSlug = slug.replace(/^\/+|\/+$/g, ''); // убираем слэши в начале и конце
+    if (!/^[a-z0-9-]+(\/[a-z0-9-]+)*$/.test(cleanSlug)) {
       return NextResponse.json(
-        { error: 'URL может содержать только латинские буквы, цифры и дефисы' },
+        { error: 'URL может содержать только латинские буквы, цифры, дефисы и слэши' },
         { status: 400 }
       );
     }
