@@ -12,7 +12,7 @@ function getDirectories() {
 }
 
 interface DeployRequest {
-  commitMessage?: string;
+  branch: string;
 }
 
 function formatDate(): string {
@@ -77,67 +77,62 @@ async function runCommand(command: string, args: string[], cwd: string): Promise
 
 export async function POST(request: NextRequest) {
   const { repoDir, newe1Dir } = getDirectories();
+  const deployTime = formatDate();
 
   try {
     const body: DeployRequest = await request.json();
-    const commitMessage = body.commitMessage || `Deploy: ${formatDate()}`;
+    const branch = body.branch || 'main';
 
     const logs: string[] = [];
+    logs.push(`Deploy: ${deployTime}`);
+    logs.push(`Branch: ${branch}`);
     logs.push(`Working directory: ${repoDir}`);
     logs.push(`Platform: ${process.platform}`);
 
-    // 1. Git pull - скачиваем последние изменения
+    // 1. Git fetch - получаем информацию о ветках
+    logs.push('\n=== Git Fetch ===');
+    try {
+      const fetchResult = await runCommand('git', ['fetch', 'origin'], repoDir);
+      logs.push(fetchResult.stdout || fetchResult.stderr || 'Fetch completed');
+    } catch (error) {
+      logs.push('Fetch note: ' + (error as Error).message);
+    }
+
+    // 2. Git checkout - переключаемся на ветку
+    logs.push('\n=== Git Checkout ===');
+    try {
+      // Сначала пробуем просто checkout
+      const checkoutResult = await runCommand('git', ['checkout', branch], repoDir);
+      logs.push(checkoutResult.stdout || checkoutResult.stderr || `Switched to ${branch}`);
+    } catch {
+      // Если не получилось, пробуем создать локальную ветку от remote
+      try {
+        const checkoutResult = await runCommand('git', ['checkout', '-b', branch, `origin/${branch}`], repoDir);
+        logs.push(checkoutResult.stdout || checkoutResult.stderr || `Created and switched to ${branch}`);
+      } catch (error) {
+        logs.push('Checkout error: ' + (error as Error).message);
+      }
+    }
+
+    // 3. Git pull - обновляем код
     logs.push('\n=== Git Pull ===');
     try {
-      const pullResult = await runCommand('git', ['pull'], repoDir);
+      const pullResult = await runCommand('git', ['pull', 'origin', branch], repoDir);
       logs.push(pullResult.stdout || pullResult.stderr || 'Pull completed');
     } catch (error) {
-      logs.push('Pull skipped: ' + (error as Error).message);
+      logs.push('Pull note: ' + (error as Error).message);
     }
 
-    // 2. Git add - добавляем все изменения
-    logs.push('\n=== Git Add ===');
+    // 4. Показываем текущий коммит
+    logs.push('\n=== Current Commit ===');
     try {
-      const addResult = await runCommand('git', ['add', '.'], repoDir);
-      logs.push(addResult.stdout || 'All changes staged');
+      const logResult = await runCommand('git', ['log', '-1', '--oneline'], repoDir);
+      logs.push(logResult.stdout || 'No commits');
     } catch (error) {
-      logs.push('Add error: ' + (error as Error).message);
+      logs.push('Log error: ' + (error as Error).message);
     }
 
-    // 3. Проверяем есть ли изменения для коммита
-    logs.push('\n=== Git Status ===');
-    let hasChanges = false;
-    try {
-      const statusResult = await runCommand('git', ['status', '--porcelain'], repoDir);
-      logs.push(statusResult.stdout || 'No changes');
-      hasChanges = statusResult.stdout.trim().length > 0;
-    } catch (error) {
-      logs.push('Status error: ' + (error as Error).message);
-    }
-
-    if (hasChanges) {
-      // 4. Git commit
-      logs.push('\n=== Git Commit ===');
-      try {
-        const commitResult = await runCommand('git', ['commit', '-m', commitMessage], repoDir);
-        logs.push(commitResult.stdout || 'Commit created');
-      } catch (error) {
-        logs.push('Commit error: ' + (error as Error).message);
-      }
-
-      // 5. Git push
-      logs.push('\n=== Git Push ===');
-      try {
-        const pushResult = await runCommand('git', ['push'], repoDir);
-        logs.push(pushResult.stdout || pushResult.stderr || 'Push completed');
-      } catch (error) {
-        logs.push('Push note: ' + (error as Error).message);
-      }
-    } else {
-      logs.push('No changes to commit');
-    }
-
-    // 6. Rebuild Next.js (в newe1 директории)
+    // 5. Rebuild Next.js (в newe1 директории)
     logs.push('\n=== Rebuilding Next.js ===');
     try {
       const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
@@ -151,12 +146,11 @@ export async function POST(request: NextRequest) {
       logs.push('Build note: ' + (error as Error).message);
     }
 
-    // 7. Перезапуск Node.js сервера
+    // 6. Перезапуск Node.js сервера
     logs.push('\n=== Restarting Node.js ===');
     const isWindows = process.platform === 'win32';
 
     if (isWindows) {
-      // На Windows - пробуем pm2
       try {
         await runCommand('pm2', ['restart', 'newe1'], newe1Dir);
         logs.push('PM2 restart completed');
@@ -166,11 +160,10 @@ export async function POST(request: NextRequest) {
           logs.push('PM2 restart all completed');
         } catch {
           logs.push('Note: Manual server restart may be required');
-          logs.push('Run: pm2 restart all OR restart the Node.js process');
+          logs.push('Run: pm2 restart all');
         }
       }
     } else {
-      // На Linux
       try {
         await runCommand('pm2', ['restart', 'newe1'], newe1Dir);
         logs.push('PM2 restart completed');
@@ -186,7 +179,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Деплой выполнен! Коммит: "${commitMessage}"`,
+      message: `Деплой ветки "${branch}" выполнен! (${deployTime})`,
       details: logs.join('\n'),
     });
 
@@ -194,7 +187,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: false,
       message: 'Ошибка при деплое',
-      details: `Error: ${error instanceof Error ? error.message : 'Unknown error'}\nRepo dir: ${repoDir}`,
+      details: `Error: ${error instanceof Error ? error.message : 'Unknown error'}\nRepo dir: ${repoDir}\nTime: ${deployTime}`,
     }, { status: 500 });
   }
 }
@@ -206,6 +199,6 @@ export async function GET() {
     platform: process.platform,
     repoDir,
     newe1Dir,
-    usage: 'POST /api/deploy with optional { commitMessage: "your message" }',
+    usage: 'POST /api/deploy with { branch: "branch-name" }',
   });
 }

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 export default function DeployPage() {
-  const [commitMessage, setCommitMessage] = useState('');
+  const [branchName, setBranchName] = useState('main');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<{
     success: boolean;
@@ -12,6 +12,14 @@ export default function DeployPage() {
   } | null>(null);
 
   const handleDeploy = async () => {
+    if (!branchName.trim()) {
+      setResult({
+        success: false,
+        message: 'Введите название ветки',
+      });
+      return;
+    }
+
     setIsLoading(true);
     setResult(null);
 
@@ -22,7 +30,7 @@ export default function DeployPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          commitMessage: commitMessage.trim() || undefined,
+          branch: branchName.trim(),
         }),
       });
 
@@ -46,13 +54,13 @@ export default function DeployPage() {
 
         <div className="bg-gray-800 rounded-lg p-6 mb-6">
           <label className="block mb-2 text-gray-300">
-            Название коммита (необязательно):
+            Название ветки (branch):
           </label>
           <input
             type="text"
-            value={commitMessage}
-            onChange={(e) => setCommitMessage(e.target.value)}
-            placeholder="Оставьте пустым для автоматической даты/времени"
+            value={branchName}
+            onChange={(e) => setBranchName(e.target.value)}
+            placeholder="main"
             className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
             disabled={isLoading}
           />
@@ -119,10 +127,10 @@ export default function DeployPage() {
         <div className="mt-8 text-gray-500 text-sm">
           <p>Deploy выполняет следующие действия:</p>
           <ol className="list-decimal list-inside mt-2 space-y-1">
-            <li>Скачивает последние изменения из репозитория (git pull)</li>
-            <li>Добавляет все изменения (git add .)</li>
-            <li>Создаёт коммит с указанным сообщением</li>
-            <li>Отправляет изменения в репозиторий (git push)</li>
+            <li>Скачивает указанную ветку из репозитория (git fetch)</li>
+            <li>Переключается на ветку (git checkout)</li>
+            <li>Обновляет код (git pull)</li>
+            <li>Пересобирает Next.js (npm run build)</li>
             <li>Перезагружает Node.js сервер</li>
           </ol>
         </div>
