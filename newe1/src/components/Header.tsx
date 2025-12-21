@@ -73,6 +73,7 @@ const menuItems = [
   { label: 'ОТЗЫВЫ', href: '/reviews' },
   { label: 'АДРЕСА САЛОНОВ', href: '/stores' },
   { label: 'ГЕОГРАФИЯ ДОСТАВКИ', href: '/delivery' },
+  { label: 'РЕТРО 15', href: '/retro-15', isGame: true },
 ];
 
 export default function Header() {
@@ -319,6 +320,16 @@ export default function Header() {
                       <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   )}
+                  {(item as any).isGame && (
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#e94560">
+                      <path d="M21 6H3a1 1 0 00-1 1v10a1 1 0 001 1h18a1 1 0 001-1V7a1 1 0 00-1-1zM5 16V8h14v8H5z"/>
+                      <rect x="6" y="9" width="3" height="3" rx="0.5"/>
+                      <rect x="10" y="9" width="3" height="3" rx="0.5"/>
+                      <rect x="6" y="13" width="3" height="2" rx="0.5"/>
+                      <rect x="10" y="13" width="3" height="2" rx="0.5"/>
+                      <rect x="14" y="9" width="3" height="6" rx="0.5"/>
+                    </svg>
+                  )}
                   {item.label}
                   {item.hasSubmenu && (
                     <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -466,6 +477,16 @@ export default function Header() {
                       {item.hasLightning && (
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#f5b800">
                           <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      )}
+                      {(item as any).isGame && (
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="#e94560">
+                          <path d="M21 6H3a1 1 0 00-1 1v10a1 1 0 001 1h18a1 1 0 001-1V7a1 1 0 00-1-1zM5 16V8h14v8H5z"/>
+                          <rect x="6" y="9" width="3" height="3" rx="0.5"/>
+                          <rect x="10" y="9" width="3" height="3" rx="0.5"/>
+                          <rect x="6" y="13" width="3" height="2" rx="0.5"/>
+                          <rect x="10" y="13" width="3" height="2" rx="0.5"/>
+                          <rect x="14" y="9" width="3" height="6" rx="0.5"/>
                         </svg>
                       )}
                       {item.label}
