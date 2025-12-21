@@ -198,7 +198,7 @@ export default function Header() {
             </button>
 
             {/* Logo + Brand */}
-            <Link href="/" className="flex items-center gap-3 shrink-0">
+            <Link href="/" className="flex items-center gap-3 shrink-0" onClick={() => setIsMobileMenuOpen(false)}>
               <Logo />
               <div className="hidden sm:flex flex-col leading-tight">
                 <span className="text-[#3d4543] font-black text-lg tracking-tight">ШКАФЫ</span>
@@ -369,9 +369,16 @@ export default function Header() {
 
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed left-0 right-0 top-[88px] bottom-0 bg-white overflow-y-auto z-40">
+        <>
+          {/* Overlay */}
+          <div
+            className="lg:hidden fixed inset-0 top-[88px] bg-black/50 z-40"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          {/* Menu panel - 70% width on left */}
+          <div className="lg:hidden fixed left-0 top-[88px] bottom-0 w-[70%] bg-white overflow-y-auto z-50 shadow-xl">
           {/* Mobile search */}
-          <div className="container-custom py-3">
+          <div className="px-4 py-3">
             <div className="flex border border-gray-300 rounded overflow-hidden">
               <input
                 type="text"
@@ -468,7 +475,8 @@ export default function Header() {
               ))}
             </ul>
           </nav>
-        </div>
+          </div>
+        </>
       )}
     </header>
   );
