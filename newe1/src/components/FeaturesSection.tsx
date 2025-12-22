@@ -31,15 +31,6 @@ const CustomIcon = () => (
   </svg>
 );
 
-const SeriesIcon = () => (
-  <svg className="w-12 h-12 text-gray-100" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1">
-    <rect x="4" y="10" width="16" height="28" rx="2" />
-    <rect x="24" y="10" width="20" height="28" rx="2" />
-    <line x1="12" y1="10" x2="12" y2="38" />
-    <line x1="34" y1="10" x2="34" y2="38" />
-  </svg>
-);
-
 const SaleIcon = () => (
   <svg className="w-12 h-12 text-gray-100" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1">
     <circle cx="24" cy="24" r="18" />
@@ -51,7 +42,7 @@ export default function FeaturesSection() {
   return (
     <section className="py-4 bg-[#f5f5f5]">
       <div className="container-custom">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Card 1 - Шкафы в наличии */}
           <div className="relative bg-white rounded-2xl p-4 border border-[#e0e0e0] hover:border-[#c5e1a5] hover:shadow-md transition-all overflow-hidden">
             <div className="absolute -right-2 -top-2 opacity-50">
@@ -140,37 +131,7 @@ export default function FeaturesSection() {
             </div>
           </div>
 
-          {/* Card 4 - Серии и стили */}
-          <div className="relative bg-white rounded-2xl p-4 border border-[#e0e0e0] hover:border-[#c5e1a5] hover:shadow-md transition-all overflow-hidden">
-            <div className="absolute -right-2 -top-2 opacity-50">
-              <SeriesIcon />
-            </div>
-            <div className="relative z-10">
-              <span className="inline-block bg-[#ff6b6b] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full mb-2">
-                -10%
-              </span>
-              <h3 className="text-base font-bold text-[#3d4543] mb-1">Серии и стили</h3>
-              <p className="text-xs text-gray-500 mb-3 leading-relaxed">
-                Эста • Локер • Прайм • Оптим
-              </p>
-              <div className="flex gap-1.5">
-                <Link
-                  href="/series"
-                  className="flex-1 text-center bg-[#62bb46] text-white text-xs font-bold py-2 px-2 rounded-full hover:bg-[#4a9e36] transition-colors"
-                >
-                  Открыть
-                </Link>
-                <Link
-                  href="/sales"
-                  className="flex-1 text-center bg-transparent border-2 border-[#62bb46] text-[#62bb46] text-xs font-bold py-1.5 px-2 rounded-full hover:bg-[#4a9e36] hover:text-white hover:border-[#4a9e36] transition-all"
-                >
-                  Акции
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 5 - Распродажа */}
+          {/* Card 4 - Распродажа */}
           <div className="relative bg-white rounded-2xl p-4 border border-[#e0e0e0] hover:border-[#c5e1a5] hover:shadow-md transition-all overflow-hidden sm:col-span-2 lg:col-span-1">
             <div className="absolute -right-2 -top-2 opacity-50">
               <SaleIcon />
