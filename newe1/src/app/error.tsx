@@ -7,6 +7,9 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // Log error for debugging
+  console.error(error);
+
   return (
     <div className="min-h-[50vh] flex items-center justify-center">
       <div className="text-center">
