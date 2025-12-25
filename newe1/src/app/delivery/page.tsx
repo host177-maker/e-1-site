@@ -139,14 +139,6 @@ export default function DeliveryMapPage() {
               </p>
             </div>
 
-            <div className="bg-[#f9f9fa] rounded-lg p-6">
-              <p className="text-gray-700 font-medium mb-2">
-                Остались вопросы? Свяжитесь с нами:
-              </p>
-              <a href="tel:+78001001211" className="text-xl font-bold text-[#62bb46] hover:underline">
-                8-800-100-12-11
-              </a>
-            </div>
           </div>
         </div>
       </div>

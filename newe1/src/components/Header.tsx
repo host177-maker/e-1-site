@@ -20,21 +20,9 @@ function Logo() {
 // Service submenu structure
 const serviceSubmenu = [
   {
-    title: 'Доставка',
-    items: [
-      { label: 'Доставка и сборка', href: '/service/delivery' },
-      { label: 'Путь заказа', href: '/service/order-path' },
-      { label: 'Сроки изготовления', href: '/service/production-time' },
-    ]
-  },
-  {
-    title: 'Покупка и гарантии',
-    items: [
-      { label: 'Условия покупки', href: '/service/purchase-terms' },
-      { label: 'Гарантия', href: '/service/warranty' },
-      { label: 'Рассрочка', href: '/service/installment' },
-      { label: 'Возврат товара', href: '/service/returns' },
-    ]
+    title: 'Условия покупки',
+    href: '/service/purchase-terms',
+    items: []
   },
   {
     title: 'Помощь в выборе',
