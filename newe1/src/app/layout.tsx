@@ -7,9 +7,6 @@ export const metadata: Metadata = {
   title: "E-1.RU | Шкафы и гардеробные",
   description: "Шкафы-купе и гардеробные системы на заказ в Москве. Производство и продажа качественной мебели с доставкой и установкой.",
   keywords: "шкафы-купе, гардеробные, встроенные шкафы, мебель на заказ, Москва",
-  icons: {
-    icon: '/icon.svg',
-  },
 };
 
 export default function RootLayout({
