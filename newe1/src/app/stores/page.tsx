@@ -41,11 +41,12 @@ export default function StoresPage() {
   const [loading, setLoading] = useState(true);
   const [citiesLoading, setCitiesLoading] = useState(false);
   const [mapReady, setMapReady] = useState(false);
-  const [initialCityApplied, setInitialCityApplied] = useState(false);
 
   const mapInstanceRef = useRef<any>(null);
   const clustererRef = useRef<any>(null);
   const markersInitialized = useRef(false);
+  const lastHeaderCityRef = useRef<string>('');
+  const mapInitStarted = useRef(false);
 
   // Filter salons for list display (based on selected city/region)
   const filteredSalons = allSalons.filter(salon => {
@@ -80,31 +81,35 @@ export default function StoresPage() {
       .catch(console.error);
   }, []);
 
-  // Apply city from header context when cities data is loaded
+  // Apply city from header context - react to changes
   useEffect(() => {
-    if (!initialCityApplied && cities.length > 0 && headerCity?.name) {
-      // Find the city in the cities list
-      const matchedCity = cities.find(c =>
-        c.city.toLowerCase() === headerCity.name.toLowerCase()
-      );
+    if (cities.length === 0 || !headerCity?.name) return;
 
-      if (matchedCity) {
-        setSelectedCity(matchedCity.city);
-        if (matchedCity.region) {
-          setSelectedRegion(matchedCity.region);
-        }
-      } else if (headerCity.region) {
-        // If city not found but region is available, set region only
-        const matchedRegion = cities.find(c =>
-          c.region?.toLowerCase() === headerCity.region?.toLowerCase()
-        );
-        if (matchedRegion) {
-          setSelectedRegion(matchedRegion.region);
-        }
+    // Skip if header city hasn't changed
+    if (lastHeaderCityRef.current === headerCity.name) return;
+    lastHeaderCityRef.current = headerCity.name;
+
+    // Find the city in the cities list
+    const matchedCity = cities.find(c =>
+      c.city.toLowerCase() === headerCity.name.toLowerCase()
+    );
+
+    if (matchedCity) {
+      setSelectedCity(matchedCity.city);
+      if (matchedCity.region) {
+        setSelectedRegion(matchedCity.region);
       }
-      setInitialCityApplied(true);
+    } else if (headerCity.region) {
+      // If city not found but region is available, set region only
+      const matchedRegion = cities.find(c =>
+        c.region?.toLowerCase() === headerCity.region?.toLowerCase()
+      );
+      if (matchedRegion) {
+        setSelectedRegion(matchedRegion.region);
+        setSelectedCity('');
+      }
     }
-  }, [cities, headerCity, initialCityApplied]);
+  }, [cities, headerCity]);
 
   // Update filtered cities when region changes
   useEffect(() => {
@@ -204,7 +209,7 @@ export default function StoresPage() {
   }, [mapReady, allSalons, initMapMarkers]);
 
   // Center map on selected city/region (without changing markers)
-  useEffect(() => {
+  const centerMapOnSelection = useCallback(() => {
     const map = mapInstanceRef.current;
     if (!map || !mapReady || typeof window === 'undefined' || !(window as any).ymaps) return;
 
@@ -260,13 +265,35 @@ export default function StoresPage() {
     }
   }, [selectedCity, selectedRegion, allSalons, mapReady]);
 
+  // Center map when selection changes
+  useEffect(() => {
+    centerMapOnSelection();
+  }, [centerMapOnSelection]);
+
+  // Re-center map after a short delay when page loads (fix race condition)
+  useEffect(() => {
+    if (mapReady && (selectedCity || selectedRegion)) {
+      // Delay to ensure filters are applied
+      const timer = setTimeout(() => {
+        centerMapOnSelection();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [mapReady, selectedCity, selectedRegion, centerMapOnSelection]);
+
   // Initialize map
   const initMap = useCallback(() => {
     if (typeof window === 'undefined' || !(window as any).ymaps) return;
-    if (mapInstanceRef.current) return; // Already initialized
+    if (mapInstanceRef.current || mapInitStarted.current) return; // Already initialized or in progress
+
+    // Set flag synchronously before async ymaps.ready to prevent double init
+    mapInitStarted.current = true;
 
     const ymaps = (window as any).ymaps;
     ymaps.ready(() => {
+      // Double check in case of race condition
+      if (mapInstanceRef.current) return;
+
       const map = new ymaps.Map('stores-map', {
         center: [82.920430, 55.030199], // Центр России (longlat)
         zoom: 4,
@@ -291,6 +318,8 @@ export default function StoresPage() {
   const handleRegionChange = (region: string) => {
     setSelectedRegion(region);
     setSelectedCity('');
+    // Reset the header city tracking so manual selection takes precedence
+    lastHeaderCityRef.current = '';
   };
 
   const handleCityChange = (city: string) => {
@@ -300,11 +329,14 @@ export default function StoresPage() {
     if (cityData && cityData.region) {
       setSelectedRegion(cityData.region);
     }
+    // Reset the header city tracking so manual selection takes precedence
+    lastHeaderCityRef.current = '';
   };
 
   const clearFilters = () => {
     setSelectedCity('');
     setSelectedRegion('');
+    lastHeaderCityRef.current = '';
   };
 
   // Group filtered salons by region for display

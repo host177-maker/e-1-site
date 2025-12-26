@@ -22,12 +22,7 @@ function Logo() {
 // Service submenu structure - vertical list
 const serviceSubmenu = [
   { label: 'Условия покупки', href: '/service/purchase-terms' },
-  { label: 'Гарантия', href: '/service/warranty' },
   { label: 'Рассрочка', href: '/service/installment' },
-  { label: 'Возврат товара', href: '/service/returns' },
-  { label: 'Доставка и сборка', href: '/service/delivery' },
-  { label: 'Путь заказа', href: '/service/order-path' },
-  { label: 'Сроки изготовления', href: '/service/production-time' },
   { label: 'Инструкции к мебели', href: '/service/instructions' },
 ];
 
@@ -94,12 +89,12 @@ export default function Header() {
               <div className="w-px h-4 bg-white/20"></div>
 
               {/* Installment */}
-              <div className="flex items-center gap-1.5 px-2 py-1">
+              <Link href="/service/installment" className="flex items-center gap-1.5 hover:text-[#62bb46] transition-colors px-2 py-1 rounded hover:bg-white/10">
                 <svg className="w-4 h-4 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
                 <span>Рассрочка 0-0-6</span>
-              </div>
+              </Link>
 
               <div className="w-px h-4 bg-white/20"></div>
 
@@ -274,23 +269,30 @@ export default function Header() {
           <ul className="flex items-center justify-between">
             {menuItems.map((item) => (
               <li key={item.href} className={item.hasSubmenu ? 'relative group' : ''}>
-                <Link
-                  href={item.href}
-                  className="flex items-center gap-1.5 px-2 xl:px-3 py-3 font-bold hover:bg-[#55a83d] transition-colors text-[12px] xl:text-[13px] whitespace-nowrap"
-                  style={{ color: 'white' }}
-                >
-                  {item.hasLightning && (
-                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#f5b800">
-                      <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  )}
-                  {item.label}
-                  {item.hasSubmenu && (
+                {item.hasSubmenu ? (
+                  <span
+                    className="flex items-center gap-1.5 px-2 xl:px-3 py-3 font-bold hover:bg-[#55a83d] transition-colors text-[12px] xl:text-[13px] whitespace-nowrap cursor-pointer"
+                    style={{ color: 'white' }}
+                  >
+                    {item.label}
                     <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
-                  )}
-                </Link>
+                  </span>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className="flex items-center gap-1.5 px-2 xl:px-3 py-3 font-bold hover:bg-[#55a83d] transition-colors text-[12px] xl:text-[13px] whitespace-nowrap"
+                    style={{ color: 'white' }}
+                  >
+                    {item.hasLightning && (
+                      <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#f5b800">
+                        <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    )}
+                    {item.label}
+                  </Link>
+                )}
                 {/* Dropdown for ПОКУПАТЕЛЮ */}
                 {item.hasSubmenu && (
                   <div className="absolute left-0 top-full bg-white shadow-xl rounded-b-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[200px]">
