@@ -22,7 +22,8 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [cities, setCities] = useState<CityData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showOnlyWithSalons, setShowOnlyWithSalons] = useState(true);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
 
   // Fetch cities on mount
   useEffect(() => {
@@ -46,13 +47,9 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
     }
   };
 
-  // Filter cities based on search and salon filter
+  // Filter cities based on search - show only cities with salons
   const filteredCities = useMemo(() => {
-    let result = cities;
-
-    if (showOnlyWithSalons) {
-      result = result.filter(c => c.count > 0);
-    }
+    let result = cities.filter(c => c.count > 0);
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -60,7 +57,7 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
     }
 
     return result;
-  }, [cities, searchQuery, showOnlyWithSalons]);
+  }, [cities, searchQuery]);
 
   // Group cities by first letter for alphabet view
   const citiesByLetter = useMemo(() => {
@@ -72,7 +69,6 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
       }
       groups[letter].push(city);
     });
-    // Sort letters
     return Object.keys(groups)
       .sort()
       .reduce((acc, letter) => {
@@ -91,7 +87,6 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
       }
       groups[region].push(city);
     });
-    // Sort regions
     return Object.keys(groups)
       .sort((a, b) => a.localeCompare(b, 'ru'))
       .reduce((acc, region) => {
@@ -108,6 +103,102 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
     onClose();
   };
 
+  // Find nearest city based on coordinates
+  const findNearestCity = async (lat: number, lon: number) => {
+    try {
+      // Use Yandex Geocoder to get city name from coordinates
+      const response = await fetch(
+        `https://geocode-maps.yandex.ru/1.x/?apikey=51e35aa4-fa5e-432e-a7c6-e5e71105ec3a&format=json&geocode=${lon},${lat}&kind=locality`
+      );
+      const data = await response.json();
+
+      const geoObject = data.response?.GeoObjectCollection?.featureMember?.[0]?.GeoObject;
+      if (geoObject) {
+        const cityName = geoObject.name;
+
+        // Find this city in our list
+        const foundCity = cities.find(c =>
+          c.city.toLowerCase() === cityName.toLowerCase()
+        );
+
+        if (foundCity) {
+          return foundCity;
+        }
+
+        // If exact match not found, find nearest city with salon
+        // by searching in nearby regions
+        const addressComponents = geoObject.metaDataProperty?.GeocoderMetaData?.Address?.Components || [];
+        const regionComponent = addressComponents.find((c: { kind: string }) =>
+          c.kind === 'province' || c.kind === 'area'
+        );
+
+        if (regionComponent) {
+          const regionCities = cities.filter(c =>
+            c.region?.toLowerCase().includes(regionComponent.name?.toLowerCase()) && c.count > 0
+          );
+          if (regionCities.length > 0) {
+            return regionCities[0];
+          }
+        }
+      }
+
+      // Fallback: return first city with salons
+      return cities.find(c => c.count > 0) || null;
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return null;
+    }
+  };
+
+  const handleAutoDetect = () => {
+    if (!navigator.geolocation) {
+      setGeoError('Геолокация не поддерживается вашим браузером');
+      return;
+    }
+
+    setGeoLoading(true);
+    setGeoError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        const nearestCity = await findNearestCity(latitude, longitude);
+
+        if (nearestCity) {
+          setCity({
+            name: nearestCity.city,
+            region: nearestCity.region,
+          });
+          onClose();
+        } else {
+          setGeoError('Не удалось определить ближайший город');
+        }
+        setGeoLoading(false);
+      },
+      (error) => {
+        setGeoLoading(false);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setGeoError('Доступ к геолокации запрещен');
+            break;
+          case error.POSITION_UNAVAILABLE:
+            setGeoError('Информация о местоположении недоступна');
+            break;
+          case error.TIMEOUT:
+            setGeoError('Время ожидания истекло');
+            break;
+          default:
+            setGeoError('Ошибка определения местоположения');
+        }
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 300000,
+      }
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -121,11 +212,11 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
       {/* Modal */}
       <div className="relative bg-white rounded-lg shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-xl font-bold text-[#3d4543]">Выберите город</h2>
+        <div className="flex items-center justify-between p-3 border-b">
+          <h2 className="text-lg font-bold text-[#3d4543]">Выберите город</h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -134,8 +225,8 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
         </div>
 
         {/* Search and filters */}
-        <div className="p-4 border-b">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <div className="p-3 border-b">
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
             {/* Search input */}
             <div className="flex-1 relative">
               <input
@@ -143,10 +234,10 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Введите название города"
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7cb342] focus:border-transparent"
+                className="w-full pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7cb342] focus:border-transparent"
               />
               <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -156,10 +247,10 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
             </div>
 
             {/* View mode tabs */}
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-1 text-sm">
               <button
                 onClick={() => setViewMode('alphabet')}
-                className={`px-3 py-2 rounded transition-colors ${
+                className={`px-2 py-1 rounded transition-colors ${
                   viewMode === 'alphabet'
                     ? 'text-[#7cb342] font-medium underline'
                     : 'text-gray-600 hover:text-[#7cb342]'
@@ -169,7 +260,7 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
               </button>
               <button
                 onClick={() => setViewMode('regions')}
-                className={`px-3 py-2 rounded transition-colors ${
+                className={`px-2 py-1 rounded transition-colors ${
                   viewMode === 'regions'
                     ? 'text-[#7cb342] font-medium underline'
                     : 'text-gray-600 hover:text-[#7cb342]'
@@ -179,49 +270,52 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
               </button>
             </div>
 
-            {/* Salon filter */}
-            <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer whitespace-nowrap">
-              <input
-                type="checkbox"
-                checked={showOnlyWithSalons}
-                onChange={(e) => setShowOnlyWithSalons(e.target.checked)}
-                className="w-4 h-4 text-[#7cb342] rounded border-gray-300 focus:ring-[#7cb342]"
-              />
-              <span className="flex items-center gap-1">
-                <svg className="w-4 h-4 text-[#7cb342]" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+            {/* Auto-detect button */}
+            <button
+              onClick={handleAutoDetect}
+              disabled={geoLoading}
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm bg-[#7cb342] text-white rounded-lg hover:bg-[#689f38] transition-colors disabled:opacity-50 whitespace-nowrap"
+            >
+              {geoLoading ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                Города с салоном-магазином
-              </span>
-            </label>
+              )}
+              Автоопределение
+            </button>
           </div>
+
+          {geoError && (
+            <div className="mt-2 text-sm text-red-500">{geoError}</div>
+          )}
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-3">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7cb342]"></div>
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#7cb342]"></div>
             </div>
           ) : viewMode === 'alphabet' ? (
-            /* Alphabet view */
-            <div className="space-y-6">
+            /* Alphabet view - compact */
+            <div className="space-y-3">
               {Object.entries(citiesByLetter).map(([letter, letterCities]) => (
                 <div key={letter}>
-                  <h3 className="text-lg font-bold text-[#3d4543] mb-2">{letter}</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  <h3 className="text-sm font-bold text-[#3d4543] mb-1">{letter}</h3>
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5">
                     {letterCities.map(cityData => (
                       <button
                         key={cityData.city}
                         onClick={() => handleSelectCity(cityData)}
-                        className="flex items-center gap-1 text-left text-sm hover:text-[#7cb342] transition-colors py-1"
+                        className="flex items-center gap-0.5 text-xs hover:text-[#7cb342] transition-colors py-0.5"
                       >
-                        {cityData.count > 0 && (
-                          <svg className="w-4 h-4 text-[#7cb342] shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
-                          </svg>
-                        )}
-                        <span className={cityData.count > 0 ? 'underline' : ''}>{cityData.city}</span>
+                        <svg className="w-3 h-3 text-[#7cb342] shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                        </svg>
+                        <span className="underline">{cityData.city}</span>
                       </button>
                     ))}
                   </div>
@@ -229,24 +323,22 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
               ))}
             </div>
           ) : (
-            /* Regions view */
-            <div className="space-y-6">
+            /* Regions view - compact */
+            <div className="space-y-3">
               {Object.entries(citiesByRegion).map(([region, regionCities]) => (
                 <div key={region}>
-                  <h3 className="text-base font-bold text-[#3d4543] mb-2">{region}</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  <h3 className="text-sm font-bold text-[#3d4543] mb-1">{region}</h3>
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5">
                     {regionCities.map(cityData => (
                       <button
                         key={cityData.city}
                         onClick={() => handleSelectCity(cityData)}
-                        className="flex items-center gap-1 text-left text-sm hover:text-[#7cb342] transition-colors py-1"
+                        className="flex items-center gap-0.5 text-xs hover:text-[#7cb342] transition-colors py-0.5"
                       >
-                        {cityData.count > 0 && (
-                          <svg className="w-4 h-4 text-[#7cb342] shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
-                          </svg>
-                        )}
-                        <span className={cityData.count > 0 ? 'underline' : ''}>{cityData.city}</span>
+                        <svg className="w-3 h-3 text-[#7cb342] shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+                        </svg>
+                        <span className="underline">{cityData.city}</span>
                       </button>
                     ))}
                   </div>
@@ -256,7 +348,7 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
           )}
 
           {!loading && filteredCities.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-8 text-gray-500 text-sm">
               Города не найдены
             </div>
           )}
