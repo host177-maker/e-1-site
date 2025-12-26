@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPool } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
-    const pool = getPool();
+    // Dynamic import to avoid bundling issues
+    const { Pool } = await import('pg');
+
+    const pool = new Pool({
+      host: process.env.POSTGRES_HOST || '192.168.40.41',
+      port: parseInt(process.env.POSTGRES_PORT || '5432'),
+      database: process.env.POSTGRES_DB || 'newe1',
+      user: process.env.POSTGRES_USER || 'newe1',
+      password: process.env.POSTGRES_PASSWORD || 'newe1pass',
+    });
+
     const { searchParams } = new URL(request.url);
     const city = searchParams.get('city');
     const region = searchParams.get('region');
@@ -31,6 +41,7 @@ export async function GET(request: NextRequest) {
     query += ' ORDER BY region, city, name';
 
     const result = await pool.query(query, params);
+    await pool.end();
 
     return NextResponse.json({
       success: true,

@@ -1,17 +1,29 @@
 import { NextResponse } from 'next/server';
-import { getPool } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 export async function GET() {
   try {
-    const pool = getPool();
+    // Dynamic import to avoid bundling issues
+    const { Pool } = await import('pg');
+
+    const pool = new Pool({
+      host: process.env.POSTGRES_HOST || '192.168.40.41',
+      port: parseInt(process.env.POSTGRES_PORT || '5432'),
+      database: process.env.POSTGRES_DB || 'newe1',
+      user: process.env.POSTGRES_USER || 'newe1',
+      password: process.env.POSTGRES_PASSWORD || 'newe1pass',
+    });
+
     const result = await pool.query(`
       SELECT city, region, COUNT(*) as count
       FROM salons
       GROUP BY city, region
       ORDER BY region, city
     `);
+
+    await pool.end();
 
     // Group cities by region
     const byRegion: Record<string, { cities: { city: string; count: number }[] }> = {};
