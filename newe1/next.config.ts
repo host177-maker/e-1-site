@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
     },
   },
 
+  // Exclude pg from client-side bundling
+  serverExternalPackages: ['pg'],
+
   // Redirects for backward compatibility with old site
   async redirects() {
     return [

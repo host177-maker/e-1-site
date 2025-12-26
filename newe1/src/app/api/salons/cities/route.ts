@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
+import getPool from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const pool = getPool();
     const result = await pool.query(`
       SELECT city, region, COUNT(*) as count
       FROM salons
