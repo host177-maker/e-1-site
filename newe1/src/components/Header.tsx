@@ -22,12 +22,7 @@ function Logo() {
 // Service submenu structure - vertical list
 const serviceSubmenu = [
   { label: 'Условия покупки', href: '/service/purchase-terms' },
-  { label: 'Гарантия', href: '/service/warranty' },
   { label: 'Рассрочка', href: '/service/installment' },
-  { label: 'Возврат товара', href: '/service/returns' },
-  { label: 'Доставка и сборка', href: '/service/delivery' },
-  { label: 'Путь заказа', href: '/service/order-path' },
-  { label: 'Сроки изготовления', href: '/service/production-time' },
   { label: 'Инструкции к мебели', href: '/service/instructions' },
 ];
 

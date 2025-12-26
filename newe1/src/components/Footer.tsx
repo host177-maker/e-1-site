@@ -14,25 +14,23 @@ export default function Footer() {
       {/* Main footer content */}
       <div className="container-custom pb-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-6">
-          {/* Column 1 - ДОСТАВКА */}
+          {/* Column 1 - ПОКУПАТЕЛЮ */}
           <div>
-            <h4 className="font-medium text-[#9ca3af] text-sm mb-4 uppercase tracking-wide">Доставка</h4>
+            <h4 className="font-medium text-[#9ca3af] text-sm mb-4 uppercase tracking-wide">Покупателю</h4>
             <ul className="space-y-2">
-              <li><Link href="/service/delivery" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Доставка и сборка</Link></li>
-              <li><Link href="/service/order-path" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Путь заказа</Link></li>
-              <li><Link href="/service/production-time" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Сроки изготовления</Link></li>
+              <li><Link href="/service/purchase-terms" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Условия покупки</Link></li>
+              <li><Link href="/service/installment" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Рассрочка</Link></li>
               <li><Link href="/service/instructions" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Инструкции к мебели</Link></li>
             </ul>
           </div>
 
-          {/* Column 2 - ПОКУПКА И ГАРАНТИИ */}
+          {/* Column 2 - КОМПАНИЯ */}
           <div>
-            <h4 className="font-medium text-[#9ca3af] text-sm mb-4 uppercase tracking-wide">Покупка и гарантии</h4>
+            <h4 className="font-medium text-[#9ca3af] text-sm mb-4 uppercase tracking-wide">Компания</h4>
             <ul className="space-y-2">
-              <li><Link href="/service/purchase-terms" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Условия покупки</Link></li>
-              <li><Link href="/service/warranty" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Гарантия</Link></li>
-              <li><Link href="/service/installment" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Рассрочка</Link></li>
-              <li><Link href="/service/returns" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Возврат товара</Link></li>
+              <li><Link href="/stores" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Адреса салонов</Link></li>
+              <li><Link href="/delivery" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">География доставки</Link></li>
+              <li><Link href="/reviews" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Отзывы</Link></li>
             </ul>
           </div>
 
