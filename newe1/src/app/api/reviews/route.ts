@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     const body: NewReviewRequest = await request.json();
 
     // Validate required fields
-    if (!body.name || !body.phone || !body.review_text || !body.rating) {
+    if (!body.name || !body.phone || !body.review_text || !body.rating || !body.order_number) {
       return NextResponse.json(
         { success: false, message: 'Все обязательные поля должны быть заполнены' },
         { status: 400 }

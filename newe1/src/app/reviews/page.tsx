@@ -88,7 +88,7 @@ function formatDate(dateString: string): string {
   });
 }
 
-function ReviewForm({ onSuccess }: { onSuccess: () => void }) {
+function ReviewForm({ onSuccess, onClose }: { onSuccess: () => void; onClose: () => void }) {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -135,6 +135,11 @@ function ReviewForm({ onSuccess }: { onSuccess: () => void }) {
       return;
     }
 
+    if (!formData.order_number.trim()) {
+      setMessage({ type: 'error', text: 'Пожалуйста, укажите номер заказа' });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -175,6 +180,10 @@ function ReviewForm({ onSuccess }: { onSuccess: () => void }) {
         setPhotos([]);
         setPhotosPreviews([]);
         onSuccess();
+        // Close form after successful submission
+        setTimeout(() => {
+          onClose();
+        }, 2000);
       } else {
         throw new Error(data.message);
       }
@@ -190,7 +199,17 @@ function ReviewForm({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <div className="bg-[#f5f5f5] rounded-xl p-6 md:p-8">
-      <h2 className="text-2xl font-bold mb-6">Оставить свой отзыв</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold">Оставить отзыв</h2>
+        <button
+          onClick={onClose}
+          className="text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
       {message && (
         <div
@@ -237,14 +256,15 @@ function ReviewForm({ onSuccess }: { onSuccess: () => void }) {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Номер заказа
+            Номер заказа <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
+            required
             value={formData.order_number}
             onChange={(e) => setFormData({ ...formData, order_number: e.target.value })}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7cb342] focus:border-transparent"
-            placeholder="Если есть"
+            placeholder="Введите номер заказа"
           />
         </div>
 
@@ -318,13 +338,22 @@ function ReviewForm({ onSuccess }: { onSuccess: () => void }) {
           <p className="text-sm text-gray-500">JPG, PNG или WebP, до 5 МБ каждый</p>
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full md:w-auto px-8 py-3 bg-[#7cb342] text-white font-medium rounded-lg hover:bg-[#689f38] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? 'Отправка...' : 'Отправить отзыв'}
-        </button>
+        <div className="flex gap-4">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="flex-1 md:flex-none px-8 py-3 bg-[#7cb342] text-white font-medium rounded-lg hover:bg-[#689f38] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Отправка...' : 'Отправить отзыв'}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-8 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Отмена
+          </button>
+        </div>
       </form>
     </div>
   );
@@ -427,6 +456,7 @@ export default function ReviewsPage() {
   const [reviewsData, setReviewsData] = useState<ReviewsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   const fetchReviews = async (offset = 0, append = false) => {
     try {
@@ -468,24 +498,31 @@ export default function ReviewsPage() {
       <div className="bg-[#f5f5f5] py-8">
         <div className="container-custom">
           <h1 className="text-3xl md:text-4xl font-bold text-[#3d4543]">Отзывы клиентов</h1>
-          {reviewsData?.stats.averageRating && (
-            <div className="flex items-center gap-3 mt-4">
-              <StarRating rating={Math.round(reviewsData.stats.averageRating)} size="lg" />
-              <span className="text-xl font-bold text-[#3d4543]">
-                {reviewsData.stats.averageRating.toFixed(1)}
-              </span>
-              <span className="text-gray-500">
-                на основе {reviewsData.stats.totalRated} отзывов
-              </span>
-            </div>
-          )}
         </div>
       </div>
 
       <div className="container-custom py-8">
-        {/* Review Form */}
+        {/* Review Button / Form */}
         <div className="mb-12">
-          <ReviewForm onSuccess={() => fetchReviews()} />
+          {showForm ? (
+            <ReviewForm
+              onSuccess={() => fetchReviews()}
+              onClose={() => setShowForm(false)}
+            />
+          ) : (
+            <div className="bg-[#f5f5f5] rounded-xl p-8 text-center">
+              <h3 className="text-2xl font-bold mb-4">Поделитесь своим мнением</h3>
+              <p className="text-gray-600 mb-6 max-w-xl mx-auto">
+                Мы ценим мнение каждого клиента. Расскажите о своём опыте сотрудничества с нами.
+              </p>
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-8 py-3 bg-[#7cb342] text-white font-medium rounded-lg hover:bg-[#689f38] transition-colors"
+              >
+                Оставить отзыв
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Reviews List */}
