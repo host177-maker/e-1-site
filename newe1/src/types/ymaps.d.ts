@@ -3,6 +3,7 @@ declare global {
   interface Window {
     ymaps: YMaps;
     initYandexMap?: () => void;
+    initStoresMap?: () => void;
   }
 }
 
@@ -21,9 +22,22 @@ interface YMaps {
   ) => YMap;
   Placemark: new (
     coords: number[],
-    properties: { hintContent?: string; balloonContent?: string },
+    properties: {
+      hintContent?: string;
+      balloonContent?: string;
+      balloonContentHeader?: string;
+      balloonContentBody?: string;
+      balloonContentFooter?: string;
+    },
     options?: { preset?: string }
   ) => YPlacemark;
+  Clusterer: new (options?: {
+    preset?: string;
+    groupByCoordinates?: boolean;
+    clusterDisableClickZoom?: boolean;
+    clusterHideIconOnBalloonOpen?: boolean;
+    geoObjectHideIconOnBalloonOpen?: boolean;
+  }) => YClusterer;
   geoQuery: (geoJson: any) => YGeoQuery;
 }
 
@@ -37,7 +51,16 @@ interface YMap {
   };
   geoObjects: {
     add: (obj: any) => void;
+    remove: (obj: any) => void;
   };
+  setCenter: (center: number[], zoom?: number, options?: { duration?: number }) => void;
+  setBounds: (bounds: number[][], options?: { checkZoomRange?: boolean; zoomMargin?: number }) => void;
+}
+
+interface YClusterer {
+  add: (placemarks: YPlacemark | YPlacemark[]) => void;
+  removeAll: () => void;
+  getBounds: () => number[][] | null;
 }
 
 interface YPlacemark {
