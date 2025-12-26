@@ -510,14 +510,14 @@ export default function ReviewsPage() {
               onClose={() => setShowForm(false)}
             />
           ) : (
-            <div className="bg-[#f5f5f5] rounded-xl p-8 text-center">
-              <h3 className="text-2xl font-bold mb-4">Поделитесь своим мнением</h3>
-              <p className="text-gray-600 mb-6 max-w-xl mx-auto">
-                Мы ценим мнение каждого клиента. Расскажите о своём опыте сотрудничества с нами.
+            <div className="bg-[#f5f5f5] rounded-xl p-5 text-center">
+              <h3 className="text-xl font-bold mb-2">Поделитесь своим мнением</h3>
+              <p className="text-gray-600 mb-4 text-sm">
+                Расскажите о своём опыте сотрудничества с нами
               </p>
               <button
                 onClick={() => setShowForm(true)}
-                className="px-8 py-3 bg-[#7cb342] text-white font-medium rounded-lg hover:bg-[#689f38] transition-colors"
+                className="px-6 py-2.5 bg-[#7cb342] text-white font-medium rounded-lg hover:bg-[#689f38] transition-colors"
               >
                 Оставить отзыв
               </button>
