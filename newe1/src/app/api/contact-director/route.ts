@@ -16,8 +16,21 @@ async function sendEmail(data: ContactRequest): Promise<boolean> {
   const smtpFromName = process.env.SMTP_FROM_NAME || 'Мебельная компания Е1';
   const dirMail = process.env.DIR_MAIL;
 
+  // Debug logging
+  console.log('ENV DEBUG:', {
+    SMTP_SERVER: smtpServer ? `${smtpServer.substring(0, 5)}...` : 'undefined',
+    SMTP_PORT: smtpPort,
+    SMTP_USER: smtpUser ? 'set' : 'undefined',
+    SMTP_PASSWORD: smtpPassword ? 'set' : 'undefined',
+    SMTP_FROM: smtpFrom,
+    DIR_MAIL: dirMail ? `${dirMail.substring(0, 5)}...` : 'undefined',
+    NODE_ENV: process.env.NODE_ENV,
+  });
+
   if (!smtpServer || !dirMail) {
     console.error('Email not configured: missing SMTP_SERVER or DIR_MAIL');
+    console.error('SMTP_SERVER value:', smtpServer);
+    console.error('DIR_MAIL value:', dirMail);
     return false;
   }
 
