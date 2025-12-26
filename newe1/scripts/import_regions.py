@@ -163,10 +163,58 @@ def import_data(conn, cities_data):
         print(f"Imported {inserted} cities")
 
 
-def update_salons_references(conn):
-    """Update salons with region_id and city_id references."""
+def update_salons_references(conn, cities_data):
+    """Update salons with region_id, city_id and correct region name (oblast)."""
+    # Build city -> oblast mapping from cities_data
+    city_to_oblast = {}
+    for city in cities_data:
+        city_name = city['name'].lower().strip()
+        oblast = city['region']
+        city_to_oblast[city_name] = oblast
+
     with conn.cursor() as cur:
-        # Update salons with region_id based on region name match
+        # First, update the region field in salons to be the oblast (not city)
+        # The current region field contains city names like "Краснодар"
+        # We need to replace them with oblast names like "Краснодарский край"
+
+        # Get all salons with their current region (which is actually a city name)
+        cur.execute("SELECT id, city, region FROM salons")
+        salons = cur.fetchall()
+
+        region_fixed = 0
+        for salon_id, city, current_region in salons:
+            # Try to find oblast by city name
+            city_lower = city.lower().strip() if city else ''
+            region_lower = current_region.lower().strip() if current_region else ''
+
+            # Check if current region is in our city->oblast map (meaning it's a city, not oblast)
+            new_oblast = None
+            if region_lower in city_to_oblast:
+                new_oblast = city_to_oblast[region_lower]
+            elif city_lower in city_to_oblast:
+                new_oblast = city_to_oblast[city_lower]
+
+            if new_oblast and new_oblast != current_region:
+                cur.execute(
+                    "UPDATE salons SET region = %s WHERE id = %s",
+                    (new_oblast, salon_id)
+                )
+                region_fixed += 1
+
+        conn.commit()
+        print(f"Fixed {region_fixed} salons with correct oblast in region field")
+
+        # Now update city_id based on city name match
+        cur.execute("""
+            UPDATE salons s
+            SET city_id = c.id
+            FROM cities c
+            WHERE LOWER(TRIM(s.city)) = LOWER(TRIM(c.name))
+            AND s.city_id IS NULL
+        """)
+        city_updated = cur.rowcount
+
+        # Update region_id based on the now-correct region (oblast) name
         cur.execute("""
             UPDATE salons s
             SET region_id = r.id
@@ -176,36 +224,24 @@ def update_salons_references(conn):
         """)
         region_updated = cur.rowcount
 
-        # Update salons with city_id based on city name and region match
-        cur.execute("""
-            UPDATE salons s
-            SET city_id = c.id
-            FROM cities c
-            JOIN regions r ON c.region_id = r.id
-            WHERE LOWER(TRIM(s.city)) = LOWER(TRIM(c.name))
-            AND LOWER(TRIM(s.region)) = LOWER(TRIM(r.name))
-            AND s.city_id IS NULL
-        """)
-        city_updated = cur.rowcount
-
-        # Also try to match by city name alone for salons without region match
-        cur.execute("""
-            UPDATE salons s
-            SET city_id = c.id
-            FROM cities c
-            WHERE LOWER(TRIM(s.city)) = LOWER(TRIM(c.name))
-            AND s.city_id IS NULL
-            AND (SELECT COUNT(*) FROM cities WHERE LOWER(TRIM(name)) = LOWER(TRIM(s.city))) = 1
-        """)
-        city_updated += cur.rowcount
-
-        # Update region_id from city_id if region_id is still NULL
+        # Fallback: Update region_id from city_id if region_id is still NULL
         cur.execute("""
             UPDATE salons s
             SET region_id = c.region_id
             FROM cities c
             WHERE s.city_id = c.id
             AND s.region_id IS NULL
+        """)
+        region_updated += cur.rowcount
+
+        # Also update region name from cities if still not matched
+        cur.execute("""
+            UPDATE salons s
+            SET region = r.name
+            FROM cities c
+            JOIN regions r ON c.region_id = r.id
+            WHERE s.city_id = c.id
+            AND (s.region IS NULL OR s.region = '' OR s.region_id IS NULL)
         """)
 
         conn.commit()
@@ -292,7 +328,7 @@ def main():
 
         # Update salon references
         print("\nUpdating salon references...")
-        update_salons_references(conn)
+        update_salons_references(conn, cities_data)
 
         # Verify
         verify_data(conn)
