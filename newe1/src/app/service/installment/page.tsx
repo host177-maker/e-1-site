@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function InstallmentPage() {
   const [formData, setFormData] = useState({
@@ -159,12 +160,13 @@ export default function InstallmentPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Step 1 */}
             <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
-              <div className="w-full h-40 bg-gradient-to-br from-[#e8f5e3] to-[#d4edda] rounded-xl mb-4 flex items-center justify-center relative overflow-hidden">
-                <div className="absolute top-3 left-3 w-8 h-8 bg-[#62bb46] rounded-full flex items-center justify-center text-white font-bold">1</div>
-                <svg className="w-20 h-20 text-[#62bb46]/40" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
-                  <path d="M7 12h2v5H7zm4-3h2v8h-2zm4 5h2v3h-2z"/>
-                </svg>
+              <div className="w-full h-48 rounded-xl mb-4 relative overflow-hidden">
+                <Image
+                  src="/images/installment/step-1.png"
+                  alt="Выберите шкаф"
+                  fill
+                  className="object-contain"
+                />
               </div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-6 h-6 bg-[#62bb46] rounded-full flex items-center justify-center text-white text-sm font-bold">1</span>
@@ -177,11 +179,13 @@ export default function InstallmentPage() {
 
             {/* Step 2 */}
             <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
-              <div className="w-full h-40 bg-gradient-to-br from-[#e8f5e3] to-[#d4edda] rounded-xl mb-4 flex items-center justify-center relative overflow-hidden">
-                <div className="absolute top-3 left-3 w-8 h-8 bg-[#62bb46] rounded-full flex items-center justify-center text-white font-bold">2</div>
-                <svg className="w-20 h-20 text-[#62bb46]/40" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                </svg>
+              <div className="w-full h-48 rounded-xl mb-4 relative overflow-hidden">
+                <Image
+                  src="/images/installment/step-2.png"
+                  alt="Оформите заявку"
+                  fill
+                  className="object-contain"
+                />
               </div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-6 h-6 bg-[#62bb46] rounded-full flex items-center justify-center text-white text-sm font-bold">2</span>
@@ -194,11 +198,13 @@ export default function InstallmentPage() {
 
             {/* Step 3 */}
             <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
-              <div className="w-full h-40 bg-gradient-to-br from-[#e8f5e3] to-[#d4edda] rounded-xl mb-4 flex items-center justify-center relative overflow-hidden">
-                <div className="absolute top-3 left-3 w-8 h-8 bg-[#62bb46] rounded-full flex items-center justify-center text-white font-bold">3</div>
-                <svg className="w-20 h-20 text-[#62bb46]/40" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
-                </svg>
+              <div className="w-full h-48 rounded-xl mb-4 relative overflow-hidden">
+                <Image
+                  src="/images/installment/step-3.png"
+                  alt="Получите шкаф"
+                  fill
+                  className="object-contain"
+                />
               </div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="w-6 h-6 bg-[#62bb46] rounded-full flex items-center justify-center text-white text-sm font-bold">3</span>
