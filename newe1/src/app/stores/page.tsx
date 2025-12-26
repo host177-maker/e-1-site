@@ -357,17 +357,6 @@ export default function StoresPage() {
                 Сбросить фильтры
               </button>
             )}
-
-            {/* Contact info */}
-            <div className="ml-auto text-right hidden md:block">
-              <p className="text-sm text-gray-500">Справочная служба</p>
-              <p className="text-lg font-bold text-[#3d4543]">8 (861) 290-85-10</p>
-              <p className="text-sm text-gray-500">
-                <a href="mailto:best@e-1.ru" className="text-[#7cb342] hover:underline">best@e-1.ru</a>
-                {' / '}
-                <a href="mailto:service@e-1.ru" className="text-[#7cb342] hover:underline">service@e-1.ru</a>
-              </p>
-            </div>
           </div>
 
           {/* Map */}
@@ -394,7 +383,7 @@ export default function StoresPage() {
             </p>
           </div>
 
-          {/* Salons list grouped by region */}
+          {/* Salons list grouped by region - tile layout */}
           <div className="space-y-8">
             {Object.entries(salonsByRegion).map(([region, regionSalons]) => (
               <div key={region}>
@@ -407,52 +396,55 @@ export default function StoresPage() {
                   )}
                 </h2>
 
-                <div className="divide-y divide-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {regionSalons.map(salon => (
                     <div
                       key={salon.id}
-                      className="py-3 flex flex-col md:flex-row md:items-center gap-2 md:gap-6"
+                      className="bg-[#f5f5f5] rounded-lg p-4 flex flex-col gap-2"
                     >
-                      <div className="flex-1">
-                        <span className="font-medium text-[#3d4543]">{salon.name}</span>
-                        {salon.address && (
-                          <span className="text-gray-500 ml-2">{salon.address}</span>
-                        )}
+                      <div className="font-medium text-[#3d4543] text-lg">
+                        {salon.name}
                       </div>
 
-                      <div className="flex items-center gap-4 text-sm">
+                      {salon.address && (
+                        <div className="text-gray-600 text-sm">
+                          {salon.address}
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-1 mt-2 text-sm">
                         {salon.phone && (
                           <a
                             href={`tel:${salon.phone.replace(/[^\d+]/g, '')}`}
-                            className="text-[#7cb342] hover:underline whitespace-nowrap"
+                            className="text-[#7cb342] hover:underline"
                           >
                             {salon.phone}
                           </a>
                         )}
 
                         {salon.working_hours && (
-                          <span className="text-gray-500 whitespace-nowrap">
+                          <span className="text-gray-500">
                             {salon.working_hours}
                           </span>
                         )}
-
-                        {salon.latitude && salon.longitude && (
-                          <button
-                            onClick={() => {
-                              const map = mapInstanceRef.current;
-                              if (map) {
-                                map.setCenter([salon.longitude, salon.latitude], 15, {
-                                  duration: 500,
-                                });
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                              }
-                            }}
-                            className="text-[#7cb342] hover:underline whitespace-nowrap"
-                          >
-                            на карте
-                          </button>
-                        )}
                       </div>
+
+                      {salon.latitude && salon.longitude && (
+                        <button
+                          onClick={() => {
+                            const map = mapInstanceRef.current;
+                            if (map) {
+                              map.setCenter([salon.longitude, salon.latitude], 15, {
+                                duration: 500,
+                              });
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                          }}
+                          className="mt-2 text-[#7cb342] hover:underline text-sm text-left"
+                        >
+                          показать на карте
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
