@@ -13,7 +13,7 @@ export default function Footer() {
     <footer className="bg-[#3d3d3d] text-white mt-8 pt-16">
       {/* Main footer content */}
       <div className="container-custom pb-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-6">
           {/* Column 1 - ДОСТАВКА */}
           <div>
             <h4 className="font-medium text-[#9ca3af] text-sm mb-4 uppercase tracking-wide">Доставка</h4>
@@ -21,35 +21,11 @@ export default function Footer() {
               <li><Link href="/service/delivery" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Доставка и сборка</Link></li>
               <li><Link href="/service/order-path" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Путь заказа</Link></li>
               <li><Link href="/service/production-time" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Сроки изготовления</Link></li>
+              <li><Link href="/service/instructions" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Инструкции к мебели</Link></li>
             </ul>
           </div>
 
-          {/* Column 2 - ПОМОЩЬ В ВЫБОРЕ */}
-          <div>
-            <h4 className="font-medium text-[#9ca3af] text-sm mb-4 uppercase tracking-wide">Помощь в выборе</h4>
-            <ul className="space-y-2">
-              <li><Link href="/service/about-wardrobes" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">О шкафах-купе</Link></li>
-              <li><Link href="/service/photo-print" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Каталог фотопечати</Link></li>
-              <li><Link href="/service/faq" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Вопросы и ответы</Link></li>
-              <li><Link href="/service/tips" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Советы от Е1</Link></li>
-              <li><Link href="/service/portfolio" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Наши работы</Link></li>
-              <li><Link href="/service/brochure" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Брошюра</Link></li>
-            </ul>
-          </div>
-
-          {/* Column 3 - О КОМПАНИИ */}
-          <div>
-            <h4 className="font-medium text-[#9ca3af] text-sm mb-4 uppercase tracking-wide">О компании</h4>
-            <ul className="space-y-2">
-              <li><Link href="/about/production" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Производство</Link></li>
-              <li><Link href="/about/quality" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">О качестве сервиса</Link></li>
-              <li><Link href="/about/careers" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Вакансии</Link></li>
-              <li><Link href="/about/partnership" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Партнерство</Link></li>
-              <li><Link href="/geography" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Работаем в городах</Link></li>
-            </ul>
-          </div>
-
-          {/* Column 4 - ПОКУПКА И ГАРАНТИИ */}
+          {/* Column 2 - ПОКУПКА И ГАРАНТИИ */}
           <div>
             <h4 className="font-medium text-[#9ca3af] text-sm mb-4 uppercase tracking-wide">Покупка и гарантии</h4>
             <ul className="space-y-2">

@@ -17,38 +17,16 @@ function Logo() {
   );
 }
 
-// Service submenu structure
+// Service submenu structure - vertical list
 const serviceSubmenu = [
-  {
-    title: 'Условия покупки',
-    href: '/service/purchase-terms',
-    items: []
-  },
-  {
-    title: 'Помощь в выборе',
-    items: [
-      { label: 'О шкафах', href: '/service/about-wardrobes' },
-      { label: 'Каталог фотопечати', href: '/service/photo-print' },
-      { label: 'Вопросы и ответы', href: '/service/faq' },
-      { label: 'Советы от Е1', href: '/service/tips' },
-      { label: 'Наши работы', href: '/service/portfolio' },
-      { label: 'Брошюра', href: '/service/brochure' },
-    ]
-  },
-  {
-    title: 'О компании',
-    items: [
-      { label: 'Производство', href: '/about/production' },
-      { label: 'Качество сервиса', href: '/about/quality' },
-      { label: 'Вакансии', href: '/about/careers' },
-      { label: 'Сотрудничество', href: '/about/partnership' },
-    ]
-  },
-  {
-    title: 'Инструкции к мебели',
-    href: '/service/instructions',
-    items: []
-  },
+  { label: 'Условия покупки', href: '/service/purchase-terms' },
+  { label: 'Гарантия', href: '/service/warranty' },
+  { label: 'Рассрочка', href: '/service/installment' },
+  { label: 'Возврат товара', href: '/service/returns' },
+  { label: 'Доставка и сборка', href: '/service/delivery' },
+  { label: 'Путь заказа', href: '/service/order-path' },
+  { label: 'Сроки изготовления', href: '/service/production-time' },
+  { label: 'Инструкции к мебели', href: '/service/instructions' },
 ];
 
 const menuItems = [
@@ -306,39 +284,21 @@ export default function Header() {
                     </svg>
                   )}
                 </Link>
-                {/* Dropdown for СЕРВИС */}
+                {/* Dropdown for ПОКУПАТЕЛЮ */}
                 {item.hasSubmenu && (
-                  <div className="absolute left-0 top-full bg-white shadow-xl rounded-b-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[700px] -ml-4">
-                    <div className="flex p-4 gap-6">
-                      {serviceSubmenu.map((section) => (
-                        <div key={section.title} className="min-w-[120px]">
-                          {section.items.length > 0 ? (
-                            <>
-                              <div className="font-bold text-[#3d4543] text-sm mb-2 pb-1 border-b border-gray-200">{section.title}</div>
-                              <ul className="space-y-1">
-                                {section.items.map((subItem) => (
-                                  <li key={subItem.href}>
-                                    <Link
-                                      href={subItem.href}
-                                      className="block text-[13px] text-gray-600 hover:text-[#62bb46] transition-colors py-0.5"
-                                    >
-                                      {subItem.label}
-                                    </Link>
-                                  </li>
-                                ))}
-                              </ul>
-                            </>
-                          ) : (
-                            <Link
-                              href={section.href || '#'}
-                              className="font-bold text-[#3d4543] text-sm hover:text-[#62bb46] transition-colors"
-                            >
-                              {section.title}
-                            </Link>
-                          )}
-                        </div>
+                  <div className="absolute left-0 top-full bg-white shadow-xl rounded-b-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[200px]">
+                    <ul className="py-2">
+                      {serviceSubmenu.map((subItem) => (
+                        <li key={subItem.href}>
+                          <Link
+                            href={subItem.href}
+                            className="block px-4 py-2 text-[13px] text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
+                          >
+                            {subItem.label}
+                          </Link>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
                 )}
               </li>
@@ -397,42 +357,22 @@ export default function Header() {
                       </button>
                       {mobileServiceOpen && (
                         <div className="bg-white">
-                          {serviceSubmenu.map((section) => (
-                            <div key={section.title} className="border-b border-gray-100 last:border-b-0">
-                              {section.items.length > 0 ? (
-                                <>
-                                  <div className="px-4 py-2 bg-gray-50 font-bold text-[#3d4543] text-sm">{section.title}</div>
-                                  <ul>
-                                    {section.items.map((subItem) => (
-                                      <li key={subItem.href}>
-                                        <Link
-                                          href={subItem.href}
-                                          className="block px-6 py-2 text-sm text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
-                                          onClick={() => {
-                                            setMobileServiceOpen(false);
-                                            setIsMobileMenuOpen(false);
-                                          }}
-                                        >
-                                          {subItem.label}
-                                        </Link>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </>
-                              ) : (
+                          <ul>
+                            {serviceSubmenu.map((subItem) => (
+                              <li key={subItem.href} className="border-b border-gray-100 last:border-b-0">
                                 <Link
-                                  href={section.href || '#'}
-                                  className="block px-4 py-2 bg-gray-50 font-bold text-[#3d4543] text-sm hover:text-[#62bb46] transition-colors"
+                                  href={subItem.href}
+                                  className="block px-4 py-2.5 text-sm text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
                                   onClick={() => {
                                     setMobileServiceOpen(false);
                                     setIsMobileMenuOpen(false);
                                   }}
                                 >
-                                  {section.title}
+                                  {subItem.label}
                                 </Link>
-                              )}
-                            </div>
-                          ))}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       )}
                     </div>
