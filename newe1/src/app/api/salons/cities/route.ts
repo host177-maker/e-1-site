@@ -1,10 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const regionFilter = searchParams.get('region');
+
     // Dynamic import to avoid bundling issues
     const { Pool } = await import('pg');
 
@@ -16,12 +19,20 @@ export async function GET() {
       password: process.env.POSTGRES_PASSWORD || 'newe1pass',
     });
 
-    const result = await pool.query(`
+    let query = `
       SELECT city, region, COUNT(*) as count
       FROM salons
-      GROUP BY city, region
-      ORDER BY region, city
-    `);
+    `;
+    const params: string[] = [];
+
+    if (regionFilter) {
+      query += ` WHERE region = $1`;
+      params.push(regionFilter);
+    }
+
+    query += ` GROUP BY city, region ORDER BY region, city`;
+
+    const result = await pool.query(query, params);
 
     await pool.end();
 

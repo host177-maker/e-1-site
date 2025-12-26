@@ -23,25 +23,26 @@ interface CityData {
   count: number;
 }
 
+interface RegionData {
+  id: number;
+  name: string;
+  salonCount: number;
+}
+
 export default function StoresPage() {
   const [allSalons, setAllSalons] = useState<Salon[]>([]); // All salons for map
+  const [regions, setRegions] = useState<RegionData[]>([]);
   const [cities, setCities] = useState<CityData[]>([]);
+  const [filteredCities, setFilteredCities] = useState<CityData[]>([]);
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [citiesLoading, setCitiesLoading] = useState(false);
   const [mapReady, setMapReady] = useState(false);
 
   const mapInstanceRef = useRef<any>(null);
   const clustererRef = useRef<any>(null);
   const markersInitialized = useRef(false);
-
-  // Get unique regions from cities
-  const regions = [...new Set(cities.map(c => c.region))].sort();
-
-  // Get cities for selected region
-  const filteredCities = selectedRegion
-    ? cities.filter(c => c.region === selectedRegion)
-    : cities;
 
   // Filter salons for list display (based on selected city/region)
   const filteredSalons = allSalons.filter(salon => {
@@ -54,17 +55,40 @@ export default function StoresPage() {
     return true;
   });
 
-  // Fetch cities on mount
+  // Fetch regions on mount
   useEffect(() => {
     fetch('/api/salons/cities')
       .then(res => res.json())
       .then(data => {
         if (data.success) {
           setCities(data.data.cities);
+          setFilteredCities(data.data.cities);
+          // Extract unique regions from cities
+          const uniqueRegions = [...new Set(data.data.cities.map((c: CityData) => c.region))]
+            .filter(Boolean)
+            .sort() as string[];
+          setRegions(uniqueRegions.map((name, idx) => ({
+            id: idx + 1,
+            name,
+            salonCount: data.data.cities.filter((c: CityData) => c.region === name).reduce((acc: number, c: CityData) => acc + c.count, 0),
+          })));
         }
       })
       .catch(console.error);
   }, []);
+
+  // Update filtered cities when region changes
+  useEffect(() => {
+    if (selectedRegion) {
+      setCitiesLoading(true);
+      // Filter cities by selected region
+      const regionCities = cities.filter(c => c.region === selectedRegion);
+      setFilteredCities(regionCities);
+      setCitiesLoading(false);
+    } else {
+      setFilteredCities(cities);
+    }
+  }, [selectedRegion, cities]);
 
   // Fetch ALL salons once on mount (for map)
   useEffect(() => {
@@ -298,7 +322,9 @@ export default function StoresPage() {
               >
                 <option value="">— Выберите регион —</option>
                 {regions.map(region => (
-                  <option key={region} value={region}>{region}</option>
+                  <option key={region.name} value={region.name}>
+                    {region.name} ({region.salonCount})
+                  </option>
                 ))}
               </select>
             </div>
@@ -309,8 +335,11 @@ export default function StoresPage() {
                 value={selectedCity}
                 onChange={(e) => handleCityChange(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7cb342] focus:border-transparent"
+                disabled={citiesLoading}
               >
-                <option value="">— Выберите город —</option>
+                <option value="">
+                  {citiesLoading ? 'Загрузка...' : selectedRegion ? '— Выберите город —' : '— Сначала выберите регион —'}
+                </option>
                 {filteredCities.map(city => (
                   <option key={city.city} value={city.city}>
                     {city.city} ({city.count})
