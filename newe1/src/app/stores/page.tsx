@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Script from 'next/script';
 
 interface Salon {
@@ -29,8 +29,10 @@ export default function StoresPage() {
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [mapInstance, setMapInstance] = useState<any>(null);
-  const [clusterer, setClusterer] = useState<any>(null);
+  const [mapReady, setMapReady] = useState(false);
+
+  const mapInstanceRef = useRef<any>(null);
+  const clustererRef = useRef<any>(null);
 
   // Get unique regions from cities
   const regions = [...new Set(cities.map(c => c.region))].sort();
@@ -75,13 +77,15 @@ export default function StoresPage() {
 
   // Update map markers when salons change
   const updateMapMarkers = useCallback(() => {
-    if (!mapInstance || typeof window === 'undefined' || !(window as any).ymaps) return;
+    const map = mapInstanceRef.current;
+    if (!map || typeof window === 'undefined' || !(window as any).ymaps) return;
 
     const ymaps = (window as any).ymaps;
 
     // Remove old clusterer
-    if (clusterer) {
-      mapInstance.geoObjects.remove(clusterer);
+    if (clustererRef.current) {
+      map.geoObjects.remove(clustererRef.current);
+      clustererRef.current = null;
     }
 
     // Create placemarks for salons with coordinates
@@ -109,6 +113,8 @@ export default function StoresPage() {
         );
       });
 
+    if (placemarks.length === 0) return;
+
     // Create clusterer
     const newClusterer = new ymaps.Clusterer({
       preset: 'islands#greenClusterIcons',
@@ -119,30 +125,45 @@ export default function StoresPage() {
     });
 
     newClusterer.add(placemarks);
-    mapInstance.geoObjects.add(newClusterer);
-    setClusterer(newClusterer);
+    map.geoObjects.add(newClusterer);
+    clustererRef.current = newClusterer;
 
-    // Adjust map bounds to show all markers
-    if (placemarks.length > 0) {
-      const bounds = newClusterer.getBounds();
-      if (bounds) {
-        mapInstance.setBounds(bounds, {
-          checkZoomRange: true,
-          zoomMargin: 50,
-        });
+    // Adjust map bounds to show all markers with reasonable zoom
+    const bounds = newClusterer.getBounds();
+    if (bounds) {
+      map.setBounds(bounds, {
+        checkZoomRange: true,
+        zoomMargin: 50,
+      }).then(() => {
+        // Limit max zoom to 14 for city view (not too close)
+        const currentZoom = map.getZoom();
+        if (currentZoom > 14) {
+          map.setZoom(14);
+        }
+      });
+    }
+  }, [salons]);
+
+  // Update markers when salons change and map is ready
+  useEffect(() => {
+    if (mapReady && salons.length > 0) {
+      updateMapMarkers();
+    } else if (mapReady && salons.length === 0 && clustererRef.current) {
+      // Clear markers if no salons
+      const map = mapInstanceRef.current;
+      if (map) {
+        map.geoObjects.remove(clustererRef.current);
+        clustererRef.current = null;
+        // Reset to default view
+        map.setCenter([82.920430, 55.030199], 4);
       }
     }
-  }, [mapInstance, salons, clusterer]);
-
-  useEffect(() => {
-    if (mapInstance && salons.length > 0) {
-      updateMapMarkers();
-    }
-  }, [mapInstance, salons, updateMapMarkers]);
+  }, [mapReady, salons, updateMapMarkers]);
 
   // Initialize map
   const initMap = useCallback(() => {
     if (typeof window === 'undefined' || !(window as any).ymaps) return;
+    if (mapInstanceRef.current) return; // Already initialized
 
     const ymaps = (window as any).ymaps;
     ymaps.ready(() => {
@@ -154,7 +175,8 @@ export default function StoresPage() {
 
       map.controls.get('zoomControl').options.set({ size: 'small' });
 
-      setMapInstance(map);
+      mapInstanceRef.current = map;
+      setMapReady(true);
     });
   }, []);
 
@@ -359,8 +381,9 @@ export default function StoresPage() {
                       {salon.latitude && salon.longitude && (
                         <button
                           onClick={() => {
-                            if (mapInstance) {
-                              mapInstance.setCenter([salon.longitude, salon.latitude], 15, {
+                            const map = mapInstanceRef.current;
+                            if (map) {
+                              map.setCenter([salon.longitude, salon.latitude], 15, {
                                 duration: 500,
                               });
                             }
