@@ -1,7 +1,15 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import DirectorContactModal from './DirectorContactModal';
 
 export default function Footer() {
+  const [isDirectorModalOpen, setIsDirectorModalOpen] = useState(false);
+
   return (
+    <>
+    <DirectorContactModal isOpen={isDirectorModalOpen} onClose={() => setIsDirectorModalOpen(false)} />
     <footer className="bg-[#3d3d3d] text-white mt-8 pt-16">
       {/* Main footer content */}
       <div className="container-custom pb-10">
@@ -63,12 +71,12 @@ export default function Footer() {
               Заказать звонок
             </button>
 
-            <Link
-              href="/contact-director"
-              className="block text-center bg-[#62bb46] text-white font-medium px-5 py-2.5 rounded hover:bg-[#55a83d] transition-colors text-sm mb-5"
+            <button
+              onClick={() => setIsDirectorModalOpen(true)}
+              className="block w-full text-center bg-[#62bb46] text-white font-medium px-5 py-2.5 rounded hover:bg-[#55a83d] transition-colors text-sm mb-5 cursor-pointer"
             >
               Связь с директором
-            </Link>
+            </button>
 
             {/* Messengers */}
             <div className="flex gap-2 mb-3">
@@ -145,5 +153,6 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+    </>
   );
 }
