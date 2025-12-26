@@ -1,4 +1,8 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import MeasurementModal from './MeasurementModal';
 
 // Decorative icons for cards
 const WardrobeIcon = () => (
@@ -48,7 +52,11 @@ const SaleIcon = () => (
 );
 
 export default function FeaturesSection() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
+    <>
+    <MeasurementModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     <section className="py-4 bg-[#f5f5f5]">
       <div className="container-custom">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -121,12 +129,12 @@ export default function FeaturesSection() {
                 Встроенный • нестандарт • замер и проект
               </p>
               <div className="space-y-1.5">
-                <Link
-                  href="/custom"
-                  className="block w-full text-center bg-transparent border-2 border-[#62bb46] text-[#62bb46] text-xs font-bold py-1.5 px-3 rounded-full hover:bg-[#4a9e36] hover:text-white hover:border-[#4a9e36] transition-all"
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="block w-full text-center bg-transparent border-2 border-[#62bb46] text-[#62bb46] text-xs font-bold py-1.5 px-3 rounded-full hover:bg-[#4a9e36] hover:text-white hover:border-[#4a9e36] transition-all cursor-pointer"
                 >
                   Вызвать замерщика
-                </Link>
+                </button>
                 <Link
                   href="/quiz"
                   className="flex items-center justify-center gap-1.5 w-full text-center text-gray-500 text-xs py-1.5 hover:text-[#62bb46] transition-colors"
@@ -194,5 +202,6 @@ export default function FeaturesSection() {
         </div>
       </div>
     </section>
+    </>
   );
 }
