@@ -25,6 +25,7 @@ async function sendToWebhook(data: MeasurementRequest): Promise<{ success: boole
         phone1: data.phone,
         source: 'Форма на сайте',
         fio: data.name,
+        description: data.message || '',
       }),
     });
 
