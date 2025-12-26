@@ -238,9 +238,9 @@ export default function Header() {
                 </svg>
               </a>
               {/* Max */}
-              <a href="https://max.ru/79384222111" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full flex items-center justify-center hover:scale-110 transition-transform overflow-hidden" title="Max" style={{ background: 'linear-gradient(135deg, #00c6ff 0%, #7c3aed 50%, #db2777 100%)' }}>
+              <a href="https://max.ru/79384222111" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full flex items-center justify-center hover:scale-110 transition-transform overflow-hidden" title="Max" style={{ background: 'linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #a855f7 100%)' }}>
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white">
-                  <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.38 5.07L2 22l4.93-1.38C8.42 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 3.5c2.49 0 4.5 2.01 4.5 4.5s-2.01 4.5-4.5 4.5-4.5-2.01-4.5-4.5 2.01-4.5 4.5-4.5z"/>
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.5 14.5c-2.49 0-4.5-2.01-4.5-4.5s2.01-4.5 4.5-4.5c1.23 0 2.34.5 3.15 1.3l-1.27 1.27C11.86 9.54 11.21 9.25 10.5 9.25c-1.52 0-2.75 1.23-2.75 2.75s1.23 2.75 2.75 2.75c1.5 0 2.55-1.08 2.7-2.5H10.5v-1.75h4.5c.04.26.07.52.07.8 0 2.65-1.77 4.2-4.57 4.2z"/>
                 </svg>
               </a>
             </div>
@@ -255,14 +255,6 @@ export default function Header() {
 
             {/* Right icons */}
             <div className="hidden sm:flex items-center gap-1 ml-2">
-              {/* Compare / Favorites */}
-              <Link href="/compare" className="flex flex-col items-center justify-center w-12 h-12 hover:text-[#62bb46] transition-colors relative group">
-                <svg className="w-6 h-6 text-gray-500 group-hover:text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <span className="absolute top-1 right-1 bg-[#62bb46] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">0</span>
-              </Link>
-
               {/* Wishlist */}
               <Link href="/wishlist" className="flex flex-col items-center justify-center w-12 h-12 hover:text-[#62bb46] transition-colors relative group">
                 <svg className="w-6 h-6 text-gray-500 group-hover:text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">

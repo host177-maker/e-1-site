@@ -79,7 +79,7 @@ export default function Footer() {
               </a>
               <a href="https://max.ru/79384222111" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#4d4d4d] rounded flex items-center justify-center text-[#d1d5db] hover:bg-[#62bb46] hover:text-white transition-colors" title="Max">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.38 5.07L2 22l4.93-1.38C8.42 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 4c3.31 0 6 2.69 6 6 0 .93-.21 1.8-.59 2.58l-.82-2.28c-.15-.4-.52-.67-.95-.67-.43 0-.8.27-.95.67L12 19l-2.69-6.7c-.15-.4-.52-.67-.95-.67-.43 0-.8.27-.95.67l-.82 2.28C6.21 13.8 6 12.93 6 12c0-3.31 2.69-6 6-6z"/>
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.5 14.5c-2.49 0-4.5-2.01-4.5-4.5s2.01-4.5 4.5-4.5c1.23 0 2.34.5 3.15 1.3l-1.27 1.27C11.86 9.54 11.21 9.25 10.5 9.25c-1.52 0-2.75 1.23-2.75 2.75s1.23 2.75 2.75 2.75c1.5 0 2.55-1.08 2.7-2.5H10.5v-1.75h4.5c.04.26.07.52.07.8 0 2.65-1.77 4.2-4.57 4.2z"/>
                 </svg>
               </a>
               <a href="https://t.me/+79384222111" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#4d4d4d] rounded flex items-center justify-center text-[#d1d5db] hover:bg-[#62bb46] hover:text-white transition-colors" title="Telegram">
