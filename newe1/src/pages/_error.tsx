@@ -1,4 +1,5 @@
 import { NextPageContext } from 'next';
+import Link from 'next/link';
 
 interface ErrorProps {
   statusCode?: number;
@@ -25,7 +26,7 @@ function Error({ statusCode }: ErrorProps) {
             ? 'Внутренняя ошибка сервера'
             : 'Произошла ошибка'}
         </p>
-        <a
+        <Link
           href="/"
           style={{
             display: 'inline-block',
@@ -38,7 +39,7 @@ function Error({ statusCode }: ErrorProps) {
           }}
         >
           На главную
-        </a>
+        </Link>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Script from 'next/script';
+import { useCity } from '@/context/CityContext';
 
 interface Salon {
   id: number;
@@ -30,6 +31,7 @@ interface RegionData {
 }
 
 export default function StoresPage() {
+  const { city: headerCity } = useCity();
   const [allSalons, setAllSalons] = useState<Salon[]>([]); // All salons for map
   const [regions, setRegions] = useState<RegionData[]>([]);
   const [cities, setCities] = useState<CityData[]>([]);
@@ -39,6 +41,7 @@ export default function StoresPage() {
   const [loading, setLoading] = useState(true);
   const [citiesLoading, setCitiesLoading] = useState(false);
   const [mapReady, setMapReady] = useState(false);
+  const [initialCityApplied, setInitialCityApplied] = useState(false);
 
   const mapInstanceRef = useRef<any>(null);
   const clustererRef = useRef<any>(null);
@@ -76,6 +79,32 @@ export default function StoresPage() {
       })
       .catch(console.error);
   }, []);
+
+  // Apply city from header context when cities data is loaded
+  useEffect(() => {
+    if (!initialCityApplied && cities.length > 0 && headerCity?.name) {
+      // Find the city in the cities list
+      const matchedCity = cities.find(c =>
+        c.city.toLowerCase() === headerCity.name.toLowerCase()
+      );
+
+      if (matchedCity) {
+        setSelectedCity(matchedCity.city);
+        if (matchedCity.region) {
+          setSelectedRegion(matchedCity.region);
+        }
+      } else if (headerCity.region) {
+        // If city not found but region is available, set region only
+        const matchedRegion = cities.find(c =>
+          c.region?.toLowerCase() === headerCity.region?.toLowerCase()
+        );
+        if (matchedRegion) {
+          setSelectedRegion(matchedRegion.region);
+        }
+      }
+      setInitialCityApplied(true);
+    }
+  }, [cities, headerCity, initialCityApplied]);
 
   // Update filtered cities when region changes
   useEffect(() => {
