@@ -11,7 +11,6 @@ export default function InstallmentPage() {
   const [agreed, setAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const formatPhone = (value: string) => {
     const digits = value.replace(/\D/g, '');
@@ -78,71 +77,20 @@ export default function InstallmentPage() {
     }
   };
 
-  const faqItems = [
-    {
-      question: 'Это кредит или рассрочка?',
-      answer: 'Это рассрочка — вы платите ровно столько, сколько стоит шкаф, без процентов и переплат. Технически оформляется как кредит с погашением процентов за счёт скидки от магазина.',
-    },
-    {
-      question: 'Нужен ли первоначальный взнос?',
-      answer: 'Нет, первоначальный взнос не требуется. Вы начинаете платить только со следующего месяца после оформления.',
-    },
-    {
-      question: 'Какие документы нужны?',
-      answer: 'Только паспорт гражданина РФ. Решение принимается онлайн за 15 минут.',
-    },
-    {
-      question: 'Можно ли погасить досрочно?',
-      answer: 'Да, вы можете погасить рассрочку досрочно в любой момент без штрафов и комиссий.',
-    },
-    {
-      question: 'Что будет, если отказаться?',
-      answer: 'Ничего страшного. Если банк не одобрит заявку или вы передумаете, никаких обязательств не возникает.',
-    },
-  ];
-
   return (
     <div className="bg-white">
       {/* Hero section */}
-      <div className="bg-[#f8f9fa] py-12 md:py-16">
-        <div className="container-custom">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#3d4543] mb-2">
-                Шкаф сейчас — оплата потом.
-              </h1>
-              <p className="text-2xl md:text-3xl font-bold text-[#62bb46] mb-4">
-                Рассрочка 0% до 6 месяцев
-              </p>
-              <p className="text-gray-600 mb-6">
-                Без переплат • Без скрытых условий • Оформление за 15 минут
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <a
-                  href="#form"
-                  className="inline-flex items-center px-6 py-3 bg-[#62bb46] text-white font-bold rounded-lg hover:bg-[#55a83d] transition-colors"
-                >
-                  Рассчитать шкаф в рассрочку
-                </a>
-                <a
-                  href="#how-it-works"
-                  className="inline-flex items-center px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:border-[#62bb46] hover:text-[#62bb46] transition-colors"
-                >
-                  Узнать условия
-                </a>
-              </div>
-              <p className="text-sm text-gray-500 mt-4">Решение банка — онлайн</p>
-            </div>
-            <div className="hidden lg:block">
-              <div className="relative">
-                <div className="w-full h-[350px] bg-gradient-to-br from-[#e8f5e3] to-[#d4edda] rounded-2xl flex items-center justify-center">
-                  <svg className="w-48 h-48 text-[#62bb46]/30" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div className="bg-[#f8f9fa] py-10">
+        <div className="container-custom text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-[#3d4543] mb-2">
+            Шкаф сейчас — оплата потом.
+          </h1>
+          <p className="text-2xl md:text-3xl font-bold text-[#62bb46] mb-3">
+            Рассрочка 0% до 6 месяцев
+          </p>
+          <p className="text-gray-600">
+            Без переплат • Без скрытых условий • Оформление за 15 минут
+          </p>
         </div>
       </div>
 
@@ -202,7 +150,7 @@ export default function InstallmentPage() {
       </div>
 
       {/* How it works section */}
-      <div id="how-it-works" className="bg-[#f8f9fa] py-12">
+      <div className="bg-[#f8f9fa] py-12">
         <div className="container-custom">
           <h2 className="text-2xl md:text-3xl font-bold text-[#3d4543] mb-10 text-center">
             Как оформить рассрочку?
@@ -264,95 +212,10 @@ export default function InstallmentPage() {
         </div>
       </div>
 
-      {/* Trust & FAQ section */}
-      <div className="container-custom py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Trust block */}
-          <div className="bg-[#f8f9fa] rounded-2xl p-8">
-            <h2 className="text-xl md:text-2xl font-bold text-[#3d4543] mb-6">
-              Нам доверяют покупку в рассрочку
-            </h2>
-            <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-[#62bb46] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span className="text-gray-700">Работаем с крупными банками</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-[#62bb46] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span className="text-gray-700">Более 10 000 оформленных рассрочек</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-[#62bb46] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span className="text-gray-700">Рейтинг 4.8 на основе отзывов</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <svg className="w-5 h-5 text-[#62bb46] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                <span className="text-gray-700">Поддержка менеджера на всех этапах</span>
-              </li>
-            </ul>
-
-            {/* Bank logos placeholder */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <p className="text-sm text-gray-500 mb-3">Наши партнёры:</p>
-              <div className="flex items-center gap-4 text-gray-400">
-                <span className="text-sm font-medium">Тинькофф</span>
-                <span className="text-sm font-medium">Хоум Кредит</span>
-                <span className="text-sm font-medium">Совкомбанк</span>
-              </div>
-            </div>
-          </div>
-
-          {/* FAQ block */}
-          <div className="bg-white rounded-2xl p-8 border border-gray-100">
-            <h2 className="text-xl md:text-2xl font-bold text-[#3d4543] mb-6">
-              Частые вопросы
-            </h2>
-            <div className="space-y-3">
-              {faqItems.map((item, index) => (
-                <div key={index} className="border-b border-gray-100 last:border-b-0">
-                  <button
-                    onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                    className="w-full flex items-center justify-between py-3 text-left"
-                  >
-                    <span className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-[#62bb46]" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      <span className="text-[#3d4543] font-medium">{item.question}</span>
-                    </span>
-                    <svg
-                      className={`w-5 h-5 text-gray-400 transition-transform ${openFaq === index ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {openFaq === index && (
-                    <div className="pb-4 text-sm text-gray-600 pl-6">
-                      {item.answer}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Form section */}
-      <div id="form" className="bg-[#f8f9fa] py-12">
+      <div id="form" className="py-12">
         <div className="container-custom">
-          <div className="max-w-xl mx-auto bg-white rounded-2xl p-8 shadow-lg">
+          <div className="max-w-xl mx-auto bg-[#f8f9fa] rounded-2xl p-8">
             <h2 className="text-2xl font-bold text-[#3d4543] mb-2 text-center">
               Оформить рассрочку
             </h2>
@@ -376,7 +239,7 @@ export default function InstallmentPage() {
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent outline-none transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent outline-none transition-all bg-white"
                   placeholder="Введите ваше имя"
                   required
                 />
@@ -391,7 +254,7 @@ export default function InstallmentPage() {
                   id="phone"
                   value={formData.phone}
                   onChange={handlePhoneChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent outline-none transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent outline-none transition-all bg-white"
                   placeholder="+7 (___) ___-__-__"
                   required
                 />
@@ -426,7 +289,7 @@ export default function InstallmentPage() {
       </div>
 
       {/* Legal info */}
-      <div className="container-custom py-8">
+      <div className="container-custom pb-8">
         <div className="text-center text-xs text-gray-500 max-w-3xl mx-auto">
           <p>
             *«Онлайн-рассрочка без переплаты» представляет из себя кредитный продукт МКК_0-0-6_СКС_Экспресс
