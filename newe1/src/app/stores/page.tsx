@@ -46,6 +46,7 @@ export default function StoresPage() {
   const clustererRef = useRef<any>(null);
   const markersInitialized = useRef(false);
   const lastHeaderCityRef = useRef<string>('');
+  const mapInitStarted = useRef(false);
 
   // Filter salons for list display (based on selected city/region)
   const filteredSalons = allSalons.filter(salon => {
@@ -283,10 +284,16 @@ export default function StoresPage() {
   // Initialize map
   const initMap = useCallback(() => {
     if (typeof window === 'undefined' || !(window as any).ymaps) return;
-    if (mapInstanceRef.current) return; // Already initialized
+    if (mapInstanceRef.current || mapInitStarted.current) return; // Already initialized or in progress
+
+    // Set flag synchronously before async ymaps.ready to prevent double init
+    mapInitStarted.current = true;
 
     const ymaps = (window as any).ymaps;
     ymaps.ready(() => {
+      // Double check in case of race condition
+      if (mapInstanceRef.current) return;
+
       const map = new ymaps.Map('stores-map', {
         center: [82.920430, 55.030199], // Центр России (longlat)
         zoom: 4,
