@@ -24,7 +24,7 @@ interface CityData {
 }
 
 export default function StoresPage() {
-  const [salons, setSalons] = useState<Salon[]>([]);
+  const [allSalons, setAllSalons] = useState<Salon[]>([]); // All salons for map
   const [cities, setCities] = useState<CityData[]>([]);
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
@@ -33,6 +33,7 @@ export default function StoresPage() {
 
   const mapInstanceRef = useRef<any>(null);
   const clustererRef = useRef<any>(null);
+  const markersInitialized = useRef(false);
 
   // Get unique regions from cities
   const regions = [...new Set(cities.map(c => c.region))].sort();
@@ -41,6 +42,17 @@ export default function StoresPage() {
   const filteredCities = selectedRegion
     ? cities.filter(c => c.region === selectedRegion)
     : cities;
+
+  // Filter salons for list display (based on selected city/region)
+  const filteredSalons = allSalons.filter(salon => {
+    if (selectedCity) {
+      return salon.city === selectedCity;
+    }
+    if (selectedRegion) {
+      return salon.region === selectedRegion;
+    }
+    return true;
+  });
 
   // Fetch cities on mount
   useEffect(() => {
@@ -54,18 +66,14 @@ export default function StoresPage() {
       .catch(console.error);
   }, []);
 
-  // Fetch salons when city or region changes
+  // Fetch ALL salons once on mount (for map)
   useEffect(() => {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (selectedCity) params.set('city', selectedCity);
-    if (selectedRegion && !selectedCity) params.set('region', selectedRegion);
-
-    fetch(`/api/salons?${params.toString()}`)
+    fetch('/api/salons')
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          setSalons(data.data);
+          setAllSalons(data.data);
         }
         setLoading(false);
       })
@@ -73,23 +81,18 @@ export default function StoresPage() {
         console.error(err);
         setLoading(false);
       });
-  }, [selectedCity, selectedRegion]);
+  }, []);
 
-  // Update map markers when salons change
-  const updateMapMarkers = useCallback(() => {
+  // Create map markers once when all salons are loaded
+  const initMapMarkers = useCallback(() => {
     const map = mapInstanceRef.current;
     if (!map || typeof window === 'undefined' || !(window as any).ymaps) return;
+    if (markersInitialized.current) return;
 
     const ymaps = (window as any).ymaps;
 
-    // Remove old clusterer
-    if (clustererRef.current) {
-      map.geoObjects.remove(clustererRef.current);
-      clustererRef.current = null;
-    }
-
-    // Create placemarks for salons with coordinates
-    const placemarks = salons
+    // Create placemarks for all salons with coordinates
+    const placemarks = allSalons
       .filter(s => s.latitude && s.longitude)
       .map(salon => {
         return new ymaps.Placemark(
@@ -99,6 +102,7 @@ export default function StoresPage() {
             balloonContentHeader: salon.name,
             balloonContentBody: `
               <div style="padding: 10px 0;">
+                <p style="margin: 0 0 8px;"><strong>Город:</strong> ${salon.city}</p>
                 <p style="margin: 0 0 8px;"><strong>Адрес:</strong> ${salon.address || 'Не указан'}</p>
                 <p style="margin: 0 0 8px;"><strong>Телефон:</strong> ${salon.phone || 'Не указан'}</p>
                 <p style="margin: 0 0 8px;"><strong>Email:</strong> ${salon.email || 'Не указан'}</p>
@@ -127,38 +131,81 @@ export default function StoresPage() {
     newClusterer.add(placemarks);
     map.geoObjects.add(newClusterer);
     clustererRef.current = newClusterer;
+    markersInitialized.current = true;
 
-    // Adjust map bounds to show all markers with reasonable zoom
+    // Set initial bounds to show all markers
     const bounds = newClusterer.getBounds();
     if (bounds) {
       map.setBounds(bounds, {
         checkZoomRange: true,
         zoomMargin: 50,
-      }).then(() => {
-        // Limit max zoom to 14 for city view (not too close)
-        const currentZoom = map.getZoom();
-        if (currentZoom > 14) {
-          map.setZoom(14);
-        }
       });
     }
-  }, [salons]);
+  }, [allSalons]);
 
-  // Update markers when salons change and map is ready
+  // Initialize markers when map is ready and salons are loaded
   useEffect(() => {
-    if (mapReady && salons.length > 0) {
-      updateMapMarkers();
-    } else if (mapReady && salons.length === 0 && clustererRef.current) {
-      // Clear markers if no salons
-      const map = mapInstanceRef.current;
-      if (map) {
-        map.geoObjects.remove(clustererRef.current);
-        clustererRef.current = null;
-        // Reset to default view
-        map.setCenter([82.920430, 55.030199], 4);
+    if (mapReady && allSalons.length > 0 && !markersInitialized.current) {
+      initMapMarkers();
+    }
+  }, [mapReady, allSalons, initMapMarkers]);
+
+  // Center map on selected city/region (without changing markers)
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !mapReady || typeof window === 'undefined' || !(window as any).ymaps) return;
+
+    const ymaps = (window as any).ymaps;
+
+    // Get salons for the selected filter
+    const targetSalons = allSalons.filter(salon => {
+      if (selectedCity) {
+        return salon.city === selectedCity;
+      }
+      if (selectedRegion) {
+        return salon.region === selectedRegion;
+      }
+      return false;
+    });
+
+    if (targetSalons.length === 0) {
+      // No filter or no salons found - show all Russia
+      if (!selectedCity && !selectedRegion) {
+        map.setCenter([82.920430, 55.030199], 4, { duration: 300 });
+      }
+      return;
+    }
+
+    // Calculate bounds for selected salons
+    const coords = targetSalons
+      .filter(s => s.latitude && s.longitude)
+      .map(s => [s.longitude!, s.latitude!]);
+
+    if (coords.length === 0) return;
+
+    if (coords.length === 1) {
+      // Single salon - center on it with reasonable zoom
+      map.setCenter(coords[0], 12, { duration: 300 });
+    } else {
+      // Multiple salons - fit bounds
+      const tempClusterer = new ymaps.Clusterer();
+      coords.forEach(coord => {
+        tempClusterer.add(new ymaps.Placemark(coord));
+      });
+      const bounds = tempClusterer.getBounds();
+      if (bounds) {
+        map.setBounds(bounds, {
+          checkZoomRange: true,
+          zoomMargin: 50,
+        }).then(() => {
+          const currentZoom = map.getZoom();
+          if (currentZoom > 14) {
+            map.setZoom(14);
+          }
+        });
       }
     }
-  }, [mapReady, salons, updateMapMarkers]);
+  }, [selectedCity, selectedRegion, allSalons, mapReady]);
 
   // Initialize map
   const initMap = useCallback(() => {
@@ -207,8 +254,8 @@ export default function StoresPage() {
     setSelectedRegion('');
   };
 
-  // Group salons by region for display
-  const salonsByRegion = salons.reduce((acc, salon) => {
+  // Group filtered salons by region for display
+  const salonsByRegion = filteredSalons.reduce((acc, salon) => {
     const region = salon.region || 'Без региона';
     if (!acc[region]) {
       acc[region] = [];
@@ -309,9 +356,10 @@ export default function StoresPage() {
                 'Загрузка...'
               ) : (
                 <>
-                  Найдено салонов: <strong>{salons.length}</strong>
+                  Найдено салонов: <strong>{filteredSalons.length}</strong>
                   {selectedCity && ` в городе ${selectedCity}`}
                   {selectedRegion && !selectedCity && ` в регионе ${selectedRegion}`}
+                  {!selectedCity && !selectedRegion && ` (всего ${allSalons.length})`}
                 </>
               )}
             </p>
@@ -404,7 +452,7 @@ export default function StoresPage() {
             ))}
           </div>
 
-          {!loading && salons.length === 0 && (
+          {!loading && filteredSalons.length === 0 && (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">
                 Салоны не найдены
