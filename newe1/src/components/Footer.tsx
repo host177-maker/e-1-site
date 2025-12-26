@@ -1,11 +1,19 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import DirectorContactModal from './DirectorContactModal';
 
 export default function Footer() {
+  const [isDirectorModalOpen, setIsDirectorModalOpen] = useState(false);
+
   return (
+    <>
+    <DirectorContactModal isOpen={isDirectorModalOpen} onClose={() => setIsDirectorModalOpen(false)} />
     <footer className="bg-[#3d3d3d] text-white mt-8 pt-16">
       {/* Main footer content */}
       <div className="container-custom pb-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-6">
           {/* Column 1 - ДОСТАВКА */}
           <div>
             <h4 className="font-medium text-[#9ca3af] text-sm mb-4 uppercase tracking-wide">Доставка</h4>
@@ -13,35 +21,11 @@ export default function Footer() {
               <li><Link href="/service/delivery" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Доставка и сборка</Link></li>
               <li><Link href="/service/order-path" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Путь заказа</Link></li>
               <li><Link href="/service/production-time" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Сроки изготовления</Link></li>
+              <li><Link href="/service/instructions" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Инструкции к мебели</Link></li>
             </ul>
           </div>
 
-          {/* Column 2 - ПОМОЩЬ В ВЫБОРЕ */}
-          <div>
-            <h4 className="font-medium text-[#9ca3af] text-sm mb-4 uppercase tracking-wide">Помощь в выборе</h4>
-            <ul className="space-y-2">
-              <li><Link href="/service/about-wardrobes" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">О шкафах-купе</Link></li>
-              <li><Link href="/service/photo-print" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Каталог фотопечати</Link></li>
-              <li><Link href="/service/faq" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Вопросы и ответы</Link></li>
-              <li><Link href="/service/tips" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Советы от Е1</Link></li>
-              <li><Link href="/service/portfolio" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Наши работы</Link></li>
-              <li><Link href="/service/brochure" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Брошюра</Link></li>
-            </ul>
-          </div>
-
-          {/* Column 3 - О КОМПАНИИ */}
-          <div>
-            <h4 className="font-medium text-[#9ca3af] text-sm mb-4 uppercase tracking-wide">О компании</h4>
-            <ul className="space-y-2">
-              <li><Link href="/about/production" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Производство</Link></li>
-              <li><Link href="/about/quality" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">О качестве сервиса</Link></li>
-              <li><Link href="/about/careers" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Вакансии</Link></li>
-              <li><Link href="/about/partnership" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Партнерство</Link></li>
-              <li><Link href="/geography" className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors">Работаем в городах</Link></li>
-            </ul>
-          </div>
-
-          {/* Column 4 - ПОКУПКА И ГАРАНТИИ */}
+          {/* Column 2 - ПОКУПКА И ГАРАНТИИ */}
           <div>
             <h4 className="font-medium text-[#9ca3af] text-sm mb-4 uppercase tracking-wide">Покупка и гарантии</h4>
             <ul className="space-y-2">
@@ -63,12 +47,12 @@ export default function Footer() {
               Заказать звонок
             </button>
 
-            <Link
-              href="/contact-director"
-              className="block text-center bg-[#62bb46] text-white font-medium px-5 py-2.5 rounded hover:bg-[#55a83d] transition-colors text-sm mb-5"
+            <button
+              onClick={() => setIsDirectorModalOpen(true)}
+              className="block w-full text-center bg-[#62bb46] text-white font-medium px-5 py-2.5 rounded hover:bg-[#55a83d] transition-colors text-sm mb-5 cursor-pointer"
             >
               Связь с директором
-            </Link>
+            </button>
 
             {/* Messengers */}
             <div className="flex gap-2 mb-3">
@@ -79,7 +63,7 @@ export default function Footer() {
               </a>
               <a href="https://max.ru/79384222111" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#4d4d4d] rounded flex items-center justify-center text-[#d1d5db] hover:bg-[#62bb46] hover:text-white transition-colors" title="Max">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.38 5.07L2 22l4.93-1.38C8.42 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 4c3.31 0 6 2.69 6 6 0 .93-.21 1.8-.59 2.58l-.82-2.28c-.15-.4-.52-.67-.95-.67-.43 0-.8.27-.95.67L12 19l-2.69-6.7c-.15-.4-.52-.67-.95-.67-.43 0-.8.27-.95.67l-.82 2.28C6.21 13.8 6 12.93 6 12c0-3.31 2.69-6 6-6z"/>
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.5 14.5c-2.49 0-4.5-2.01-4.5-4.5s2.01-4.5 4.5-4.5c1.23 0 2.34.5 3.15 1.3l-1.27 1.27C11.86 9.54 11.21 9.25 10.5 9.25c-1.52 0-2.75 1.23-2.75 2.75s1.23 2.75 2.75 2.75c1.5 0 2.55-1.08 2.7-2.5H10.5v-1.75h4.5c.04.26.07.52.07.8 0 2.65-1.77 4.2-4.57 4.2z"/>
                 </svg>
               </a>
               <a href="https://t.me/+79384222111" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-[#4d4d4d] rounded flex items-center justify-center text-[#d1d5db] hover:bg-[#62bb46] hover:text-white transition-colors" title="Telegram">
@@ -145,5 +129,6 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+    </>
   );
 }
