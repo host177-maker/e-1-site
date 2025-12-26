@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Custom500() {
   return (
     <div style={{
@@ -15,7 +17,7 @@ export default function Custom500() {
         <p style={{ fontSize: '1.25rem', color: '#666', margin: '1rem 0' }}>
           Внутренняя ошибка сервера
         </p>
-        <a
+        <Link
           href="/"
           style={{
             display: 'inline-block',
@@ -28,7 +30,7 @@ export default function Custom500() {
           }}
         >
           На главную
-        </a>
+        </Link>
       </div>
     </div>
   );

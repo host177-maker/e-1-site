@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
-  title: "E-1.RU | Шкафы и гардеробные",
+  title: "Е1 | Шкафы и гардеробные",
   description: "Шкафы-купе и гардеробные системы на заказ в Москве. Производство и продажа качественной мебели с доставкой и установкой.",
   keywords: "шкафы-купе, гардеробные, встроенные шкафы, мебель на заказ, Москва",
 };
@@ -17,11 +18,13 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className="antialiased flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-grow">
-          {children}
-        </main>
-        <Footer />
+        <Providers>
+          <Header />
+          <main className="flex-grow">
+            {children}
+          </main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

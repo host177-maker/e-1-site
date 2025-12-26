@@ -3,6 +3,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Script from 'next/script';
+import { useCity } from '@/context/CityContext';
 
 interface Salon {
   id: number;
@@ -23,25 +24,28 @@ interface CityData {
   count: number;
 }
 
+interface RegionData {
+  id: number;
+  name: string;
+  salonCount: number;
+}
+
 export default function StoresPage() {
+  const { city: headerCity } = useCity();
   const [allSalons, setAllSalons] = useState<Salon[]>([]); // All salons for map
+  const [regions, setRegions] = useState<RegionData[]>([]);
   const [cities, setCities] = useState<CityData[]>([]);
+  const [filteredCities, setFilteredCities] = useState<CityData[]>([]);
   const [selectedCity, setSelectedCity] = useState<string>('');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [citiesLoading, setCitiesLoading] = useState(false);
   const [mapReady, setMapReady] = useState(false);
+  const [initialCityApplied, setInitialCityApplied] = useState(false);
 
   const mapInstanceRef = useRef<any>(null);
   const clustererRef = useRef<any>(null);
   const markersInitialized = useRef(false);
-
-  // Get unique regions from cities
-  const regions = [...new Set(cities.map(c => c.region))].sort();
-
-  // Get cities for selected region
-  const filteredCities = selectedRegion
-    ? cities.filter(c => c.region === selectedRegion)
-    : cities;
 
   // Filter salons for list display (based on selected city/region)
   const filteredSalons = allSalons.filter(salon => {
@@ -54,17 +58,66 @@ export default function StoresPage() {
     return true;
   });
 
-  // Fetch cities on mount
+  // Fetch regions on mount
   useEffect(() => {
     fetch('/api/salons/cities')
       .then(res => res.json())
       .then(data => {
         if (data.success) {
           setCities(data.data.cities);
+          setFilteredCities(data.data.cities);
+          // Extract unique regions from cities
+          const uniqueRegions = [...new Set(data.data.cities.map((c: CityData) => c.region))]
+            .filter(Boolean)
+            .sort() as string[];
+          setRegions(uniqueRegions.map((name, idx) => ({
+            id: idx + 1,
+            name,
+            salonCount: data.data.cities.filter((c: CityData) => c.region === name).reduce((acc: number, c: CityData) => acc + c.count, 0),
+          })));
         }
       })
       .catch(console.error);
   }, []);
+
+  // Apply city from header context when cities data is loaded
+  useEffect(() => {
+    if (!initialCityApplied && cities.length > 0 && headerCity?.name) {
+      // Find the city in the cities list
+      const matchedCity = cities.find(c =>
+        c.city.toLowerCase() === headerCity.name.toLowerCase()
+      );
+
+      if (matchedCity) {
+        setSelectedCity(matchedCity.city);
+        if (matchedCity.region) {
+          setSelectedRegion(matchedCity.region);
+        }
+      } else if (headerCity.region) {
+        // If city not found but region is available, set region only
+        const matchedRegion = cities.find(c =>
+          c.region?.toLowerCase() === headerCity.region?.toLowerCase()
+        );
+        if (matchedRegion) {
+          setSelectedRegion(matchedRegion.region);
+        }
+      }
+      setInitialCityApplied(true);
+    }
+  }, [cities, headerCity, initialCityApplied]);
+
+  // Update filtered cities when region changes
+  useEffect(() => {
+    if (selectedRegion) {
+      setCitiesLoading(true);
+      // Filter cities by selected region
+      const regionCities = cities.filter(c => c.region === selectedRegion);
+      setFilteredCities(regionCities);
+      setCitiesLoading(false);
+    } else {
+      setFilteredCities(cities);
+    }
+  }, [selectedRegion, cities]);
 
   // Fetch ALL salons once on mount (for map)
   useEffect(() => {
@@ -298,7 +351,9 @@ export default function StoresPage() {
               >
                 <option value="">— Выберите регион —</option>
                 {regions.map(region => (
-                  <option key={region} value={region}>{region}</option>
+                  <option key={region.name} value={region.name}>
+                    {region.name} ({region.salonCount})
+                  </option>
                 ))}
               </select>
             </div>
@@ -309,8 +364,11 @@ export default function StoresPage() {
                 value={selectedCity}
                 onChange={(e) => handleCityChange(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7cb342] focus:border-transparent"
+                disabled={citiesLoading}
               >
-                <option value="">— Выберите город —</option>
+                <option value="">
+                  {citiesLoading ? 'Загрузка...' : selectedRegion ? '— Выберите город —' : '— Сначала выберите регион —'}
+                </option>
                 {filteredCities.map(city => (
                   <option key={city.city} value={city.city}>
                     {city.city} ({city.count})
@@ -328,17 +386,6 @@ export default function StoresPage() {
                 Сбросить фильтры
               </button>
             )}
-
-            {/* Contact info */}
-            <div className="ml-auto text-right hidden md:block">
-              <p className="text-sm text-gray-500">Справочная служба</p>
-              <p className="text-lg font-bold text-[#3d4543]">8 (861) 290-85-10</p>
-              <p className="text-sm text-gray-500">
-                <a href="mailto:best@e-1.ru" className="text-[#7cb342] hover:underline">best@e-1.ru</a>
-                {' / '}
-                <a href="mailto:service@e-1.ru" className="text-[#7cb342] hover:underline">service@e-1.ru</a>
-              </p>
-            </div>
           </div>
 
           {/* Map */}
@@ -365,7 +412,7 @@ export default function StoresPage() {
             </p>
           </div>
 
-          {/* Salons list grouped by region */}
+          {/* Salons list grouped by region - tile layout */}
           <div className="space-y-8">
             {Object.entries(salonsByRegion).map(([region, regionSalons]) => (
               <div key={region}>
@@ -378,52 +425,55 @@ export default function StoresPage() {
                   )}
                 </h2>
 
-                <div className="divide-y divide-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {regionSalons.map(salon => (
                     <div
                       key={salon.id}
-                      className="py-3 flex flex-col md:flex-row md:items-center gap-2 md:gap-6"
+                      className="bg-[#f5f5f5] rounded-lg p-4 flex flex-col gap-2"
                     >
-                      <div className="flex-1">
-                        <span className="font-medium text-[#3d4543]">{salon.name}</span>
-                        {salon.address && (
-                          <span className="text-gray-500 ml-2">{salon.address}</span>
-                        )}
+                      <div className="font-medium text-[#3d4543] text-lg">
+                        {salon.name}
                       </div>
 
-                      <div className="flex items-center gap-4 text-sm">
+                      {salon.address && (
+                        <div className="text-gray-600 text-sm">
+                          {salon.address}
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-1 mt-2 text-sm">
                         {salon.phone && (
                           <a
                             href={`tel:${salon.phone.replace(/[^\d+]/g, '')}`}
-                            className="text-[#7cb342] hover:underline whitespace-nowrap"
+                            className="text-[#7cb342] hover:underline"
                           >
                             {salon.phone}
                           </a>
                         )}
 
                         {salon.working_hours && (
-                          <span className="text-gray-500 whitespace-nowrap">
+                          <span className="text-gray-500">
                             {salon.working_hours}
                           </span>
                         )}
-
-                        {salon.latitude && salon.longitude && (
-                          <button
-                            onClick={() => {
-                              const map = mapInstanceRef.current;
-                              if (map) {
-                                map.setCenter([salon.longitude, salon.latitude], 15, {
-                                  duration: 500,
-                                });
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                              }
-                            }}
-                            className="text-[#7cb342] hover:underline whitespace-nowrap"
-                          >
-                            на карте
-                          </button>
-                        )}
                       </div>
+
+                      {salon.latitude && salon.longitude && (
+                        <button
+                          onClick={() => {
+                            const map = mapInstanceRef.current;
+                            if (map) {
+                              map.setCenter([salon.longitude, salon.latitude], 15, {
+                                duration: 500,
+                              });
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                          }}
+                          className="mt-2 text-[#7cb342] hover:underline text-sm text-left"
+                        >
+                          показать на карте
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>

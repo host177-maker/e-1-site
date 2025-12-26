@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useCity } from '@/context/CityContext';
+import CitySelector from './CitySelector';
 
 // E1 Logo SVG component
 function Logo() {
@@ -45,6 +47,8 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileServiceOpen, setMobileServiceOpen] = useState(false);
+  const [isCitySelectorOpen, setIsCitySelectorOpen] = useState(false);
+  const { city, isLoading } = useCity();
 
   return (
     <header className="sticky top-0 z-50">
@@ -55,12 +59,15 @@ export default function Header() {
             {/* Left side badges */}
             <div className="hidden lg:flex items-center gap-3 xl:gap-5">
               {/* City selector */}
-              <button className="flex items-center gap-1.5 hover:text-[#62bb46] transition-colors px-2 py-1 rounded hover:bg-white/10">
+              <button
+                onClick={() => setIsCitySelectorOpen(true)}
+                className="flex items-center gap-1.5 hover:text-[#62bb46] transition-colors px-2 py-1 rounded hover:bg-white/10"
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>Город: <strong>Москва</strong></span>
+                <span>Город: <strong>{isLoading ? '...' : city.name}</strong></span>
                 <span className="text-[#62bb46] underline ml-1">сменить</span>
               </button>
 
@@ -398,6 +405,12 @@ export default function Header() {
           </div>
         </>
       )}
+
+      {/* City Selector Modal */}
+      <CitySelector
+        isOpen={isCitySelectorOpen}
+        onClose={() => setIsCitySelectorOpen(false)}
+      />
     </header>
   );
 }
