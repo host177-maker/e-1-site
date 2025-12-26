@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 
 export default function InstallmentPage() {
   const [formData, setFormData] = useState({
@@ -12,6 +11,7 @@ export default function InstallmentPage() {
   const [agreed, setAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const formatPhone = (value: string) => {
     const digits = value.replace(/\D/g, '');
@@ -78,140 +78,286 @@ export default function InstallmentPage() {
     }
   };
 
-  const handleReset = () => {
-    setFormData({ name: '', phone: '' });
-    setAgreed(false);
-    setSubmitResult(null);
-  };
+  const faqItems = [
+    {
+      question: 'Это кредит или рассрочка?',
+      answer: 'Это рассрочка — вы платите ровно столько, сколько стоит шкаф, без процентов и переплат. Технически оформляется как кредит с погашением процентов за счёт скидки от магазина.',
+    },
+    {
+      question: 'Нужен ли первоначальный взнос?',
+      answer: 'Нет, первоначальный взнос не требуется. Вы начинаете платить только со следующего месяца после оформления.',
+    },
+    {
+      question: 'Какие документы нужны?',
+      answer: 'Только паспорт гражданина РФ. Решение принимается онлайн за 15 минут.',
+    },
+    {
+      question: 'Можно ли погасить досрочно?',
+      answer: 'Да, вы можете погасить рассрочку досрочно в любой момент без штрафов и комиссий.',
+    },
+    {
+      question: 'Что будет, если отказаться?',
+      answer: 'Ничего страшного. Если банк не одобрит заявку или вы передумаете, никаких обязательств не возникает.',
+    },
+  ];
 
   return (
     <div className="bg-white">
       {/* Hero section */}
-      <div className="bg-gradient-to-r from-[#62bb46] to-[#4a9c35] py-12">
+      <div className="bg-[#f8f9fa] py-12 md:py-16">
         <div className="container-custom">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-            Рассрочка 0-0-6
-          </h1>
-          <p className="text-white/90 text-lg">
-            На любой шкаф от компании «Е1» можно оформить онлайн-рассрочку
-          </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <div>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#3d4543] mb-2">
+                Шкаф сейчас — оплата потом.
+              </h1>
+              <p className="text-2xl md:text-3xl font-bold text-[#62bb46] mb-4">
+                Рассрочка 0% до 6 месяцев
+              </p>
+              <p className="text-gray-600 mb-6">
+                Без переплат • Без скрытых условий • Оформление за 15 минут
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href="#form"
+                  className="inline-flex items-center px-6 py-3 bg-[#62bb46] text-white font-bold rounded-lg hover:bg-[#55a83d] transition-colors"
+                >
+                  Рассчитать шкаф в рассрочку
+                </a>
+                <a
+                  href="#how-it-works"
+                  className="inline-flex items-center px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:border-[#62bb46] hover:text-[#62bb46] transition-colors"
+                >
+                  Узнать условия
+                </a>
+              </div>
+              <p className="text-sm text-gray-500 mt-4">Решение банка — онлайн</p>
+            </div>
+            <div className="hidden lg:block">
+              <div className="relative">
+                <div className="w-full h-[350px] bg-gradient-to-br from-[#e8f5e3] to-[#d4edda] rounded-2xl flex items-center justify-center">
+                  <svg className="w-48 h-48 text-[#62bb46]/30" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Benefits section */}
-      <div className="container-custom py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+      {/* Benefits row */}
+      <div className="container-custom py-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* Benefit 1 */}
-          <div className="text-center p-6 rounded-xl bg-[#f9fafb] hover:shadow-lg transition-shadow">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-[#62bb46] to-[#4a9c35] rounded-full flex items-center justify-center">
-              <span className="text-white text-3xl font-bold">6</span>
+          <div className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="flex-shrink-0 w-12 h-12 bg-[#f0fdf4] rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
-            <h3 className="text-xl font-bold text-[#3d4543] mb-2">Срок рассрочки — 6 мес</h3>
-            <p className="text-gray-600 text-sm">Комфортный срок для погашения без спешки</p>
+            <div>
+              <div className="font-bold text-[#3d4543]">До 6 месяцев</div>
+              <div className="text-sm text-gray-500">Платите комфортно, без спешки.</div>
+            </div>
           </div>
 
           {/* Benefit 2 */}
-          <div className="text-center p-6 rounded-xl bg-[#f9fafb] hover:shadow-lg transition-shadow">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-[#62bb46] to-[#4a9c35] rounded-full flex items-center justify-center">
-              <span className="text-white text-3xl font-bold">0%</span>
+          <div className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="flex-shrink-0 w-12 h-12 bg-[#f0fdf4] rounded-lg flex items-center justify-center">
+              <span className="text-[#62bb46] font-bold text-lg">0%</span>
             </div>
-            <h3 className="text-xl font-bold text-[#3d4543] mb-2">0% — переплата</h3>
-            <p className="text-gray-600 text-sm">Никаких скрытых комиссий и процентов</p>
+            <div>
+              <div className="font-bold text-[#3d4543]">0% переплаты</div>
+              <div className="text-sm text-gray-500">Никаких процентов и комиссий</div>
+            </div>
           </div>
 
           {/* Benefit 3 */}
-          <div className="text-center p-6 rounded-xl bg-[#f9fafb] hover:shadow-lg transition-shadow">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-[#62bb46] to-[#4a9c35] rounded-full flex items-center justify-center">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="flex-shrink-0 w-12 h-12 bg-[#f0fdf4] rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-[#3d4543] mb-2">Выплаты ежемесячно</h3>
-            <p className="text-gray-600 text-sm">Равными частями каждый месяц</p>
+            <div>
+              <div className="font-bold text-[#3d4543]">Онлайн-оформление</div>
+              <div className="text-sm text-gray-500">Без визита в банк</div>
+            </div>
+          </div>
+
+          {/* Benefit 4 */}
+          <div className="flex items-start gap-3 p-4 rounded-xl border border-gray-100 hover:shadow-md transition-shadow">
+            <div className="flex-shrink-0 w-12 h-12 bg-[#f0fdf4] rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div>
+              <div className="font-bold text-[#3d4543]">15 минут</div>
+              <div className="text-sm text-gray-500">Быстрое решение</div>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* How it works section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-[#3d4543] mb-8">
-              Как оформить рассрочку?
+      {/* How it works section */}
+      <div id="how-it-works" className="bg-[#f8f9fa] py-12">
+        <div className="container-custom">
+          <h2 className="text-2xl md:text-3xl font-bold text-[#3d4543] mb-10 text-center">
+            Как оформить рассрочку?
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Step 1 */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
+              <div className="w-full h-40 bg-gradient-to-br from-[#e8f5e3] to-[#d4edda] rounded-xl mb-4 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute top-3 left-3 w-8 h-8 bg-[#62bb46] rounded-full flex items-center justify-center text-white font-bold">1</div>
+                <svg className="w-20 h-20 text-[#62bb46]/40" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>
+                  <path d="M7 12h2v5H7zm4-3h2v8h-2zm4 5h2v3h-2z"/>
+                </svg>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-6 h-6 bg-[#62bb46] rounded-full flex items-center justify-center text-white text-sm font-bold">1</span>
+                <h3 className="font-bold text-[#3d4543]">Выберите шкаф</h3>
+              </div>
+              <p className="text-sm text-gray-600">
+                Рассчитайте стоимость на сайте или с менеджером
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
+              <div className="w-full h-40 bg-gradient-to-br from-[#e8f5e3] to-[#d4edda] rounded-xl mb-4 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute top-3 left-3 w-8 h-8 bg-[#62bb46] rounded-full flex items-center justify-center text-white font-bold">2</div>
+                <svg className="w-20 h-20 text-[#62bb46]/40" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                </svg>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-6 h-6 bg-[#62bb46] rounded-full flex items-center justify-center text-white text-sm font-bold">2</span>
+                <h3 className="font-bold text-[#3d4543]">Оформите заявку</h3>
+              </div>
+              <p className="text-sm text-gray-600">
+                Онлайн, по телефону или в чате
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow">
+              <div className="w-full h-40 bg-gradient-to-br from-[#e8f5e3] to-[#d4edda] rounded-xl mb-4 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute top-3 left-3 w-8 h-8 bg-[#62bb46] rounded-full flex items-center justify-center text-white font-bold">3</div>
+                <svg className="w-20 h-20 text-[#62bb46]/40" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                </svg>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="w-6 h-6 bg-[#62bb46] rounded-full flex items-center justify-center text-white text-sm font-bold">3</span>
+                <h3 className="font-bold text-[#3d4543]">Получите шкаф</h3>
+              </div>
+              <p className="text-sm text-gray-600">
+                После одобрения — производство и доставка
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Trust & FAQ section */}
+      <div className="container-custom py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Trust block */}
+          <div className="bg-[#f8f9fa] rounded-2xl p-8">
+            <h2 className="text-xl md:text-2xl font-bold text-[#3d4543] mb-6">
+              Нам доверяют покупку в рассрочку
             </h2>
+            <ul className="space-y-4">
+              <li className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-[#62bb46] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-gray-700">Работаем с крупными банками</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-[#62bb46] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-gray-700">Более 10 000 оформленных рассрочек</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-[#62bb46] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-gray-700">Рейтинг 4.8 на основе отзывов</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-[#62bb46] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                <span className="text-gray-700">Поддержка менеджера на всех этапах</span>
+              </li>
+            </ul>
 
-            <div className="space-y-6">
-              {/* Step 1 */}
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-[#62bb46] rounded-full flex items-center justify-center text-white font-bold">
-                  1
-                </div>
-                <div>
-                  <h3 className="font-bold text-[#3d4543] mb-1">Шаг 1</h3>
-                  <p className="text-gray-600 text-sm">
-                    Закажите шкаф обычным путём, нажав «купить» на карточке товара. Вам перезвонит менеджер.
-                    Во время разговора с ним скажите о намерении получить рассрочку.
-                  </p>
-                  <p className="text-gray-600 text-sm mt-2">
-                    Менеджер вышлет ссылку на заполнение заявки на рассрочку. Любым удобным способом — почта, sms, WhatsApp и т.д.
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 2 */}
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-[#62bb46] rounded-full flex items-center justify-center text-white font-bold">
-                  2
-                </div>
-                <div>
-                  <h3 className="font-bold text-[#3d4543] mb-1">Шаг 2</h3>
-                  <p className="text-gray-600 text-sm">
-                    После заполнения данных, отправьте заявку на рассрочку и дождитесь ответа от банка.
-                    Весь процесс займёт не более 15 минут.
-                  </p>
-                </div>
-              </div>
-
-              {/* Step 3 */}
-              <div className="flex gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-[#62bb46] rounded-full flex items-center justify-center text-white font-bold">
-                  3
-                </div>
-                <div>
-                  <h3 className="font-bold text-[#3d4543] mb-1">Шаг 3</h3>
-                  <p className="text-gray-600 text-sm">
-                    После получения одобрения от банка, с Вами свяжется менеджер Е1 и оформит заказ.
-                  </p>
-                </div>
+            {/* Bank logos placeholder */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <p className="text-sm text-gray-500 mb-3">Наши партнёры:</p>
+              <div className="flex items-center gap-4 text-gray-400">
+                <span className="text-sm font-medium">Тинькофф</span>
+                <span className="text-sm font-medium">Хоум Кредит</span>
+                <span className="text-sm font-medium">Совкомбанк</span>
               </div>
             </div>
           </div>
 
-          {/* Image */}
-          <div className="relative h-[400px] rounded-xl overflow-hidden shadow-xl">
-            <Image
-              src="/images/wardrobe-preview.jpg"
-              alt="Шкаф-купе в рассрочку"
-              fill
-              className="object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-            <div className="absolute bottom-4 left-4 right-4 text-white">
-              <p className="text-sm opacity-90">Современные шкафы-купе с рассрочкой 0%</p>
+          {/* FAQ block */}
+          <div className="bg-white rounded-2xl p-8 border border-gray-100">
+            <h2 className="text-xl md:text-2xl font-bold text-[#3d4543] mb-6">
+              Частые вопросы
+            </h2>
+            <div className="space-y-3">
+              {faqItems.map((item, index) => (
+                <div key={index} className="border-b border-gray-100 last:border-b-0">
+                  <button
+                    onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                    className="w-full flex items-center justify-between py-3 text-left"
+                  >
+                    <span className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-[#62bb46]" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-[#3d4543] font-medium">{item.question}</span>
+                    </span>
+                    <svg
+                      className={`w-5 h-5 text-gray-400 transition-transform ${openFaq === index ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {openFaq === index && (
+                    <div className="pb-4 text-sm text-gray-600 pl-6">
+                      {item.answer}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Form section */}
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-[#f9fafb] rounded-2xl p-8 shadow-sm">
+      {/* Form section */}
+      <div id="form" className="bg-[#f8f9fa] py-12">
+        <div className="container-custom">
+          <div className="max-w-xl mx-auto bg-white rounded-2xl p-8 shadow-lg">
             <h2 className="text-2xl font-bold text-[#3d4543] mb-2 text-center">
-              Хотите оформить рассрочку без переплат?
+              Оформить рассрочку
             </h2>
             <p className="text-gray-600 text-center mb-8">
-              Свяжемся с Вами, подберём шкаф и оформим все документы
+              Оставьте заявку — менеджер свяжется с вами и поможет оформить рассрочку
             </p>
 
             {submitResult && (
@@ -267,28 +413,21 @@ export default function InstallmentPage() {
                 </label>
               </div>
 
-              <div className="flex gap-4 pt-4">
-                <button
-                  type="submit"
-                  disabled={!agreed || isSubmitting || !formData.name || !formData.phone}
-                  className="flex-1 bg-[#62bb46] text-white font-bold py-3 px-6 rounded-lg hover:bg-[#55a83d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Отправка...' : 'Отправить'}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="px-6 py-3 border border-gray-300 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Сбросить
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={!agreed || isSubmitting || !formData.name || !formData.phone}
+                className="w-full bg-[#62bb46] text-white font-bold py-4 px-6 rounded-lg hover:bg-[#55a83d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+              >
+                {isSubmitting ? 'Отправка...' : 'Оформить в рассрочку'}
+              </button>
             </form>
           </div>
         </div>
+      </div>
 
-        {/* Legal info */}
-        <div className="mt-12 text-center text-xs text-gray-500 max-w-3xl mx-auto">
+      {/* Legal info */}
+      <div className="container-custom py-8">
+        <div className="text-center text-xs text-gray-500 max-w-3xl mx-auto">
           <p>
             *«Онлайн-рассрочка без переплаты» представляет из себя кредитный продукт МКК_0-0-6_СКС_Экспресс
             от ООО «Хоум Кредит энд Финанс Банк». Генеральная лицензия №316 Банка России от 15.03.2012г.
