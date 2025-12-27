@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 interface AdminUser {
@@ -45,7 +45,6 @@ const menuItems = [
 
 export default function AdminSidebar({ user }: Props) {
   const pathname = usePathname();
-  const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -53,7 +52,7 @@ export default function AdminSidebar({ user }: Props) {
     setLoggingOut(true);
     try {
       await fetch('/api/e1admin/logout', { method: 'POST' });
-      router.push('/e1admin/login');
+      window.location.href = '/e1admin/login';
     } catch (error) {
       console.error('Logout error:', error);
       setLoggingOut(false);

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import AdminSidebar from './AdminSidebar';
 
 interface AdminUser {
@@ -14,7 +13,6 @@ interface Props {
 }
 
 export default function AdminPageWrapper({ children }: Props) {
-  const router = useRouter();
   const [user, setUser] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,17 +22,15 @@ export default function AdminPageWrapper({ children }: Props) {
       .then((data) => {
         if (data.authenticated && data.user) {
           setUser(data.user);
+          setLoading(false);
         } else {
-          router.push('/e1admin/login');
+          window.location.href = '/e1admin/login';
         }
       })
       .catch(() => {
-        router.push('/e1admin/login');
-      })
-      .finally(() => {
-        setLoading(false);
+        window.location.href = '/e1admin/login';
       });
-  }, [router]);
+  }, []);
 
   if (loading) {
     return (
