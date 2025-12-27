@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      path: `/uploads/instructions/${uniqueName}`,
+      path: `/api/files/instructions/${uniqueName}`,
     });
   } catch (error) {
     console.error('Error uploading file:', error);
