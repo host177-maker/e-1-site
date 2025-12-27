@@ -163,7 +163,7 @@ export default function Header() {
       {/* Main header row - white */}
       <div className="bg-white border-b border-gray-100 shadow-sm">
         <div className="container-custom">
-          <div className="flex items-center py-3 gap-3 xl:gap-5">
+          <div className="flex items-center py-2 gap-3 xl:gap-5">
             {/* Mobile menu button */}
             <button
               className="lg:hidden p-2 -ml-2"
@@ -217,8 +217,9 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Messenger Video Button */}
-            <div className="flex items-center shrink-0 lg:ml-0">
+            {/* Right side: Messenger + Cart (mobile) / Full icons (desktop) */}
+            <div className="flex items-center gap-1 ml-auto">
+              {/* Messenger Video Button */}
               <button
                 onClick={() => setIsMessengerModalOpen(true)}
                 className="w-9 h-9 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#62bb46] focus:ring-offset-2 cursor-pointer"
@@ -235,45 +236,34 @@ export default function Header() {
                   <source src="/images/Messenger.mp4" type="video/mp4" />
                 </video>
               </button>
-            </div>
 
-            {/* Contact info */}
-            <div className="hidden xl:flex flex-col text-right shrink-0 ml-2">
-              <span className="text-[11px] text-gray-500 uppercase tracking-wide">Напишите нам</span>
-              <button
-                onClick={() => setIsMessengerModalOpen(true)}
-                className="text-sm text-[#3d4543] hover:text-[#62bb46] transition-colors font-bold cursor-pointer"
-              >
-                8-938-422-21-11
-              </button>
-            </div>
+              {/* Contact info - desktop only */}
+              <div className="hidden xl:flex flex-col text-right shrink-0 ml-2 mr-2">
+                <span className="text-[11px] text-gray-500 uppercase tracking-wide">Напишите нам</span>
+                <button
+                  onClick={() => setIsMessengerModalOpen(true)}
+                  className="text-sm text-[#3d4543] hover:text-[#62bb46] transition-colors font-bold cursor-pointer"
+                >
+                  8-938-422-21-11
+                </button>
+              </div>
 
-            {/* Right icons */}
-            <div className="hidden sm:flex items-center gap-1 ml-auto">
-              {/* Wishlist */}
-              <Link href="/wishlist" className="flex flex-col items-center justify-center w-12 h-12 hover:text-[#62bb46] transition-colors relative group">
+              {/* Wishlist - desktop/tablet only */}
+              <Link href="/wishlist" className="hidden sm:flex flex-col items-center justify-center w-12 h-12 hover:text-[#62bb46] transition-colors relative group">
                 <svg className="w-6 h-6 text-gray-500 group-hover:text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
                 <span className="absolute top-1 right-1 bg-[#62bb46] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">0</span>
               </Link>
 
-              {/* Cart */}
-              <Link href="/cart" className="flex flex-col items-center justify-center w-12 h-12 hover:text-[#62bb46] transition-colors relative group">
+              {/* Cart - all sizes */}
+              <Link href="/cart" className="flex flex-col items-center justify-center w-10 h-10 sm:w-12 sm:h-12 hover:text-[#62bb46] transition-colors relative group">
                 <svg className="w-6 h-6 text-gray-500 group-hover:text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                <span className="absolute top-1 right-1 bg-[#62bb46] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">0</span>
+                <span className="absolute top-0 sm:top-1 right-0 sm:right-1 bg-[#62bb46] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">0</span>
               </Link>
             </div>
-
-            {/* Mobile cart only */}
-            <Link href="/cart" className="sm:hidden flex flex-col items-center justify-center w-10 h-10 hover:text-[#62bb46] transition-colors relative">
-              <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span className="absolute top-0 right-0 bg-[#62bb46] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">0</span>
-            </Link>
           </div>
         </div>
       </div>
