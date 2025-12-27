@@ -58,8 +58,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error uploading file:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
     return NextResponse.json(
-      { success: false, message: 'Ошибка при загрузке файла' },
+      { success: false, message: `Ошибка при загрузке файла: ${errorMessage}` },
       { status: 500 }
     );
   }
