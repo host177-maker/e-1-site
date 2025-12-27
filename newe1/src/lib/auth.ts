@@ -110,6 +110,23 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
   }
 }
 
+// Ensure admin_users table exists
+async function ensureAdminTable(): Promise<void> {
+  const pool = getPool();
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_users (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(100) UNIQUE NOT NULL,
+      password_hash VARCHAR(255) NOT NULL,
+      is_active BOOLEAN DEFAULT true,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+      last_login TIMESTAMP WITH TIME ZONE,
+      created_by INTEGER REFERENCES admin_users(id)
+    )
+  `);
+}
+
 // Initialize first admin from environment variables if no admins exist
 export async function initializeDefaultAdmin(): Promise<void> {
   const adminName = process.env.ADMINNAME;
@@ -122,6 +139,9 @@ export async function initializeDefaultAdmin(): Promise<void> {
 
   const pool = getPool();
   try {
+    // Ensure table exists
+    await ensureAdminTable();
+
     // Check if any admin exists
     const countResult = await pool.query('SELECT COUNT(*) FROM admin_users');
     if (parseInt(countResult.rows[0].count) > 0) {
