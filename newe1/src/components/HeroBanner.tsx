@@ -54,7 +54,7 @@ export default function HeroBanner() {
     <section className="relative bg-[#f5f5f5] py-4">
       <div className="container-custom">
         <div
-          className="relative overflow-hidden rounded-lg"
+          className="relative overflow-hidden"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >

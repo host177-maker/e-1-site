@@ -32,7 +32,7 @@ export default function AboutSection() {
 
           {/* Image - right side */}
           <div className="flex-1 w-full lg:w-auto">
-            <div className="relative aspect-[4/3] w-full rounded-xl overflow-hidden shadow-lg">
+            <div className="relative aspect-[4/3] w-full overflow-hidden shadow-lg">
               <Image
                 src="/images/o-fabrik.jpg"
                 alt="Производство мебельной компании Е1"
