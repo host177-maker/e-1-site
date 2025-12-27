@@ -218,15 +218,15 @@ export default function Header() {
             </div>
 
             {/* Messenger Video Button */}
-            <div className="flex items-center shrink-0 ml-auto lg:ml-0">
+            <div className="flex items-center shrink-0 lg:ml-0">
               <button
                 onClick={() => setIsMessengerModalOpen(true)}
-                className="w-9 h-9 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#62bb46] focus:ring-offset-2"
+                className="w-9 h-9 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#62bb46] focus:ring-offset-2 cursor-pointer"
                 title="Написать нам"
                 aria-label="Открыть мессенджеры"
               >
                 <video
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover cursor-pointer"
                   autoPlay
                   loop
                   muted
@@ -249,7 +249,7 @@ export default function Header() {
             </div>
 
             {/* Right icons */}
-            <div className="hidden sm:flex items-center gap-1 ml-2">
+            <div className="hidden sm:flex items-center gap-1 ml-auto">
               {/* Wishlist */}
               <Link href="/wishlist" className="flex flex-col items-center justify-center w-12 h-12 hover:text-[#62bb46] transition-colors relative group">
                 <svg className="w-6 h-6 text-gray-500 group-hover:text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
