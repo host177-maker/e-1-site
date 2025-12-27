@@ -129,18 +129,18 @@ async function ensureAdminTable(): Promise<void> {
 
 // Initialize first admin from environment variables if no admins exist
 export async function initializeDefaultAdmin(): Promise<void> {
-  const adminName = process.env.ADMINNAME;
-  const adminPass = process.env.ADMINPASS;
-
-  if (!adminName || !adminPass) {
-    console.log('ADMINNAME or ADMINPASS not set in environment');
-    return;
-  }
-
-  const pool = getPool();
   try {
-    // Ensure table exists
+    // Always ensure table exists first
     await ensureAdminTable();
+
+    const adminName = process.env.ADMINNAME;
+    const adminPass = process.env.ADMINPASS;
+
+    if (!adminName || !adminPass) {
+      return;
+    }
+
+    const pool = getPool();
 
     // Check if any admin exists
     const countResult = await pool.query('SELECT COUNT(*) FROM admin_users');
