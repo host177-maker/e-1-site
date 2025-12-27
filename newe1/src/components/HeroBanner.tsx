@@ -73,8 +73,8 @@ export default function HeroBanner() {
   // Loading state
   if (loading) {
     return (
-      <section className="relative bg-[#f5f5f5] py-0 md:py-4">
-        <div className="md:container-custom">
+      <section className="relative bg-[#f5f5f5] py-4">
+        <div className="container-custom">
           <div className="relative w-full h-[300px] sm:h-[220px] md:h-[280px] lg:h-[340px] xl:h-[380px] bg-gray-200 animate-pulse" />
         </div>
       </section>
@@ -87,8 +87,8 @@ export default function HeroBanner() {
   }
 
   return (
-    <section className="relative bg-[#f5f5f5] py-0 md:py-4">
-      <div className="md:container-custom">
+    <section className="relative bg-[#f5f5f5] py-4">
+      <div className="container-custom">
         <div
           className="relative overflow-hidden"
           onMouseEnter={handleMouseEnter}
