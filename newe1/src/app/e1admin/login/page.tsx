@@ -1,10 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,13 +23,14 @@ export default function AdminLoginPage() {
       const data = await response.json();
 
       if (data.success) {
-        router.push('/e1admin');
+        // Full page reload to pick up the new cookie
+        window.location.href = '/e1admin';
       } else {
         setError(data.error || 'Ошибка авторизации');
+        setLoading(false);
       }
     } catch {
       setError('Ошибка подключения к серверу');
-    } finally {
       setLoading(false);
     }
   };
