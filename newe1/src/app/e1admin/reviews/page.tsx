@@ -15,12 +15,14 @@ interface Review {
   photos: string[] | null;
   is_active: boolean;
   show_on_main: boolean;
+  is_rejected: boolean;
   created_at: string;
 }
 
 interface Counts {
   active: number;
   pending: number;
+  rejected: number;
   total: number;
 }
 
@@ -57,7 +59,7 @@ export default function ReviewsPage() {
   const statusFilter = searchParams.get('status') || 'all';
 
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [counts, setCounts] = useState<Counts>({ active: 0, pending: 0, total: 0 });
+  const [counts, setCounts] = useState<Counts>({ active: 0, pending: 0, rejected: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
@@ -171,6 +173,34 @@ export default function ReviewsPage() {
     }
   };
 
+  const getStatusBadge = (review: Review) => {
+    if (review.is_rejected) {
+      return (
+        <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded-full">
+          Отклонён
+        </span>
+      );
+    }
+    if (!review.is_active) {
+      return (
+        <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
+          Ожидает модерации
+        </span>
+      );
+    }
+    return null;
+  };
+
+  const getCardClass = (review: Review) => {
+    if (review.is_rejected) {
+      return 'border-red-300 bg-red-50/30';
+    }
+    if (!review.is_active) {
+      return 'border-yellow-300 bg-yellow-50/30';
+    }
+    return 'border-gray-200';
+  };
+
   return (
     <AdminPageWrapper>
       <div className="p-6 lg:p-8">
@@ -199,7 +229,7 @@ export default function ReviewsPage() {
                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
             }`}
           >
-            Ожидают модерации ({counts.pending})
+            На модерации ({counts.pending})
           </button>
           <button
             onClick={() => setStatus('active')}
@@ -210,6 +240,16 @@ export default function ReviewsPage() {
             }`}
           >
             Опубликованы ({counts.active})
+          </button>
+          <button
+            onClick={() => setStatus('rejected')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              statusFilter === 'rejected'
+                ? 'bg-red-500 text-white'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Отклонённые ({counts.rejected})
           </button>
         </div>
 
@@ -227,10 +267,12 @@ export default function ReviewsPage() {
             <h3 className="text-lg font-medium text-gray-900 mb-2">Нет отзывов</h3>
             <p className="text-gray-500">
               {statusFilter === 'pending'
-                ? 'Нет отзывов, ожидающих модерации'
+                ? 'Нет отзывов на модерации'
                 : statusFilter === 'active'
                   ? 'Нет опубликованных отзывов'
-                  : 'Отзывы пока не поступали'}
+                  : statusFilter === 'rejected'
+                    ? 'Нет отклонённых отзывов'
+                    : 'Отзывы пока не поступали'}
             </p>
           </div>
         ) : (
@@ -238,9 +280,7 @@ export default function ReviewsPage() {
             {reviews.map((review) => (
               <div
                 key={review.id}
-                className={`bg-white rounded-xl border p-6 ${
-                  !review.is_active ? 'border-yellow-300 bg-yellow-50/30' : 'border-gray-200'
-                }`}
+                className={`bg-white rounded-xl border p-6 ${getCardClass(review)}`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-start gap-4">
                   {/* Main content */}
@@ -249,11 +289,7 @@ export default function ReviewsPage() {
                     <div className="flex flex-wrap items-center gap-3 mb-3">
                       <span className="font-semibold text-gray-900">{review.name}</span>
                       {review.rating && <StarRating rating={review.rating} />}
-                      {!review.is_active && (
-                        <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
-                          Ожидает модерации
-                        </span>
-                      )}
+                      {getStatusBadge(review)}
                       {review.show_on_main && (
                         <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
                           На главной
@@ -327,7 +363,8 @@ export default function ReviewsPage() {
 
                   {/* Actions */}
                   <div className="flex lg:flex-col gap-2 flex-wrap">
-                    {!review.is_active && (
+                    {/* Publish button - for pending reviews */}
+                    {!review.is_active && !review.is_rejected && (
                       <button
                         onClick={() => updateReview(review.id, { is_active: true })}
                         disabled={actionLoading === review.id}
@@ -347,6 +384,35 @@ export default function ReviewsPage() {
                       </button>
                     )}
 
+                    {/* Reject button - for pending reviews */}
+                    {!review.is_active && !review.is_rejected && (
+                      <button
+                        onClick={() => updateReview(review.id, { is_rejected: true })}
+                        disabled={actionLoading === review.id}
+                        className="flex items-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Отклонить
+                      </button>
+                    )}
+
+                    {/* Restore button - for rejected reviews */}
+                    {review.is_rejected && (
+                      <button
+                        onClick={() => updateReview(review.id, { is_rejected: false })}
+                        disabled={actionLoading === review.id}
+                        className="flex items-center gap-2 px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                        Вернуть на модерацию
+                      </button>
+                    )}
+
+                    {/* Hide button - for active reviews */}
                     {review.is_active && (
                       <button
                         onClick={() => updateReview(review.id, { is_active: false })}
@@ -360,20 +426,23 @@ export default function ReviewsPage() {
                       </button>
                     )}
 
-                    <button
-                      onClick={() => updateReview(review.id, { show_on_main: !review.show_on_main })}
-                      disabled={actionLoading === review.id}
-                      className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${
-                        review.show_on_main
-                          ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                      </svg>
-                      {review.show_on_main ? 'Убрать с главной' : 'На главную'}
-                    </button>
+                    {/* Show on main toggle - only for active reviews */}
+                    {review.is_active && (
+                      <button
+                        onClick={() => updateReview(review.id, { show_on_main: !review.show_on_main })}
+                        disabled={actionLoading === review.id}
+                        className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${
+                          review.show_on_main
+                            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        {review.show_on_main ? 'Убрать с главной' : 'На главную'}
+                      </button>
+                    )}
 
                     <button
                       onClick={() => openEditModal(review)}

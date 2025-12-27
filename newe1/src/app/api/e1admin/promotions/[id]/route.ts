@@ -5,7 +5,7 @@ import { getPool } from '@/lib/db';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// GET: Get single review
+// GET: Get single promotion
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -20,26 +20,24 @@ export async function GET(
     }
 
     const { id } = await params;
-    const reviewId = parseInt(id);
+    const promotionId = parseInt(id);
 
-    if (isNaN(reviewId)) {
+    if (isNaN(promotionId)) {
       return NextResponse.json(
-        { success: false, error: 'Неверный ID отзыва' },
+        { success: false, error: 'Неверный ID акции' },
         { status: 400 }
       );
     }
 
     const pool = getPool();
     const result = await pool.query(
-      `SELECT id, name, phone, order_number, review_text, company_response,
-              rating, photos, is_active, show_on_main, COALESCE(is_rejected, false) as is_rejected, created_at
-       FROM reviews WHERE id = $1`,
-      [reviewId]
+      `SELECT * FROM promotions WHERE id = $1`,
+      [promotionId]
     );
 
     if (result.rows.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'Отзыв не найден' },
+        { success: false, error: 'Акция не найдена' },
         { status: 404 }
       );
     }
@@ -49,7 +47,7 @@ export async function GET(
       data: result.rows[0],
     });
   } catch (error) {
-    console.error('Error fetching review:', error);
+    console.error('Error fetching promotion:', error);
     return NextResponse.json(
       { success: false, error: 'Ошибка сервера' },
       { status: 500 }
@@ -57,7 +55,7 @@ export async function GET(
   }
 }
 
-// PATCH: Update review
+// PATCH: Update promotion
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -72,47 +70,71 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const reviewId = parseInt(id);
+    const promotionId = parseInt(id);
 
-    if (isNaN(reviewId)) {
+    if (isNaN(promotionId)) {
       return NextResponse.json(
-        { success: false, error: 'Неверный ID отзыва' },
+        { success: false, error: 'Неверный ID акции' },
         { status: 400 }
       );
     }
 
     const body = await request.json();
-    const { review_text, company_response, is_active, show_on_main, is_rejected } = body;
+    const { title, content, images, start_date, end_date, published_at, is_active } = body;
 
     const pool = getPool();
 
-    // Check if review exists
+    // Check if promotion exists
     const existing = await pool.query(
-      'SELECT id FROM reviews WHERE id = $1',
-      [reviewId]
+      'SELECT id FROM promotions WHERE id = $1',
+      [promotionId]
     );
 
     if (existing.rows.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'Отзыв не найден' },
+        { success: false, error: 'Акция не найдена' },
         { status: 404 }
       );
     }
 
     // Build update query
     const updates: string[] = [];
-    const values: (string | boolean | number | null)[] = [];
+    const values: (string | boolean | number | string[] | null)[] = [];
     let paramIndex = 1;
 
-    if (typeof review_text === 'string') {
-      updates.push(`review_text = $${paramIndex}`);
-      values.push(review_text);
+    if (typeof title === 'string') {
+      updates.push(`title = $${paramIndex}`);
+      values.push(title);
       paramIndex++;
     }
 
-    if (typeof company_response === 'string' || company_response === null) {
-      updates.push(`company_response = $${paramIndex}`);
-      values.push(company_response);
+    if (typeof content === 'string') {
+      updates.push(`content = $${paramIndex}`);
+      values.push(content);
+      paramIndex++;
+    }
+
+    if (Array.isArray(images)) {
+      updates.push(`images = $${paramIndex}`);
+      values.push(images);
+      paramIndex++;
+    }
+
+    if (start_date) {
+      updates.push(`start_date = $${paramIndex}`);
+      values.push(start_date);
+      paramIndex++;
+    }
+
+    if (end_date) {
+      updates.push(`end_date = $${paramIndex}`);
+      values.push(end_date);
+      paramIndex++;
+    }
+
+    if (published_at !== undefined) {
+      updates.push(`published_at = $${paramIndex}`);
+      values.push(published_at);
       paramIndex++;
     }
 
@@ -120,27 +142,6 @@ export async function PATCH(
       updates.push(`is_active = $${paramIndex}`);
       values.push(is_active);
       paramIndex++;
-      // If activating, also un-reject
-      if (is_active) {
-        updates.push(`is_rejected = false`);
-      }
-    }
-
-    if (typeof show_on_main === 'boolean') {
-      updates.push(`show_on_main = $${paramIndex}`);
-      values.push(show_on_main);
-      paramIndex++;
-    }
-
-    if (typeof is_rejected === 'boolean') {
-      updates.push(`is_rejected = $${paramIndex}`);
-      values.push(is_rejected);
-      paramIndex++;
-      // If rejecting, also deactivate
-      if (is_rejected) {
-        updates.push(`is_active = false`);
-        updates.push(`show_on_main = false`);
-      }
     }
 
     if (updates.length === 0) {
@@ -150,12 +151,12 @@ export async function PATCH(
       );
     }
 
-    values.push(reviewId);
+    updates.push(`updated_at = NOW()`);
+    values.push(promotionId);
 
     const result = await pool.query(
-      `UPDATE reviews SET ${updates.join(', ')} WHERE id = $${paramIndex}
-       RETURNING id, name, phone, order_number, review_text, company_response,
-                 rating, photos, is_active, show_on_main, COALESCE(is_rejected, false) as is_rejected, created_at`,
+      `UPDATE promotions SET ${updates.join(', ')} WHERE id = $${paramIndex}
+       RETURNING *`,
       values
     );
 
@@ -164,7 +165,7 @@ export async function PATCH(
       data: result.rows[0],
     });
   } catch (error) {
-    console.error('Error updating review:', error);
+    console.error('Error updating promotion:', error);
     return NextResponse.json(
       { success: false, error: 'Ошибка сервера' },
       { status: 500 }
@@ -172,7 +173,7 @@ export async function PATCH(
   }
 }
 
-// DELETE: Delete review
+// DELETE: Delete promotion
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -187,38 +188,38 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    const reviewId = parseInt(id);
+    const promotionId = parseInt(id);
 
-    if (isNaN(reviewId)) {
+    if (isNaN(promotionId)) {
       return NextResponse.json(
-        { success: false, error: 'Неверный ID отзыва' },
+        { success: false, error: 'Неверный ID акции' },
         { status: 400 }
       );
     }
 
     const pool = getPool();
 
-    // Check if review exists
+    // Check if promotion exists
     const existing = await pool.query(
-      'SELECT id FROM reviews WHERE id = $1',
-      [reviewId]
+      'SELECT id FROM promotions WHERE id = $1',
+      [promotionId]
     );
 
     if (existing.rows.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'Отзыв не найден' },
+        { success: false, error: 'Акция не найдена' },
         { status: 404 }
       );
     }
 
-    await pool.query('DELETE FROM reviews WHERE id = $1', [reviewId]);
+    await pool.query('DELETE FROM promotions WHERE id = $1', [promotionId]);
 
     return NextResponse.json({
       success: true,
-      message: 'Отзыв удалён',
+      message: 'Акция удалена',
     });
   } catch (error) {
-    console.error('Error deleting review:', error);
+    console.error('Error deleting promotion:', error);
     return NextResponse.json(
       { success: false, error: 'Ошибка сервера' },
       { status: 500 }
