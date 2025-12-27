@@ -56,7 +56,7 @@ function getStatusInfo(promotion: Promotion): { label: string; color: string } {
 export default function PromotionsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const statusFilter = searchParams.get('status') || 'all';
+  const statusFilter = searchParams?.get('status') || 'all';
 
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [counts, setCounts] = useState<Counts>({ active: 0, expired: 0, inactive: 0, total: 0 });
