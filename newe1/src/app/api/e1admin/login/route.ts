@@ -27,9 +27,14 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({ success: true });
 
+    // Only use secure cookies on HTTPS (not on localhost/local network)
+    const host = request.headers.get('host') || '';
+    const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1') || host.startsWith('192.168.');
+    const useSecure = process.env.NODE_ENV === 'production' && !isLocalhost;
+
     response.cookies.set(SESSION_COOKIE_NAME, result.token!, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: useSecure,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60,
       path: '/',
