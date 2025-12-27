@@ -34,12 +34,9 @@ export default function InstructionsPage() {
       {/* Hero section */}
       <div className="bg-[#f5f5f5] py-8">
         <div className="container-custom">
-          <h1 className="text-3xl md:text-4xl font-bold text-[#3d4543] mb-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-[#3d4543]">
             Инструкции для сборки нашей мебели
           </h1>
-          <p className="text-gray-600">
-            Скачайте PDF-инструкцию или посмотрите видео для правильной сборки вашего шкафа
-          </p>
         </div>
       </div>
 
