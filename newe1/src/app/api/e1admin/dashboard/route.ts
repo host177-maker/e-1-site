@@ -31,8 +31,8 @@ export async function GET() {
       // Reviews counts
       pool.query(`
         SELECT
-          COUNT(*) FILTER (WHERE status = 'active') as active,
-          COUNT(*) FILTER (WHERE status = 'pending') as pending,
+          COUNT(*) FILTER (WHERE is_active = true AND (is_rejected = false OR is_rejected IS NULL)) as active,
+          COUNT(*) FILTER (WHERE is_active = false AND (is_rejected = false OR is_rejected IS NULL)) as pending,
           COUNT(*) as total
         FROM reviews
       `),
