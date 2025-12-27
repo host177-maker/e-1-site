@@ -182,9 +182,9 @@ export default function Header() {
             {/* Logo + Brand */}
             <Link href="/" className="flex items-center gap-3 shrink-0" onClick={() => setIsMobileMenuOpen(false)}>
               <Logo />
-              <div className="hidden sm:flex flex-col leading-tight">
-                <span className="text-[#3d4543] font-black text-lg tracking-tight">ШКАФЫ</span>
-                <span className="text-[#3d4543] font-black text-lg tracking-tight">ГАРДЕРОБНЫЕ</span>
+              <div className="hidden sm:flex flex-col leading-none">
+                <span className="text-black font-black text-xl tracking-tight">ШКАФЫ</span>
+                <span className="text-black font-black text-xl tracking-tight">ГАРДЕРОБНЫЕ</span>
               </div>
             </Link>
 
