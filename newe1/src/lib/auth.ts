@@ -165,12 +165,38 @@ export async function loginAdmin(username: string, password: string): Promise<{ 
   const pool = getPool();
 
   try {
+    // Always ensure table exists first
+    await ensureAdminTable();
+
+    // Initialize default admin if needed
+    await initializeDefaultAdmin();
+
     const result = await pool.query(
       `SELECT id, username, password_hash, is_active FROM admin_users WHERE username = $1`,
       [username]
     );
 
+    // If no user found in DB, check env credentials as fallback
     if (result.rows.length === 0) {
+      const envUsername = process.env.ADMINNAME;
+      const envPassword = process.env.ADMINPASS;
+
+      // Check if trying to login with env credentials
+      if (envUsername && envPassword && username === envUsername && password === envPassword) {
+        // Create the admin user in DB
+        const passwordHash = hashPassword(password);
+        const insertResult = await pool.query(
+          `INSERT INTO admin_users (username, password_hash, is_active)
+           VALUES ($1, $2, true)
+           ON CONFLICT (username) DO UPDATE SET password_hash = $2
+           RETURNING id, username`,
+          [username, passwordHash]
+        );
+        const newUser = insertResult.rows[0];
+        const token = createSessionToken(newUser.id, newUser.username);
+        return { success: true, token };
+      }
+
       return { success: false, error: 'Неверное имя пользователя или пароль' };
     }
 
