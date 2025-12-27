@@ -6,7 +6,10 @@ import path from 'path';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'promotions');
+// Handle both cases: running from repo root or from newe1 directory
+const cwd = process.cwd();
+const baseDir = cwd.endsWith('newe1') ? cwd : path.join(cwd, 'newe1');
+const UPLOAD_DIR = path.join(baseDir, 'public', 'uploads', 'promotions');
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 

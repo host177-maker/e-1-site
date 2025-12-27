@@ -1,25 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { useCity } from '@/context/CityContext';
 import CitySelector from './CitySelector';
 import MobileCitySelector from './MobileCitySelector';
 import MessengerModal from './MessengerModal';
-
-// E1 Logo SVG component
-function Logo() {
-  return (
-    <svg viewBox="0 0 80 56" className="h-11 w-auto">
-      <g fill="#62BB46">
-        <polygon points="76.82,9.79 76.82,51.74 65.78,51.74 65.78,15.47 69.73,15.47 58.69,9.94 58.69,4.26 65.78,4.26" />
-        <polygon points="47.48,15.47 11.05,15.47 0,10.03 0,4.26 36.43,4.26 47.48,9.79" />
-        <polygon points="11.06,15.47 11.06,22.4 36.43,22.4 47.48,27.92 47.48,33.6 11.22,33.6 0,28.08 0,15.47" />
-        <polygon points="47.48,46.06 47.48,51.74 11.05,51.74 0,46.22 0,33.6 11.22,33.6 11.22,40.53 36.43,40.53" />
-      </g>
-    </svg>
-  );
-}
 
 // Service submenu structure - vertical list
 const serviceSubmenu = [
@@ -179,13 +166,16 @@ export default function Header() {
               </svg>
             </button>
 
-            {/* Logo + Brand */}
-            <Link href="/" className="flex items-center gap-3 shrink-0" onClick={() => setIsMobileMenuOpen(false)}>
-              <Logo />
-              <div className="hidden sm:flex flex-col leading-tight">
-                <span className="text-[#3d4543] font-black text-lg tracking-tight">ШКАФЫ</span>
-                <span className="text-[#3d4543] font-black text-lg tracking-tight">ГАРДЕРОБНЫЕ</span>
-              </div>
+            {/* Logo */}
+            <Link href="/" className="shrink-0" onClick={() => setIsMobileMenuOpen(false)}>
+              <Image
+                src="/uploads/logo.svg"
+                alt="E1 Шкафы Гардеробные"
+                width={200}
+                height={50}
+                className="h-10 sm:h-12 w-auto"
+                priority
+              />
             </Link>
 
             {/* Catalog button */}

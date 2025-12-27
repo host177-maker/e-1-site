@@ -9,9 +9,9 @@ export const runtime = 'nodejs';
 // Handle both cases: running from repo root or from newe1 directory
 const cwd = process.cwd();
 const baseDir = cwd.endsWith('newe1') ? cwd : path.join(cwd, 'newe1');
-const UPLOAD_DIR = path.join(baseDir, 'public', 'uploads', 'banners');
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const UPLOAD_DIR = path.join(baseDir, 'public', 'uploads', 'instructions');
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB for PDFs
+const ALLOWED_TYPES = ['application/pdf'];
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,8 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    const file = formData.get('image') as File;
-    const type = formData.get('type') as string; // 'desktop' or 'mobile'
+    const file = formData.get('file') as File;
 
     if (!file) {
       return NextResponse.json(
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest) {
     // Validate file type
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
-        { success: false, message: 'Недопустимый формат файла. Разрешены: JPG, PNG, WebP, GIF' },
+        { success: false, message: 'Недопустимый формат файла. Разрешены только PDF' },
         { status: 400 }
       );
     }
@@ -42,15 +41,13 @@ export async function POST(request: NextRequest) {
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { success: false, message: 'Файл слишком большой. Максимум 10MB' },
+        { success: false, message: 'Файл слишком большой. Максимум 50MB' },
         { status: 400 }
       );
     }
 
-    // Generate unique filename with type prefix
-    const ext = file.name.split('.').pop() || 'jpg';
-    const prefix = type === 'mobile' ? 'mobile' : 'desktop';
-    const uniqueName = `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${ext}`;
+    // Generate unique filename
+    const uniqueName = `instruction-${Date.now()}-${Math.random().toString(36).substring(2, 9)}.pdf`;
     const filePath = path.join(UPLOAD_DIR, uniqueName);
 
     // Write file
@@ -60,12 +57,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      path: `/uploads/banners/${uniqueName}`,
+      path: `/api/files/instructions/${uniqueName}`,
     });
   } catch (error) {
     console.error('Error uploading file:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
     return NextResponse.json(
-      { success: false, message: 'Ошибка при загрузке файла' },
+      { success: false, message: `Ошибка при загрузке файла: ${errorMessage}` },
       { status: 500 }
     );
   }
