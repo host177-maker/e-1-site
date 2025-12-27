@@ -27,6 +27,7 @@ const serviceSubmenu = [
   { label: 'Рассрочка', href: '/service/installment' },
   { label: 'Инструкции к мебели', href: '/service/instructions' },
   { label: 'Проверить статус заказа', href: 'https://booking.e-1.ru/check/', external: true },
+  { label: 'Чат с отделом доставки', href: 'https://booking.e-1.ru/service/', external: true },
 ];
 
 const menuItems = [
@@ -43,7 +44,7 @@ const menuItems = [
 
 // Mobile-only menu item
 const mobileOnlyItems = [
-  { label: 'СТАТУС ЗАКАЗА', href: 'https://booking.e-1.ru/check/', external: true },
+  { label: 'УЗНАТЬ СТАТУС ЗАКАЗА', href: 'https://booking.e-1.ru/check/', external: true },
 ];
 
 export default function Header() {
@@ -136,8 +137,8 @@ export default function Header() {
             </div>
 
             {/* Mobile: city selector + installment + phone */}
-            <div className="lg:hidden flex items-center gap-2 text-[11px]">
-              {/* City selector */}
+            <div className="lg:hidden flex items-center justify-between w-full text-[11px]">
+              {/* City selector - left */}
               <button
                 onClick={() => setIsMobileCitySelectorOpen(true)}
                 className="flex items-center gap-1 hover:text-[#62bb46] transition-colors"
@@ -146,26 +147,23 @@ export default function Header() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="hidden xs:inline">{isLoading ? '...' : city.name}</span>
+                <span>{isLoading ? '...' : city.name}</span>
                 <span className="text-[#62bb46] underline">сменить</span>
               </button>
 
-              {/* Divider */}
-              <div className="w-px h-3 bg-white/30"></div>
+              {/* Installment - center */}
+              <div className="flex items-center gap-2">
+                <div className="w-px h-3 bg-white/30"></div>
+                <Link href="/service/installment" className="flex items-center gap-1 hover:text-[#62bb46] transition-colors">
+                  <svg className="w-3.5 h-3.5 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                  <span>0-0-6</span>
+                </Link>
+                <div className="w-px h-3 bg-white/30"></div>
+              </div>
 
-              {/* Installment */}
-              <Link href="/service/installment" className="flex items-center gap-1 hover:text-[#62bb46] transition-colors">
-                <svg className="w-3.5 h-3.5 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
-                <span className="hidden sm:inline">Рассрочка</span>
-                <span>0-0-6</span>
-              </Link>
-
-              {/* Divider */}
-              <div className="w-px h-3 bg-white/30"></div>
-
-              {/* Phone */}
+              {/* Phone - right */}
               <a href="tel:+78001001211" className="font-bold hover:text-[#62bb46] transition-colors whitespace-nowrap">
                 8-800-100-12-11
               </a>
