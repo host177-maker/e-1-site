@@ -122,12 +122,6 @@ function PromotionCard({ promotion }: { promotion: Promotion }) {
           </div>
         )}
 
-        {/* Published date */}
-        {promotion.published_at && (
-          <p className="text-gray-500 text-sm">
-            Опубликовано: {formatDate(promotion.published_at)}
-          </p>
-        )}
       </div>
 
       {/* Lightbox */}
