@@ -136,7 +136,7 @@ export default function Header() {
               </div>
             </div>
 
-            {/* Mobile: city selector + installment + phone */}
+            {/* Mobile: city selector + phone */}
             <div className="lg:hidden flex items-center justify-between w-full text-[11px]">
               {/* City selector - left */}
               <button
@@ -150,18 +150,6 @@ export default function Header() {
                 <span>{isLoading ? '...' : city.name}</span>
                 <span className="text-[#62bb46] underline">сменить</span>
               </button>
-
-              {/* Installment - center */}
-              <div className="flex items-center gap-2">
-                <div className="w-px h-3 bg-white/30"></div>
-                <Link href="/service/installment" className="flex items-center gap-1 hover:text-[#62bb46] transition-colors">
-                  <svg className="w-3.5 h-3.5 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                  <span>0-0-6</span>
-                </Link>
-                <div className="w-px h-3 bg-white/30"></div>
-              </div>
 
               {/* Phone - right */}
               <a href="tel:+78001001211" className="font-bold hover:text-[#62bb46] transition-colors whitespace-nowrap">
@@ -233,7 +221,7 @@ export default function Header() {
             <div className="flex items-center shrink-0 ml-auto lg:ml-0">
               <button
                 onClick={() => setIsMessengerModalOpen(true)}
-                className="w-9 h-9 rounded-lg overflow-hidden hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-[#62bb46] focus:ring-offset-2"
+                className="w-9 h-9 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#62bb46] focus:ring-offset-2"
                 title="Написать нам"
                 aria-label="Открыть мессенджеры"
               >
@@ -252,9 +240,12 @@ export default function Header() {
             {/* Contact info */}
             <div className="hidden xl:flex flex-col text-right shrink-0 ml-2">
               <span className="text-[11px] text-gray-500 uppercase tracking-wide">Напишите нам</span>
-              <a href="tel:+79384222111" className="text-sm text-[#3d4543] hover:text-[#62bb46] transition-colors font-bold">
+              <button
+                onClick={() => setIsMessengerModalOpen(true)}
+                className="text-sm text-[#3d4543] hover:text-[#62bb46] transition-colors font-bold cursor-pointer"
+              >
                 8-938-422-21-11
-              </a>
+              </button>
             </div>
 
             {/* Right icons */}
