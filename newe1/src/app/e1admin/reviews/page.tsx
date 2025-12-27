@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 
@@ -53,7 +53,7 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-export default function ReviewsPage() {
+function ReviewsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const statusFilter = searchParams?.get('status') || 'all';
@@ -527,5 +527,19 @@ export default function ReviewsPage() {
         </div>
       )}
     </AdminPageWrapper>
+  );
+}
+
+export default function ReviewsPage() {
+  return (
+    <Suspense fallback={
+      <AdminPageWrapper>
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="w-8 h-8 border-4 border-[#7cb342] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </AdminPageWrapper>
+    }>
+      <ReviewsPageContent />
+    </Suspense>
   );
 }

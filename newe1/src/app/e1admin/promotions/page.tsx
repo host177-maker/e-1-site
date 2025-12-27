@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 
@@ -53,7 +53,7 @@ function getStatusInfo(promotion: Promotion): { label: string; color: string } {
   return { label: 'Активна', color: 'bg-green-100 text-green-700' };
 }
 
-export default function PromotionsPage() {
+function PromotionsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const statusFilter = searchParams?.get('status') || 'all';
@@ -710,5 +710,19 @@ export default function PromotionsPage() {
         </div>
       )}
     </AdminPageWrapper>
+  );
+}
+
+export default function PromotionsPage() {
+  return (
+    <Suspense fallback={
+      <AdminPageWrapper>
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="w-8 h-8 border-4 border-[#7cb342] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </AdminPageWrapper>
+    }>
+      <PromotionsPageContent />
+    </Suspense>
   );
 }
