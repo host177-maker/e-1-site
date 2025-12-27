@@ -68,8 +68,8 @@ export default function InstructionsPage() {
                   className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
                 >
                   {/* PDF icon */}
-                  <div className="w-10 h-12 bg-red-100 rounded flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                  <div className="w-10 h-12 bg-green-100 rounded flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
                       <path d="M14 2v6h6"/>
                       <path fill="none" stroke="currentColor" strokeWidth="1.5" d="M9 13v5m0-2.5h1.5a1.25 1.25 0 0 0 0-2.5H9m5 2.5h1.5a1.25 1.25 0 0 0 0-2.5H14v5"/>
