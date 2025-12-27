@@ -27,9 +27,13 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({ success: true });
 
+    // Only use secure cookies on HTTPS connections
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const useSecure = protocol === 'https';
+
     response.cookies.set(SESSION_COOKIE_NAME, result.token!, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: useSecure,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60,
       path: '/',
