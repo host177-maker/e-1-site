@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import Providers from "@/components/Providers";
+import ConditionalLayout from "@/components/ConditionalLayout";
 
 export const metadata: Metadata = {
   title: "Е1 | Шкафы и гардеробные",
@@ -19,11 +18,7 @@ export default function RootLayout({
     <html lang="ru">
       <body className="antialiased flex flex-col min-h-screen">
         <Providers>
-          <Header />
-          <main className="flex-grow">
-            {children}
-          </main>
-          <Footer />
+          <ConditionalLayout>{children}</ConditionalLayout>
         </Providers>
       </body>
     </html>
