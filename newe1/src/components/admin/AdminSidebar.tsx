@@ -109,7 +109,7 @@ export default function AdminSidebar({ user }: Props) {
     if (href === '/e1admin') {
       return pathname === '/e1admin' || pathname === '/e1admin/';
     }
-    return pathname.startsWith(href);
+    return pathname?.startsWith(href) || false;
   };
 
   return (
