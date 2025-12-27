@@ -36,6 +36,12 @@ export function verifyPassword(password: string, storedHash: string): boolean {
   return hash === verifyHash;
 }
 
+// Get or derive session encryption key
+function getSessionKey(): Buffer {
+  const secret = process.env.SESSION_SECRET || 'default-secret-change-in-production-please';
+  return crypto.scryptSync(secret, 'salt', 32);
+}
+
 // Create session token
 export function createSessionToken(userId: number, username: string): string {
   const payload: SessionPayload = {
@@ -66,7 +72,6 @@ export function verifySessionToken(token: string): SessionPayload | null {
 
     const payload: SessionPayload = JSON.parse(decrypted);
 
-    // Check expiration
     if (payload.exp < Date.now()) {
       return null;
     }
@@ -77,41 +82,8 @@ export function verifySessionToken(token: string): SessionPayload | null {
   }
 }
 
-// Get or derive session encryption key
-function getSessionKey(): Buffer {
-  const secret = process.env.SESSION_SECRET || 'default-secret-change-in-production-please';
-  return crypto.scryptSync(secret, 'salt', 32);
-}
-
-// Get current admin session from cookies
-export async function getAdminSession(): Promise<SessionPayload | null> {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
-  if (!sessionCookie) return null;
-  return verifySessionToken(sessionCookie.value);
-}
-
-// Get current admin user from session
-export async function getCurrentAdmin(): Promise<AdminUser | null> {
-  const session = await getAdminSession();
-  if (!session) return null;
-
-  const pool = getPool();
-  try {
-    const result = await pool.query(
-      `SELECT id, username, is_active, created_at, updated_at, last_login, created_by
-       FROM admin_users WHERE id = $1 AND is_active = true`,
-      [session.userId]
-    );
-    return result.rows[0] || null;
-  } catch (error) {
-    console.error('Error getting current admin:', error);
-    return null;
-  }
-}
-
-// Ensure admin_users table exists
-async function ensureAdminTable(): Promise<void> {
+// Ensure admin_users table exists - call this before any DB operations
+async function ensureTable(): Promise<void> {
   const pool = getPool();
   await pool.query(`
     CREATE TABLE IF NOT EXISTS admin_users (
@@ -127,96 +99,98 @@ async function ensureAdminTable(): Promise<void> {
   `);
 }
 
-// Initialize first admin from environment variables if no admins exist
-export async function initializeDefaultAdmin(): Promise<void> {
+// Get current admin session from cookies
+export async function getAdminSession(): Promise<SessionPayload | null> {
   try {
-    // Always ensure table exists first
-    await ensureAdminTable();
-
-    const adminName = process.env.ADMINNAME;
-    const adminPass = process.env.ADMINPASS;
-
-    if (!adminName || !adminPass) {
-      return;
-    }
-
-    const pool = getPool();
-
-    // Check if any admin exists
-    const countResult = await pool.query('SELECT COUNT(*) FROM admin_users');
-    if (parseInt(countResult.rows[0].count) > 0) {
-      return; // Admins already exist
-    }
-
-    // Create default admin
-    const passwordHash = hashPassword(adminPass);
-    await pool.query(
-      `INSERT INTO admin_users (username, password_hash, is_active) VALUES ($1, $2, true)`,
-      [adminName, passwordHash]
-    );
-    console.log(`Default admin user "${adminName}" created`);
-  } catch (error) {
-    console.error('Error initializing default admin:', error);
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
+    if (!sessionCookie) return null;
+    return verifySessionToken(sessionCookie.value);
+  } catch {
+    return null;
   }
 }
 
-// Login admin
-export async function loginAdmin(username: string, password: string): Promise<{ success: boolean; token?: string; error?: string }> {
-  const pool = getPool();
-
+// Get current admin user from session
+export async function getCurrentAdmin(): Promise<AdminUser | null> {
   try {
-    // Always ensure table exists first
-    await ensureAdminTable();
+    const session = await getAdminSession();
+    if (!session) return null;
 
-    // Initialize default admin if needed
-    await initializeDefaultAdmin();
+    await ensureTable();
 
+    const pool = getPool();
+    const result = await pool.query(
+      `SELECT id, username, is_active, created_at, updated_at, last_login, created_by
+       FROM admin_users WHERE id = $1 AND is_active = true`,
+      [session.userId]
+    );
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error getting current admin:', error);
+    return null;
+  }
+}
+
+// Login admin - main entry point
+export async function loginAdmin(
+  username: string,
+  password: string
+): Promise<{ success: boolean; token?: string; error?: string }> {
+  try {
+    // Step 1: Ensure table exists
+    await ensureTable();
+
+    const pool = getPool();
+
+    // Step 2: Try to find user in database
     const result = await pool.query(
       `SELECT id, username, password_hash, is_active FROM admin_users WHERE username = $1`,
       [username]
     );
 
-    // If no user found in DB, check env credentials as fallback
-    if (result.rows.length === 0) {
-      const envUsername = process.env.ADMINNAME;
-      const envPassword = process.env.ADMINPASS;
+    // Step 3: If user found in DB
+    if (result.rows.length > 0) {
+      const user = result.rows[0];
 
-      // Check if trying to login with env credentials
-      if (envUsername && envPassword && username === envUsername && password === envPassword) {
-        // Create the admin user in DB
-        const passwordHash = hashPassword(password);
-        const insertResult = await pool.query(
-          `INSERT INTO admin_users (username, password_hash, is_active)
-           VALUES ($1, $2, true)
-           ON CONFLICT (username) DO UPDATE SET password_hash = $2
-           RETURNING id, username`,
-          [username, passwordHash]
-        );
-        const newUser = insertResult.rows[0];
-        const token = createSessionToken(newUser.id, newUser.username);
-        return { success: true, token };
+      if (!user.is_active) {
+        return { success: false, error: 'Учётная запись деактивирована' };
       }
 
+      if (!verifyPassword(password, user.password_hash)) {
+        return { success: false, error: 'Неверное имя пользователя или пароль' };
+      }
+
+      // Update last login
+      await pool.query(`UPDATE admin_users SET last_login = NOW() WHERE id = $1`, [user.id]);
+
+      const token = createSessionToken(user.id, user.username);
+      return { success: true, token };
+    }
+
+    // Step 4: User not in DB - check ENV credentials
+    const envUsername = process.env.ADMINNAME;
+    const envPassword = process.env.ADMINPASS;
+
+    if (!envUsername || !envPassword) {
       return { success: false, error: 'Неверное имя пользователя или пароль' };
     }
 
-    const user = result.rows[0];
-
-    if (!user.is_active) {
-      return { success: false, error: 'Учётная запись деактивирована' };
-    }
-
-    if (!verifyPassword(password, user.password_hash)) {
+    if (username !== envUsername || password !== envPassword) {
       return { success: false, error: 'Неверное имя пользователя или пароль' };
     }
 
-    // Update last login
-    await pool.query(
-      `UPDATE admin_users SET last_login = NOW() WHERE id = $1`,
-      [user.id]
+    // Step 5: Create admin from ENV credentials
+    const passwordHash = hashPassword(password);
+    const insertResult = await pool.query(
+      `INSERT INTO admin_users (username, password_hash, is_active, last_login)
+       VALUES ($1, $2, true, NOW())
+       RETURNING id, username`,
+      [username, passwordHash]
     );
 
-    const token = createSessionToken(user.id, user.username);
+    const newUser = insertResult.rows[0];
+    const token = createSessionToken(newUser.id, newUser.username);
     return { success: true, token };
   } catch (error) {
     console.error('Login error:', error);

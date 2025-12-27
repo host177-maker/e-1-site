@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminLoginPage() {
@@ -9,23 +9,6 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [checkingSession, setCheckingSession] = useState(true);
-
-  useEffect(() => {
-    // Check if already logged in
-    fetch('/api/e1admin/session')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.authenticated) {
-          router.push('/e1admin');
-        } else {
-          setCheckingSession(false);
-        }
-      })
-      .catch(() => {
-        setCheckingSession(false);
-      });
-  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,14 +35,6 @@ export default function AdminLoginPage() {
       setLoading(false);
     }
   };
-
-  if (checkingSession) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#7cb342] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
