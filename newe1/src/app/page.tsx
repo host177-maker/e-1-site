@@ -2,6 +2,7 @@ import HeroBanner from '@/components/HeroBanner';
 import FeaturesSection from '@/components/FeaturesSection';
 import CatalogSection from '@/components/CatalogSection';
 import ReviewsSection from '@/components/ReviewsSection';
+import AboutSection from '@/components/AboutSection';
 
 export default function Home() {
   return (
@@ -17,6 +18,9 @@ export default function Home() {
 
       {/* Reviews */}
       <ReviewsSection />
+
+      {/* About Company */}
+      <AboutSection />
     </>
   );
 }
