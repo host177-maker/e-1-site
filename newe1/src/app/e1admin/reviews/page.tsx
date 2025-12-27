@@ -56,7 +56,7 @@ function StarRating({ rating }: { rating: number }) {
 export default function ReviewsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const statusFilter = searchParams.get('status') || 'all';
+  const statusFilter = searchParams?.get('status') || 'all';
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [counts, setCounts] = useState<Counts>({ active: 0, pending: 0, rejected: 0, total: 0 });
