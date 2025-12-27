@@ -164,7 +164,7 @@ export default function PromotionsPage() {
 
   const fetchPromotions = async (offset = 0, append = false) => {
     try {
-      const res = await fetch(`/api/promotions?limit=10&offset=${offset}`);
+      const res = await fetch(`/api/sales?limit=10&offset=${offset}`);
       const data = await res.json();
 
       if (data.success) {
