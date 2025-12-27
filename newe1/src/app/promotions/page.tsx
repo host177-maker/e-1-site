@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 
 interface Promotion {
@@ -65,11 +64,10 @@ function PromotionCard({ promotion }: { promotion: Promotion }) {
       {/* Images */}
       {promotion.images && promotion.images.length > 0 && (
         <div className="relative h-48 bg-gray-100">
-          <Image
+          <img
             src={promotion.images[0]}
             alt={promotion.title}
-            fill
-            className="object-cover"
+            className="w-full h-full object-cover"
           />
           {promotion.images.length > 1 && (
             <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
@@ -118,7 +116,7 @@ function PromotionCard({ promotion }: { promotion: Promotion }) {
                 onClick={() => setLightboxPhoto(photo)}
                 className="relative w-20 h-20 rounded-lg overflow-hidden hover:opacity-80 transition-opacity"
               >
-                <Image src={photo} alt={`Фото ${index + 1}`} fill className="object-cover" />
+                <img src={photo} alt={`Фото ${index + 1}`} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
@@ -139,12 +137,10 @@ function PromotionCard({ promotion }: { promotion: Promotion }) {
           onClick={() => setLightboxPhoto(null)}
         >
           <div className="relative max-w-4xl max-h-[90vh]">
-            <Image
+            <img
               src={lightboxPhoto}
               alt="Увеличенное фото"
-              width={800}
-              height={600}
-              className="object-contain max-h-[90vh]"
+              className="max-w-full max-h-[90vh] object-contain"
             />
             <button
               onClick={() => setLightboxPhoto(null)}
