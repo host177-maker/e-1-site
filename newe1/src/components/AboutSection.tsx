@@ -5,14 +5,14 @@ export default function AboutSection() {
     <section className="py-12 md:py-16 bg-white">
       <div className="container-custom">
         {/* Section label */}
-        <div className="text-center mb-4">
+        <div className="mb-4">
           <span className="text-[#62bb46] font-semibold text-sm uppercase tracking-wider">
             О Компании
           </span>
         </div>
 
         {/* Main heading */}
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#3d4543] text-center mb-10 max-w-4xl mx-auto">
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#3d4543] mb-10 max-w-4xl">
           Мебельная компания Е1 это крупное современное производство
         </h2>
 

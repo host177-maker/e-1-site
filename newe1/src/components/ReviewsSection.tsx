@@ -168,17 +168,6 @@ export default function ReviewsSection() {
             </button>
           </div>
         )}
-
-        {/* Review CTA */}
-        <div className="mt-12 bg-bg-gray rounded-xl p-8 text-center">
-          <h3 className="text-2xl font-bold mb-4">Оставьте свой отзыв</h3>
-          <p className="text-text-medium mb-6 max-w-xl mx-auto">
-            Мы ценим мнение каждого клиента. Поделитесь своим опытом сотрудничества с нами.
-          </p>
-          <Link href="/reviews" className="btn-primary inline-block">
-            Написать отзыв
-          </Link>
-        </div>
       </div>
     </section>
   );
