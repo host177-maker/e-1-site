@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 
 interface FormData {
@@ -26,6 +26,12 @@ export default function SuppliersPage() {
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isSubmitted) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isSubmitted]);
 
   const formatPhone = (value: string) => {
     const digits = value.replace(/\D/g, '');

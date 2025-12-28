@@ -9,6 +9,7 @@ export const runtime = 'nodejs';
 interface WholesaleRequest {
   full_name: string;
   city: string;
+  phone: string;
   company_name: string;
   website?: string;
   email: string;
@@ -77,6 +78,12 @@ async function sendWholesaleNotification(data: WholesaleRequest): Promise<boolea
                 <td style="padding: 10px; border-bottom: 1px solid #eee;">${data.city}</td>
               </tr>
               <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Телефон:</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                  <a href="tel:${data.phone}" style="color: #62bb46;">${data.phone}</a>
+                </td>
+              </tr>
+              <tr>
                 <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Компания:</td>
                 <td style="padding: 10px; border-bottom: 1px solid #eee;">${data.company_name}</td>
               </tr>
@@ -119,9 +126,18 @@ export async function POST(request: NextRequest) {
     const body: WholesaleRequest = await request.json();
 
     // Validate required fields
-    if (!body.full_name || !body.city || !body.company_name || !body.email) {
+    if (!body.full_name || !body.city || !body.phone || !body.company_name || !body.email) {
       return NextResponse.json(
         { success: false, error: 'Заполните все обязательные поля' },
+        { status: 400 }
+      );
+    }
+
+    // Validate phone
+    const phoneDigits = body.phone.replace(/\D/g, '');
+    if (phoneDigits.length < 11) {
+      return NextResponse.json(
+        { success: false, error: 'Некорректный номер телефона' },
         { status: 400 }
       );
     }
@@ -140,7 +156,7 @@ export async function POST(request: NextRequest) {
       await createB2BLead({
         lead_type: 'wholesale',
         full_name: body.full_name,
-        phone: '', // Wholesale form doesn't have phone
+        phone: body.phone,
         email: body.email,
         city: body.city,
         company_name: body.company_name,

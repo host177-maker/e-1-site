@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 interface FormData {
   full_name: string;
   city: string;
+  phone: string;
   company_name: string;
   website: string;
   email: string;
@@ -15,6 +16,7 @@ export default function WholesalePage() {
   const [formData, setFormData] = useState<FormData>({
     full_name: '',
     city: '',
+    phone: '',
     company_name: '',
     website: '',
     email: '',
@@ -24,6 +26,31 @@ export default function WholesalePage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [agreeToPrivacy, setAgreeToPrivacy] = useState(false);
 
+  useEffect(() => {
+    if (isSubmitted) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isSubmitted]);
+
+  const formatPhone = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length === 0) return '';
+    if (digits.length <= 1) return `+7 (${digits}`;
+    if (digits.length <= 4) return `+7 (${digits.slice(1)}`;
+    if (digits.length <= 7) return `+7 (${digits.slice(1, 4)}) ${digits.slice(4)}`;
+    if (digits.length <= 9) return `+7 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+    return `+7 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7, 9)}-${digits.slice(9, 11)}`;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    if (!value.startsWith('+7') && value.length > 0) {
+      value = '+7' + value.replace(/^\+?7?/, '');
+    }
+    const formatted = formatPhone(value);
+    setFormData({ ...formData, phone: formatted });
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Partial<FormData> = {};
 
@@ -32,6 +59,9 @@ export default function WholesalePage() {
     }
     if (!formData.city.trim()) {
       newErrors.city = 'Введите город';
+    }
+    if (!formData.phone || formData.phone.replace(/\D/g, '').length < 11) {
+      newErrors.phone = 'Введите корректный номер телефона';
     }
     if (!formData.company_name.trim()) {
       newErrors.company_name = 'Введите название компании';
@@ -348,6 +378,25 @@ export default function WholesalePage() {
                   />
                   {errors.city && (
                     <p className="mt-1 text-xs text-red-500">{errors.city}</p>
+                  )}
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Телефон <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handlePhoneChange}
+                    placeholder="+7 (xxx) xxx-xx-xx"
+                    className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#62bb46] text-sm ${
+                      errors.phone ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                  />
+                  {errors.phone && (
+                    <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
                   )}
                 </div>
 

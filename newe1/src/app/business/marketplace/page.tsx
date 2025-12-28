@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 interface FormData {
@@ -21,6 +21,12 @@ export default function MarketplacePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [agreeToPrivacy, setAgreeToPrivacy] = useState(false);
+
+  useEffect(() => {
+    if (isSubmitted) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isSubmitted]);
 
   const formatPhone = (value: string) => {
     const digits = value.replace(/\D/g, '');
