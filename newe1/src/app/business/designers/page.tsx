@@ -41,6 +41,7 @@ export default function DesignersPage() {
   } | null>(null);
   const [isCheckingPromo, setIsCheckingPromo] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [agreeToPrivacy, setAgreeToPrivacy] = useState(false);
 
   const formatPhone = (value: string) => {
     const digits = value.replace(/\D/g, '');
@@ -574,9 +575,24 @@ export default function DesignersPage() {
                     </p>
                   </div>
 
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={agreeToPrivacy}
+                      onChange={(e) => setAgreeToPrivacy(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 text-[#62bb46] border-gray-300 rounded focus:ring-[#62bb46]"
+                    />
+                    <span className="text-xs text-gray-600">
+                      Я согласен на{' '}
+                      <a href="/privacy-policy" target="_blank" className="text-[#62bb46] underline hover:no-underline">
+                        обработку персональных данных
+                      </a>
+                    </span>
+                  </label>
+
                   <button
                     onClick={handleStep1Submit}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !agreeToPrivacy}
                     className="w-full bg-[#62bb46] text-white py-3 rounded-lg font-bold hover:bg-[#55a83d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                   >
                     {isSubmitting ? 'Сохранение...' : 'Перейти к шагу 2'}

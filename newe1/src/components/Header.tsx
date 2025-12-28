@@ -19,9 +19,9 @@ const serviceSubmenu = [
 
 // Business submenu structure
 const businessSubmenu = [
-  { label: 'Дизайнерам и архитекторам', href: '/business/designers' },
+  { label: 'Дизайнерам и архитекторам', href: '/business/designers', highlighted: true },
   { label: 'Оптовые продажи', href: '/business/wholesale' },
-  { label: 'Продавцам на маркетплейсах', href: '/business/marketplace' },
+  { label: 'Продавцам на маркетплейсах', href: '/business/marketplace', highlighted: true },
   { label: 'Франшиза', href: '/business/franchise' },
   { label: 'Поставщикам', href: '/business/suppliers' },
   { label: 'Работа в Е1', href: '/business/careers' },
@@ -317,8 +317,13 @@ export default function Header() {
                           ) : (
                             <Link
                               href={subItem.href}
-                              className="block px-4 py-2 text-[13px] text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
+                              className={`flex items-center gap-1.5 px-4 py-2 text-[13px] hover:text-[#62bb46] hover:bg-gray-50 transition-colors ${'highlighted' in subItem && subItem.highlighted ? 'font-bold text-gray-900' : 'text-gray-600'}`}
                             >
+                              {'highlighted' in subItem && subItem.highlighted && (
+                                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#f5b800">
+                                  <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                              )}
                               {subItem.label}
                             </Link>
                           )}
@@ -408,12 +413,17 @@ export default function Header() {
                                 ) : (
                                   <Link
                                     href={subItem.href}
-                                    className="block px-4 py-2.5 text-sm text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
+                                    className={`flex items-center gap-1.5 px-4 py-2.5 text-sm hover:text-[#62bb46] hover:bg-gray-50 transition-colors ${'highlighted' in subItem && subItem.highlighted ? 'font-bold text-gray-900' : 'text-gray-600'}`}
                                     onClick={() => {
                                       setIsOpen(false);
                                       setIsMobileMenuOpen(false);
                                     }}
                                   >
+                                    {'highlighted' in subItem && subItem.highlighted && (
+                                      <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#f5b800">
+                                        <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                      </svg>
+                                    )}
                                     {subItem.label}
                                   </Link>
                                 )}

@@ -20,6 +20,7 @@ export default function MarketplacePage() {
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [agreeToPrivacy, setAgreeToPrivacy] = useState(false);
 
   const formatPhone = (value: string) => {
     const digits = value.replace(/\D/g, '');
@@ -156,9 +157,12 @@ export default function MarketplacePage() {
             <p className="text-xl md:text-2xl font-medium mb-4 opacity-95">
               Каждый занимается тем, что умеет лучше всего
             </p>
-            <p className="text-base md:text-lg opacity-90">
+            <p className="text-base md:text-lg opacity-90 mb-4">
               Мы доставляем шкафы по 40 регионам РФ, а вы умело управляете бюджетами
               и кабинетом на маркетплейсах. Продавая нашу мебель — просто сообщаете, куда доставить.
+            </p>
+            <p className="text-base md:text-lg opacity-90">
+              Работаем по схемам <strong>DBS</strong> и <strong>Real FBS</strong> собственной службой доставки.
             </p>
           </div>
         </div>
@@ -185,8 +189,8 @@ export default function MarketplacePage() {
             </div>
             <div className="text-center">
               <div className="w-14 h-14 bg-[#62bb46] text-white rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-xl">3</div>
-              <h3 className="font-bold text-gray-900 mb-2">Мы производим</h3>
-              <p className="text-sm text-gray-600">Изготавливаем мебель на нашем производстве</p>
+              <h3 className="font-bold text-gray-900 mb-2">Мы связываемся с клиентом</h3>
+              <p className="text-sm text-gray-600">Обсуждаем, когда ему удобно получить товар</p>
             </div>
             <div className="text-center">
               <div className="w-14 h-14 bg-[#62bb46] text-white rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-xl">4</div>
@@ -281,42 +285,6 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      {/* Маркетплейсы */}
-      <div className="py-12 bg-white">
-        <div className="container-custom">
-          <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 mb-8">
-            Работаем со всеми площадками
-          </h2>
-
-          <div className="flex flex-wrap justify-center gap-8 max-w-3xl mx-auto">
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center mb-2">
-                <span className="text-2xl font-bold text-purple-600">WB</span>
-              </div>
-              <span className="text-sm text-gray-600">Wildberries</span>
-            </div>
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center mb-2">
-                <span className="text-2xl font-bold text-blue-600">OZON</span>
-              </div>
-              <span className="text-sm text-gray-600">Ozon</span>
-            </div>
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center mb-2">
-                <span className="text-2xl font-bold text-yellow-500">Я</span>
-              </div>
-              <span className="text-sm text-gray-600">Яндекс Маркет</span>
-            </div>
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center mb-2">
-                <span className="text-2xl font-bold text-red-500">СМ</span>
-              </div>
-              <span className="text-sm text-gray-600">СберМегаМаркет</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Форма заявки */}
       <div className="py-12 bg-gray-50" id="apply">
         <div className="container-custom">
@@ -401,17 +369,28 @@ export default function MarketplacePage() {
                   )}
                 </div>
 
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={agreeToPrivacy}
+                    onChange={(e) => setAgreeToPrivacy(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 text-[#62bb46] border-gray-300 rounded focus:ring-[#62bb46]"
+                  />
+                  <span className="text-xs text-gray-600">
+                    Я согласен на{' '}
+                    <a href="/privacy-policy" target="_blank" className="text-[#62bb46] underline hover:no-underline">
+                      обработку персональных данных
+                    </a>
+                  </span>
+                </label>
+
                 <button
                   onClick={handleSubmit}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !agreeToPrivacy}
                   className="w-full bg-[#62bb46] text-white py-3 rounded-lg font-bold hover:bg-[#55a83d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
                   {isSubmitting ? 'Отправка...' : 'Отправить заявку'}
                 </button>
-
-                <p className="text-xs text-gray-500 text-center">
-                  Нажимая кнопку, вы соглашаетесь с обработкой персональных данных
-                </p>
               </div>
             </div>
           </div>
