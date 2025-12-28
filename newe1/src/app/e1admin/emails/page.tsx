@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import AdminPageWrapper from '@/components/admin/AdminPageWrapper';
 
 interface EmailSetting {
   key: string;
@@ -10,11 +11,12 @@ interface EmailSetting {
 }
 
 const keyLabels: Record<string, string> = {
-  director_email: 'Почта сообщений для директора',
-  sales_email: 'Отдел продаж интернет-магазина',
-  designers_email: 'Отдел работы с дизайнерами',
-  wholesale_email: 'Отдел оптовых продаж',
-  marketplace_email: 'Отдел по ЧИМ',
+  director_email: 'Почта для директора',
+  sales_email: 'Отдел продаж',
+  designers_email: 'Дизайнерам и франшиза',
+  wholesale_email: 'Оптовые продажи',
+  marketplace_email: 'Маркетплейсы (ЧИМ)',
+  procurement_email: 'Отдел закупок',
 };
 
 export default function EmailsPage() {
@@ -87,55 +89,53 @@ export default function EmailsPage() {
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map(i => (
-              <div key={i} className="h-20 bg-gray-200 rounded"></div>
-            ))}
+      <AdminPageWrapper>
+        <div className="p-4">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="space-y-2">
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className="h-12 bg-gray-200 rounded"></div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </AdminPageWrapper>
     );
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Почтовые адреса</h1>
-          <p className="text-gray-600 mt-1">Настройка email адресов для сайта и сервисов</p>
+    <AdminPageWrapper>
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-lg font-bold text-gray-900">Почтовые адреса</h1>
+          <button
+            onClick={handleSave}
+            disabled={saving || !hasChanges()}
+            className="px-3 py-1.5 bg-[#62bb46] text-white text-sm rounded hover:bg-[#55a83d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {saving ? 'Сохранение...' : 'Сохранить'}
+          </button>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving || !hasChanges()}
-          className="px-4 py-2 bg-[#62bb46] text-white rounded-lg hover:bg-[#55a83d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {saving ? 'Сохранение...' : 'Сохранить'}
-        </button>
-      </div>
 
-      {message && (
-        <div
-          className={`mb-6 p-4 rounded-lg ${
-            message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
+        {message && (
+          <div
+            className={`mb-4 p-2 rounded text-sm ${
+              message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}
+          >
+            {message.text}
+          </div>
+        )}
 
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="divide-y divide-gray-200">
-          {emails.map((item) => (
-            <div key={item.key} className="p-4 hover:bg-gray-50">
-              <div className="flex flex-col md:flex-row md:items-center gap-4">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-900 mb-1">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="divide-y divide-gray-100">
+            {emails.map((item) => (
+              <div key={item.key} className="p-3 hover:bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <label className="w-40 text-sm font-medium text-gray-700 shrink-0">
                     {keyLabels[item.key] || item.key}
                   </label>
-                  <p className="text-xs text-gray-500 mb-2">{item.description}</p>
                   <input
                     type="email"
                     value={editedEmails[item.key] || ''}
@@ -143,39 +143,18 @@ export default function EmailsPage() {
                       setEditedEmails({ ...editedEmails, [item.key]: e.target.value })
                     }
                     placeholder="email@example.com"
-                    className="w-full md:w-96 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#62bb46] text-sm"
+                    className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-[#62bb46] text-sm"
                   />
                 </div>
-                <div className="text-xs text-gray-400">
-                  {item.updated_at && (
-                    <>
-                      Обновлено:{' '}
-                      {new Date(item.updated_at).toLocaleString('ru-RU', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </>
-                  )}
-                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-medium text-blue-900 mb-2">Как это работает</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• <strong>Почта для директора</strong> — получает сообщения из формы обратной связи в футере сайта</li>
-          <li>• <strong>Отдел продаж</strong> — получает лиды с сайта (замеры, рассрочка) при сбое CRM</li>
-          <li>• <strong>Отдел дизайнеров</strong> — получает заявки от дизайнеров и на франшизу</li>
-          <li>• <strong>Отдел оптовых продаж</strong> — получает заявки на оптовое сотрудничество</li>
-          <li>• <strong>Отдел по ЧИМ</strong> — получает заявки от селлеров маркетплейсов</li>
-        </ul>
+        <p className="mt-3 text-xs text-gray-500">
+          Эти адреса используются для получения заявок с сайта. Изменения вступают в силу сразу после сохранения.
+        </p>
       </div>
-    </div>
+    </AdminPageWrapper>
   );
 }

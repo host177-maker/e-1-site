@@ -10,6 +10,7 @@ export const EMAIL_KEYS = {
   DESIGNERS: 'designers_email',    // Отдел работы с дизайнерами (+ франшиза)
   WHOLESALE: 'wholesale_email',    // Отдел оптовых продаж
   MARKETPLACE: 'marketplace_email', // Отдел по ЧИМ (маркетплейсы)
+  PROCUREMENT: 'procurement_email', // Отдел закупок (поставщикам)
 } as const;
 
 export type EmailKey = typeof EMAIL_KEYS[keyof typeof EMAIL_KEYS];
@@ -34,6 +35,7 @@ async function ensureTable() {
     { key: EMAIL_KEYS.DESIGNERS, email: '', description: 'Отдел работы с дизайнерами (заявки от дизайнеров и франшизы)' },
     { key: EMAIL_KEYS.WHOLESALE, email: '', description: 'Отдел оптовых продаж (заявки по оптовому сотрудничеству)' },
     { key: EMAIL_KEYS.MARKETPLACE, email: '', description: 'Отдел по ЧИМ (заявки от селлеров маркетплейсов)' },
+    { key: EMAIL_KEYS.PROCUREMENT, email: '', description: 'Отдел закупок (заявки от поставщиков)' },
   ];
 
   for (const item of defaults) {

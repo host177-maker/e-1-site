@@ -24,7 +24,6 @@ const businessSubmenu = [
   { label: 'Продавцам на маркетплейсах', href: '/business/marketplace', highlighted: true },
   { label: 'Франшиза', href: '/business/franchise' },
   { label: 'Поставщикам', href: '/business/suppliers' },
-  { label: 'Работа в Е1', href: '/business/careers' },
 ];
 
 const menuItems = [

@@ -7,6 +7,7 @@ export const EMAIL_KEYS = {
   DESIGNERS: 'designers_email',    // Отдел работы с дизайнерами (+ франшиза)
   WHOLESALE: 'wholesale_email',    // Отдел оптовых продаж
   MARKETPLACE: 'marketplace_email', // Отдел по ЧИМ (маркетплейсы)
+  PROCUREMENT: 'procurement_email', // Отдел закупок (поставщикам)
 } as const;
 
 export type EmailKey = typeof EMAIL_KEYS[keyof typeof EMAIL_KEYS];
@@ -34,6 +35,7 @@ export async function getEmailByKey(key: EmailKey): Promise<string | null> {
       [EMAIL_KEYS.DESIGNERS]: process.env.DIZMAIL,
       [EMAIL_KEYS.WHOLESALE]: process.env.OPTMAIL,
       [EMAIL_KEYS.MARKETPLACE]: process.env.MARKETPLACE_MAIL,
+      [EMAIL_KEYS.PROCUREMENT]: process.env.PROCUREMENT_MAIL,
     };
 
     return envFallbacks[key] || null;
@@ -47,6 +49,7 @@ export async function getEmailByKey(key: EmailKey): Promise<string | null> {
       [EMAIL_KEYS.DESIGNERS]: process.env.DIZMAIL,
       [EMAIL_KEYS.WHOLESALE]: process.env.OPTMAIL,
       [EMAIL_KEYS.MARKETPLACE]: process.env.MARKETPLACE_MAIL,
+      [EMAIL_KEYS.PROCUREMENT]: process.env.PROCUREMENT_MAIL,
     };
 
     return envFallbacks[key] || null;

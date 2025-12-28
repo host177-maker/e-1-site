@@ -194,8 +194,8 @@ export default function MarketplacePage() {
             </div>
             <div className="text-center">
               <div className="w-14 h-14 bg-[#62bb46] text-white rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-xl">4</div>
-              <h3 className="font-bold text-gray-900 mb-2">Доставляем клиенту</h3>
-              <p className="text-sm text-gray-600">Отправляем заказ напрямую покупателю в 40+ регионов</p>
+              <h3 className="font-bold text-gray-900 mb-2">Доставляем с наших складов</h3>
+              <p className="text-sm text-gray-600">Отправляем заказ напрямую покупателю с одного из 15 складов в 40+ регионов</p>
             </div>
           </div>
         </div>
@@ -279,6 +279,30 @@ export default function MarketplacePage() {
               <div>
                 <h3 className="font-bold text-gray-900 mb-1">Поддержка менеджера</h3>
                 <p className="text-sm text-gray-600">Персональный менеджер для решения любых вопросов</p>
+              </div>
+            </div>
+
+            <div className="flex gap-4 p-4 bg-white rounded-lg shadow-sm">
+              <div className="w-10 h-10 bg-[#62bb46]/10 rounded-lg flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 mb-1">Аналитика продаж</h3>
+                <p className="text-sm text-gray-600">Знаем, какие позиции выгоднее продавать, и делимся аналитикой с партнёрами</p>
+              </div>
+            </div>
+
+            <div className="flex gap-4 p-4 bg-white rounded-lg shadow-sm">
+              <div className="w-10 h-10 bg-[#62bb46]/10 rounded-lg flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 mb-1">Совместные акции</h3>
+                <p className="text-sm text-gray-600">Проводим совместные маркетинговые акции для увеличения продаж</p>
               </div>
             </div>
           </div>
