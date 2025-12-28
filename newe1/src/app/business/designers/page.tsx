@@ -65,7 +65,7 @@ export default function DesignersPage() {
   };
 
   const validateStep1 = (): boolean => {
-    const newErrors: Partial<FormData> = {};
+    const newErrors: FormErrors = {};
 
     if (!formData.business_type) {
       newErrors.business_type = 'Выберите форму ведения деятельности';
