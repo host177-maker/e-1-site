@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { getEmailByKey, EMAIL_KEYS } from '@/lib/emailSettings';
 
 interface MeasurementRequest {
   name: string;
@@ -61,10 +62,12 @@ async function sendEmailFallback(data: MeasurementRequest, webhookError: string)
   const smtpPassword = process.env.SMTP_PASSWORD;
   const smtpFrom = process.env.SMTP_FROM || 'robot@e-1.ru';
   const smtpFromName = process.env.SMTP_FROM_NAME || 'Мебельная компания Е1';
-  const saleMail = process.env.SALE_MAIL;
+
+  // Get email from database, fallback to env
+  const saleMail = await getEmailByKey(EMAIL_KEYS.SALES);
 
   if (!smtpServer || !saleMail) {
-    console.error('Email fallback not configured: missing SMTP_SERVER or SALE_MAIL');
+    console.error('Email fallback not configured: missing SMTP_SERVER or sales email');
     return false;
   }
 

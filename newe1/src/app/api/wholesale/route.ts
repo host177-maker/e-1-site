@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { getEmailByKey, EMAIL_KEYS } from '@/lib/emailSettings';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -19,10 +20,12 @@ async function sendWholesaleNotification(data: WholesaleRequest): Promise<boolea
   const smtpPassword = process.env.SMTP_PASSWORD;
   const smtpFrom = process.env.SMTP_FROM || 'robot@e-1.ru';
   const smtpFromName = process.env.SMTP_FROM_NAME || 'Мебельная компания Е1';
-  const optMail = process.env.OPTMAIL;
+
+  // Get email from database, fallback to env
+  const optMail = await getEmailByKey(EMAIL_KEYS.WHOLESALE);
 
   if (!smtpServer || !optMail) {
-    console.error('Email not configured: missing SMTP_SERVER or OPTMAIL');
+    console.error('Email not configured: missing SMTP_SERVER or wholesale email');
     return false;
   }
 

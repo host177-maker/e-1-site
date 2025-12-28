@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { getEmailByKey, EMAIL_KEYS } from '@/lib/emailSettings';
 
 interface ContactRequest {
   name: string;
@@ -14,10 +15,12 @@ async function sendEmail(data: ContactRequest): Promise<boolean> {
   const smtpPassword = process.env.SMTP_PASSWORD;
   const smtpFrom = process.env.SMTP_FROM || 'robot@e-1.ru';
   const smtpFromName = process.env.SMTP_FROM_NAME || 'Мебельная компания Е1';
-  const dirMail = process.env.DIR_MAIL;
+
+  // Get email from database, fallback to env
+  const dirMail = await getEmailByKey(EMAIL_KEYS.DIRECTOR);
 
   if (!smtpServer || !dirMail) {
-    console.error('Email not configured: missing SMTP_SERVER or DIR_MAIL');
+    console.error('Email not configured: missing SMTP_SERVER or director email');
     return false;
   }
 
