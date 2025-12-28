@@ -9,12 +9,16 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || undefined;
     const type = searchParams.get('type') as LeadType | undefined;
+    const dateFrom = searchParams.get('dateFrom') || undefined;
+    const dateTo = searchParams.get('dateTo') || undefined;
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : 50;
     const offset = searchParams.get('offset') ? parseInt(searchParams.get('offset')!, 10) : 0;
 
     const { leads, total } = await getB2BLeads({
       search,
       type: type || undefined,
+      dateFrom,
+      dateTo,
       limit,
       offset,
     });

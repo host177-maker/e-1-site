@@ -39,6 +39,8 @@ export default function B2BLeadsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [selectedLead, setSelectedLead] = useState<B2BLead | null>(null);
@@ -50,6 +52,8 @@ export default function B2BLeadsPage() {
       const params = new URLSearchParams();
       if (searchQuery) params.append('search', searchQuery);
       if (typeFilter) params.append('type', typeFilter);
+      if (dateFrom) params.append('dateFrom', dateFrom);
+      if (dateTo) params.append('dateTo', dateTo);
 
       const response = await fetch(`/api/e1admin/b2b-leads?${params}`);
       const data = await response.json();
@@ -63,7 +67,7 @@ export default function B2BLeadsPage() {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, typeFilter]);
+  }, [searchQuery, typeFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     fetchLeads();
@@ -188,6 +192,34 @@ export default function B2BLeadsPage() {
             <option value="suppliers_materials">Поставки материалов ({counts.suppliers_materials || 0})</option>
             <option value="suppliers_logistics">Логистика ({counts.suppliers_logistics || 0})</option>
           </select>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#62bb46] text-sm"
+              title="Дата от"
+            />
+            <span className="text-gray-400">—</span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#62bb46] text-sm"
+              title="Дата до"
+            />
+            {(dateFrom || dateTo) && (
+              <button
+                onClick={() => { setDateFrom(''); setDateTo(''); }}
+                className="p-2 text-gray-400 hover:text-gray-600"
+                title="Сбросить даты"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Table */}
@@ -225,8 +257,12 @@ export default function B2BLeadsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {leads.map((lead) => (
-                    <tr key={lead.id} className="hover:bg-gray-50">
-                      <td className="px-3 py-2">
+                    <tr
+                      key={lead.id}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => setSelectedLead(lead)}
+                    >
+                      <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={selectedIds.has(lead.id)}
@@ -244,7 +280,7 @@ export default function B2BLeadsPage() {
                       <td className="px-3 py-2 text-gray-600">{lead.email || '—'}</td>
                       <td className="px-3 py-2 text-gray-600">{lead.company_name || '—'}</td>
                       <td className="px-3 py-2 text-gray-500 text-xs">{formatDate(lead.created_at)}</td>
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                         {lead.file_path ? (
                           <a
                             href={lead.file_path}
@@ -258,29 +294,17 @@ export default function B2BLeadsPage() {
                           <span className="text-gray-400">—</span>
                         )}
                       </td>
-                      <td className="px-3 py-2">
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => setSelectedLead(lead)}
-                            className="p-1 text-gray-400 hover:text-[#62bb46]"
-                            title="Просмотр"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDelete(lead.id)}
-                            disabled={deleting}
-                            className="p-1 text-gray-400 hover:text-red-500 disabled:opacity-50"
-                            title="Удалить"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
+                      <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleDelete(lead.id)}
+                          disabled={deleting}
+                          className="p-1 text-gray-400 hover:text-red-500 disabled:opacity-50"
+                          title="Удалить"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </td>
                     </tr>
                   ))}

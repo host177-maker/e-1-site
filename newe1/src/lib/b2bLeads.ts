@@ -90,6 +90,8 @@ export async function createB2BLead(data: CreateLeadData): Promise<number> {
 export async function getB2BLeads(options?: {
   search?: string;
   type?: LeadType;
+  dateFrom?: string;
+  dateTo?: string;
   limit?: number;
   offset?: number;
 }): Promise<{ leads: B2BLead[]; total: number }> {
@@ -117,6 +119,18 @@ export async function getB2BLeads(options?: {
       proposal ILIKE $${paramIndex}
     )`;
     params.push(searchPattern);
+    paramIndex++;
+  }
+
+  if (options?.dateFrom) {
+    whereClause += ` AND created_at >= $${paramIndex}::date`;
+    params.push(options.dateFrom);
+    paramIndex++;
+  }
+
+  if (options?.dateTo) {
+    whereClause += ` AND created_at < ($${paramIndex}::date + interval '1 day')`;
+    params.push(options.dateTo);
     paramIndex++;
   }
 
