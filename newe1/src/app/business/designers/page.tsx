@@ -262,7 +262,7 @@ export default function DesignersPage() {
 
         <div className="container-custom relative z-10">
           <div className="max-w-2xl">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 drop-shadow-lg text-white">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 drop-shadow-lg" style={{ color: '#ffffff' }}>
               Сотрудничество с дизайнерами и архитекторами
             </h1>
             <p className="text-lg md:text-xl opacity-95 mb-8 drop-shadow-md">
@@ -767,10 +767,10 @@ export default function DesignersPage() {
       {/* CTA Section - компактный */}
       <div className="py-8 bg-[#3d4543]">
         <div className="container-custom text-center">
-          <h2 className="text-lg md:text-xl font-bold text-white mb-2">
+          <h2 className="text-lg md:text-xl font-bold mb-2" style={{ color: '#ffffff' }}>
             Готовы начать сотрудничество?
           </h2>
-          <p className="text-white text-sm mb-4 max-w-lg mx-auto">
+          <p className="text-sm mb-4 max-w-lg mx-auto" style={{ color: '#ffffff' }}>
             Зарегистрируйтесь и получите персональный промокод для ваших клиентов
           </p>
           <a
