@@ -770,7 +770,7 @@ export default function DesignersPage() {
           <h2 className="text-lg md:text-xl font-bold text-white mb-2">
             Готовы начать сотрудничество?
           </h2>
-          <p className="text-white/80 text-sm mb-4 max-w-lg mx-auto">
+          <p className="text-white text-sm mb-4 max-w-lg mx-auto">
             Зарегистрируйтесь и получите персональный промокод для ваших клиентов
           </p>
           <a
