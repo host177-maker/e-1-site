@@ -246,7 +246,7 @@ export default function DesignersPage() {
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/diz.png"
+            src="/images/diz.jpg"
             alt="Сотрудничество с дизайнерами"
             fill
             className="object-cover"
