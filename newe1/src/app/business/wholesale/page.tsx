@@ -304,10 +304,10 @@ export default function WholesalePage() {
         <div className="container-custom">
           <div className="max-w-xl mx-auto">
             <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 mb-2">
-              Получить оптовый прайс
+              Отправить заявку на сотрудничество
             </h2>
             <p className="text-center text-gray-600 text-sm mb-6">
-              Оставьте заявку и получите оптовый прайс, условия сотрудничества и персональное предложение под ваш бизнес
+              Оставьте заявку и получите условия сотрудничества и персональное предложение под ваш бизнес
             </p>
 
             <div className="bg-gray-50 rounded-xl shadow-lg p-6">
@@ -407,7 +407,7 @@ export default function WholesalePage() {
                   disabled={isSubmitting}
                   className="w-full bg-[#62bb46] text-white py-3 rounded-lg font-bold hover:bg-[#55a83d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 >
-                  {isSubmitting ? 'Отправка...' : 'Получить прайс'}
+                  {isSubmitting ? 'Отправка...' : 'Отправить заявку'}
                 </button>
 
                 <p className="text-xs text-gray-500 text-center">

@@ -21,6 +21,7 @@ const serviceSubmenu = [
 const businessSubmenu = [
   { label: 'Дизайнерам и архитекторам', href: '/business/designers' },
   { label: 'Оптовые продажи', href: '/business/wholesale' },
+  { label: 'Продавцам на маркетплейсах', href: '/business/marketplace' },
   { label: 'Франшиза', href: '/business/franchise' },
   { label: 'Поставщикам', href: '/business/suppliers' },
   { label: 'Работа в Е1', href: '/business/careers' },
