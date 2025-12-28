@@ -257,11 +257,11 @@ export default function DesignersPage() {
             }}
           />
           {/* Gradient overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#2a302e]/90 via-[#3d4543]/70 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-l from-[#2a302e]/90 via-[#3d4543]/70 to-transparent"></div>
         </div>
 
         <div className="container-custom relative z-10">
-          <div className="max-w-2xl">
+          <div className="max-w-2xl ml-auto text-right">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 drop-shadow-lg">
               Сотрудничество с дизайнерами и архитекторами
             </h1>
@@ -269,7 +269,7 @@ export default function DesignersPage() {
               Получайте вознаграждение за каждую сделку с вашими клиентами.
               Присоединяйтесь к программе партнёрства Е1!
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 justify-end">
               <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-lg text-sm">
                 <svg className="w-5 h-5 text-[#62bb46]" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
