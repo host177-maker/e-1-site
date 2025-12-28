@@ -35,7 +35,7 @@ const menuItems = [
   { label: 'ОТЗЫВЫ', href: '/reviews' },
   { label: 'АДРЕСА САЛОНОВ', href: '/stores' },
   { label: 'ГЕОГРАФИЯ ДОСТАВКИ', href: '/delivery' },
-  { label: '...', href: '/business', hasSubmenu: true, submenuType: 'business' },
+  { label: '...', mobileLabel: 'СОТРУДНИЧЕСТВО', href: '/business', hasSubmenu: true, submenuType: 'business', showLastOnMobile: true },
 ];
 
 // Mobile-only menu item
@@ -366,7 +366,8 @@ export default function Header() {
           {/* Mobile nav */}
           <nav className="bg-[#62bb46]">
             <ul className="divide-y divide-[#55a83d]">
-              {menuItems.map((item) => {
+              {/* Regular menu items (excluding showLastOnMobile) */}
+              {menuItems.filter(item => !item.showLastOnMobile).map((item) => {
                 const isBusinessMenu = item.submenuType === 'business';
                 const isOpen = isBusinessMenu ? mobileBusinessOpen : mobileServiceOpen;
                 const setIsOpen = isBusinessMenu ? setMobileBusinessOpen : setMobileServiceOpen;
@@ -381,7 +382,7 @@ export default function Header() {
                         className="flex items-center justify-between w-full px-4 py-3 font-bold"
                         style={{ color: 'white' }}
                       >
-                        <span>{item.label}</span>
+                        <span>{item.mobileLabel || item.label}</span>
                         <svg
                           className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                           fill="none"
@@ -444,7 +445,7 @@ export default function Header() {
                           <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                       )}
-                      {item.label}
+                      {item.mobileLabel || item.label}
                     </Link>
                   )}
                 </li>
@@ -468,6 +469,75 @@ export default function Header() {
                   </a>
                 </li>
               ))}
+              {/* Items that should appear last on mobile (Сотрудничество) */}
+              {menuItems.filter(item => item.showLastOnMobile).map((item) => {
+                const isBusinessMenu = item.submenuType === 'business';
+                const isOpen = isBusinessMenu ? mobileBusinessOpen : mobileServiceOpen;
+                const setIsOpen = isBusinessMenu ? setMobileBusinessOpen : setMobileServiceOpen;
+                const submenuItems = isBusinessMenu ? businessSubmenu : serviceSubmenu;
+
+                return (
+                <li key={item.href}>
+                  <div>
+                    <button
+                      onClick={() => setIsOpen(!isOpen)}
+                      className="flex items-center justify-between w-full px-4 py-3 font-bold"
+                      style={{ color: 'white' }}
+                    >
+                      <span>{item.mobileLabel || item.label}</span>
+                      <svg
+                        className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {isOpen && (
+                      <div className="bg-white">
+                        <ul>
+                          {submenuItems.map((subItem) => (
+                            <li key={subItem.href} className="border-b border-gray-100 last:border-b-0">
+                              {'external' in subItem && subItem.external ? (
+                                <a
+                                  href={subItem.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block px-4 py-2.5 text-sm text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
+                                  onClick={() => {
+                                    setIsOpen(false);
+                                    setIsMobileMenuOpen(false);
+                                  }}
+                                >
+                                  {subItem.label}
+                                </a>
+                              ) : (
+                                <Link
+                                  href={subItem.href}
+                                  className={`flex items-center gap-1.5 px-4 py-2.5 text-sm hover:text-[#62bb46] hover:bg-gray-50 transition-colors ${'highlighted' in subItem && subItem.highlighted ? 'font-bold text-gray-900' : 'text-gray-600'}`}
+                                  onClick={() => {
+                                    setIsOpen(false);
+                                    setIsMobileMenuOpen(false);
+                                  }}
+                                >
+                                  {'highlighted' in subItem && subItem.highlighted && (
+                                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#f5b800">
+                                      <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                  )}
+                                  {subItem.label}
+                                </Link>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </li>
+                );
+              })}
             </ul>
           </nav>
           </div>
