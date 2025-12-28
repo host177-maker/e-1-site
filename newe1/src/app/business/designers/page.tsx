@@ -21,6 +21,8 @@ const businessTypeLabels: Record<BusinessType, string> = {
   llc: 'ООО',
 };
 
+type FormErrors = Partial<Record<keyof FormData, string>>;
+
 export default function DesignersPage() {
   const [step, setStep] = useState(1);
   const [designerId, setDesignerId] = useState<number | null>(null);
@@ -32,7 +34,7 @@ export default function DesignersPage() {
     portfolio_link: '',
     promo_code: '',
   });
-  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [promoCheckResult, setPromoCheckResult] = useState<{
     available: boolean;
