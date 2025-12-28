@@ -1,19 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPool } from '@/lib/db';
+import { EMAIL_KEYS } from '@/lib/emailSettings';
 
 export const dynamic = 'force-dynamic';
-
-// Email setting keys
-export const EMAIL_KEYS = {
-  DIRECTOR: 'director_email',      // Почта для директора (форма обратной связи)
-  SALES: 'sales_email',            // Отдел продаж интернет-магазина
-  DESIGNERS: 'designers_email',    // Отдел работы с дизайнерами (+ франшиза)
-  WHOLESALE: 'wholesale_email',    // Отдел оптовых продаж
-  MARKETPLACE: 'marketplace_email', // Отдел по ЧИМ (маркетплейсы)
-  PROCUREMENT: 'procurement_email', // Отдел закупок (поставщикам)
-} as const;
-
-export type EmailKey = typeof EMAIL_KEYS[keyof typeof EMAIL_KEYS];
 
 // Create table if not exists
 async function ensureTable() {
