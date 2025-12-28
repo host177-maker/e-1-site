@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 interface FranchiseRequest {
   full_name: string;
   city: string;
@@ -9,56 +12,90 @@ interface FranchiseRequest {
 }
 
 async function sendFranchiseNotification(data: FranchiseRequest): Promise<boolean> {
+  const smtpServer = process.env.SMTP_SERVER;
+  const smtpPort = parseInt(process.env.SMTP_PORT || '25', 10);
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPassword = process.env.SMTP_PASSWORD;
+  const smtpFrom = process.env.SMTP_FROM || 'robot@e-1.ru';
+  const smtpFromName = process.env.SMTP_FROM_NAME || 'Мебельная компания Е1';
   const dizMail = process.env.DIZMAIL;
 
-  if (!dizMail) {
-    console.error('DIZMAIL environment variable is not set');
+  if (!smtpServer || !dizMail) {
+    console.error('Email not configured: missing SMTP_SERVER or DIZMAIL');
     return false;
   }
 
   try {
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.mail.ru',
-      port: parseInt(process.env.SMTP_PORT || '465'),
-      secure: true,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
+      host: smtpServer,
+      port: smtpPort,
+      secure: smtpPort === 465,
+      auth: smtpUser && smtpPassword ? {
+        user: smtpUser,
+        pass: smtpPassword,
+      } : undefined,
+    });
+
+    const currentDate = new Date().toLocaleString('ru-RU', {
+      timeZone: 'Europe/Moscow',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
     });
 
     const mailOptions = {
-      from: process.env.SMTP_USER,
+      from: `"${smtpFromName}" <${smtpFrom}>`,
       to: dizMail,
       subject: `Новая заявка на франшизу от ${data.full_name}`,
       html: `
-        <h2>Новая заявка на франшизу Е1</h2>
-        <table style="border-collapse: collapse; width: 100%; max-width: 500px;">
-          <tr>
-            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">ФИО:</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">${data.full_name}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Город:</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">${data.city}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Телефон:</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">${data.phone}</td>
-          </tr>
-          <tr>
-            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Email:</td>
-            <td style="padding: 8px; border: 1px solid #ddd;">${data.email}</td>
-          </tr>
-        </table>
-        <p style="margin-top: 20px; color: #666;">
-          Заявка отправлена с сайта e-1.ru
-        </p>
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Новая заявка на франшизу</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #62bb46; border-bottom: 2px solid #62bb46; padding-bottom: 10px;">
+              Новая заявка на франшизу Е1
+            </h2>
+
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+              <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; width: 150px;">ФИО:</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">${data.full_name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Город:</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">${data.city}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Телефон:</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                  <a href="tel:${data.phone}" style="color: #62bb46;">${data.phone}</a>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Email:</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                  <a href="mailto:${data.email}" style="color: #62bb46;">${data.email}</a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="color: #888; font-size: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+              Заявка отправлена ${currentDate} с сайта e-1.ru
+            </p>
+          </div>
+        </body>
+        </html>
       `,
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('Franchise notification email sent successfully');
+    console.log('Franchise notification email sent successfully to', dizMail);
     return true;
   } catch (error) {
     console.error('Error sending franchise notification email:', error);
