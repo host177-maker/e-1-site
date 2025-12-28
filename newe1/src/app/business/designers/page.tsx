@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 type BusinessType = 'individual' | 'self_employed' | 'individual_entrepreneur' | 'llc';
 
@@ -240,32 +241,49 @@ export default function DesignersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section - более компактный */}
-      <div className="bg-gradient-to-br from-[#3d4543] to-[#2a302e] text-white py-12 md:py-16">
-        <div className="container-custom">
-          <div className="max-w-3xl">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">
+      {/* Hero Section с изображением */}
+      <div className="relative text-white py-16 md:py-24 min-h-[400px] md:min-h-[500px] flex items-center bg-gradient-to-br from-[#3d4543] to-[#2a302e]">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/diz.png"
+            alt="Сотрудничество с дизайнерами"
+            fill
+            className="object-cover"
+            priority
+            onError={(e) => {
+              // Hide image if it fails to load
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+          {/* Gradient overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#2a302e]/90 via-[#3d4543]/70 to-transparent"></div>
+        </div>
+
+        <div className="container-custom relative z-10">
+          <div className="max-w-2xl">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 drop-shadow-lg">
               Сотрудничество с дизайнерами и архитекторами
             </h1>
-            <p className="text-base md:text-lg opacity-90 mb-6">
+            <p className="text-lg md:text-xl opacity-95 mb-8 drop-shadow-md">
               Получайте вознаграждение за каждую сделку с вашими клиентами.
               Присоединяйтесь к программе партнёрства Е1!
             </p>
             <div className="flex flex-wrap gap-3">
-              <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg text-sm">
-                <svg className="w-4 h-4 text-[#62bb46]" fill="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-lg text-sm">
+                <svg className="w-5 h-5 text-[#62bb46]" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                 </svg>
                 <span>Скидка для клиентов</span>
               </div>
-              <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg text-sm">
-                <svg className="w-4 h-4 text-[#62bb46]" fill="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-lg text-sm">
+                <svg className="w-5 h-5 text-[#62bb46]" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                 </svg>
                 <span>Вознаграждение партнёру</span>
               </div>
-              <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg text-sm">
-                <svg className="w-4 h-4 text-[#62bb46]" fill="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-lg text-sm">
+                <svg className="w-5 h-5 text-[#62bb46]" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                 </svg>
                 <span>Персональный промокод</span>
