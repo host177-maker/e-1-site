@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { getEmailByKey, EMAIL_KEYS } from '@/lib/emailSettings';
+import { createB2BLead, saveUploadedFile, LeadType } from '@/lib/b2bLeads';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -8,6 +9,11 @@ export const runtime = 'nodejs';
 const topicLabels: Record<string, string> = {
   materials: 'Поставка материалов',
   logistics: 'Логистика',
+};
+
+const topicToLeadType: Record<string, LeadType> = {
+  materials: 'suppliers_materials',
+  logistics: 'suppliers_logistics',
 };
 
 export async function POST(request: NextRequest) {
@@ -51,8 +57,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Prepare attachments
+    // Save file and prepare attachments
     const attachments: Array<{ filename: string; content: Buffer }> = [];
+    let savedFile: { fileName: string; filePath: string } | null = null;
 
     if (file && file.size > 0) {
       const bytes = await file.arrayBuffer();
@@ -61,6 +68,28 @@ export async function POST(request: NextRequest) {
         filename: file.name,
         content: buffer,
       });
+
+      // Save file to disk
+      try {
+        savedFile = await saveUploadedFile(file);
+      } catch (fileError) {
+        console.error('Failed to save uploaded file:', fileError);
+      }
+    }
+
+    // Save to database
+    try {
+      await createB2BLead({
+        lead_type: topicToLeadType[topic] || 'suppliers_materials',
+        full_name,
+        phone,
+        company_name,
+        proposal,
+        file_name: savedFile?.fileName,
+        file_path: savedFile?.filePath,
+      });
+    } catch (dbError) {
+      console.error('Failed to save supplier lead to DB:', dbError);
     }
 
     // Send email

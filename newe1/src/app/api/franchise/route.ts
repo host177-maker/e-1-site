@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { getEmailByKey, EMAIL_KEYS } from '@/lib/emailSettings';
+import { createB2BLead } from '@/lib/b2bLeads';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -134,6 +135,19 @@ export async function POST(request: NextRequest) {
         { success: false, error: 'Некорректный номер телефона' },
         { status: 400 }
       );
+    }
+
+    // Save to database
+    try {
+      await createB2BLead({
+        lead_type: 'franchise',
+        full_name: body.full_name,
+        phone: body.phone,
+        email: body.email,
+        city: body.city,
+      });
+    } catch (dbError) {
+      console.error('Failed to save franchise lead to DB:', dbError);
     }
 
     // Send email notification (async, don't wait)
