@@ -227,10 +227,10 @@ export default function DesignersPage() {
               </li>
             </ul>
             <a
-              href="/"
+              href="/business/designers"
               className="inline-block bg-[#62bb46] text-white px-6 py-2.5 rounded-lg font-bold hover:bg-[#55a83d] transition-colors text-sm"
             >
-              Вернуться на главную
+              Вернуться
             </a>
           </div>
         </div>
