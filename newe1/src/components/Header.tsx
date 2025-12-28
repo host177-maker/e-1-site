@@ -28,7 +28,6 @@ const businessSubmenu = [
 
 const menuItems = [
   { label: 'КАТАЛОГ', href: '/catalog' },
-  { label: 'СЕРИИ', href: '/series' },
   { label: 'ШКАФЫ НА ЗАКАЗ', href: '/custom' },
   { label: 'ГАРДЕРОБНЫЕ', href: '/catalog/garderobnye' },
   { label: 'АКЦИИ', href: '/sales', hasLightning: true },
