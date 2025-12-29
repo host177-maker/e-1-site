@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { getEmailByKey, EMAIL_KEYS } from '@/lib/emailSettings';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -186,7 +187,9 @@ async function sendReviewNotification(review: NewReviewRequest): Promise<void> {
   const smtpPassword = process.env.SMTP_PASSWORD;
   const smtpFrom = process.env.SMTP_FROM || 'robot@e-1.ru';
   const smtpFromName = process.env.SMTP_FROM_NAME || 'Мебельная компания Е1';
-  const saleMail = process.env.SALE_MAIL;
+
+  // Get email from database, fallback to env
+  const saleMail = await getEmailByKey(EMAIL_KEYS.SALES);
 
   if (!smtpServer || !saleMail) {
     console.log('Email notification not configured');

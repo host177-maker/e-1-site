@@ -17,16 +17,25 @@ const serviceSubmenu = [
   { label: 'Чат с отделом доставки', href: 'https://booking.e-1.ru/service/', external: true },
 ];
 
+// Business submenu structure
+const businessSubmenu = [
+  { label: 'Дизайнерам и архитекторам', href: '/business/designers', highlighted: true },
+  { label: 'Оптовые продажи', href: '/business/wholesale' },
+  { label: 'Продавцам на маркетплейсах', href: '/business/marketplace', highlighted: true },
+  { label: 'Франшиза', href: '/business/franchise' },
+  { label: 'Поставщикам', href: '/business/suppliers' },
+];
+
 const menuItems = [
   { label: 'КАТАЛОГ', href: '/catalog' },
-  { label: 'СЕРИИ', href: '/series' },
   { label: 'ШКАФЫ НА ЗАКАЗ', href: '/custom' },
   { label: 'ГАРДЕРОБНЫЕ', href: '/catalog/garderobnye' },
   { label: 'АКЦИИ', href: '/sales', hasLightning: true },
-  { label: 'ПОКУПАТЕЛЮ', href: '/service', hasSubmenu: true },
+  { label: 'ПОКУПАТЕЛЮ', href: '/service', hasSubmenu: true, submenuType: 'service' },
   { label: 'ОТЗЫВЫ', href: '/reviews' },
   { label: 'АДРЕСА САЛОНОВ', href: '/stores' },
   { label: 'ГЕОГРАФИЯ ДОСТАВКИ', href: '/delivery' },
+  { label: '...', mobileLabel: 'СОТРУДНИЧЕСТВО', href: '/business', hasSubmenu: true, submenuType: 'business', showLastOnMobile: true },
 ];
 
 // Mobile-only menu item
@@ -38,6 +47,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileServiceOpen, setMobileServiceOpen] = useState(false);
+  const [mobileBusinessOpen, setMobileBusinessOpen] = useState(false);
   const [isCitySelectorOpen, setIsCitySelectorOpen] = useState(false);
   const [isMobileCitySelectorOpen, setIsMobileCitySelectorOpen] = useState(false);
   const [isMessengerModalOpen, setIsMessengerModalOpen] = useState(false);
@@ -288,11 +298,11 @@ export default function Header() {
                     {item.label}
                   </Link>
                 )}
-                {/* Dropdown for ПОКУПАТЕЛЮ */}
+                {/* Dropdown for submenus */}
                 {item.hasSubmenu && (
                   <div className="absolute left-0 top-full bg-white shadow-xl rounded-b-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[200px]">
                     <ul className="py-2">
-                      {serviceSubmenu.map((subItem) => (
+                      {(item.submenuType === 'business' ? businessSubmenu : serviceSubmenu).map((subItem) => (
                         <li key={subItem.href}>
                           {'external' in subItem && subItem.external ? (
                             <a
@@ -306,8 +316,13 @@ export default function Header() {
                           ) : (
                             <Link
                               href={subItem.href}
-                              className="block px-4 py-2 text-[13px] text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
+                              className={`flex items-center gap-1.5 px-4 py-2 text-[13px] hover:text-[#62bb46] hover:bg-gray-50 transition-colors ${'highlighted' in subItem && subItem.highlighted ? 'font-bold text-gray-900' : 'text-gray-600'}`}
                             >
+                              {'highlighted' in subItem && subItem.highlighted && (
+                                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#f5b800">
+                                  <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                              )}
                               {subItem.label}
                             </Link>
                           )}
@@ -351,18 +366,25 @@ export default function Header() {
           {/* Mobile nav */}
           <nav className="bg-[#62bb46]">
             <ul className="divide-y divide-[#55a83d]">
-              {menuItems.map((item) => (
+              {/* Regular menu items (excluding showLastOnMobile) */}
+              {menuItems.filter(item => !item.showLastOnMobile).map((item) => {
+                const isBusinessMenu = item.submenuType === 'business';
+                const isOpen = isBusinessMenu ? mobileBusinessOpen : mobileServiceOpen;
+                const setIsOpen = isBusinessMenu ? setMobileBusinessOpen : setMobileServiceOpen;
+                const submenuItems = isBusinessMenu ? businessSubmenu : serviceSubmenu;
+
+                return (
                 <li key={item.href}>
                   {item.hasSubmenu ? (
                     <div>
                       <button
-                        onClick={() => setMobileServiceOpen(!mobileServiceOpen)}
+                        onClick={() => setIsOpen(!isOpen)}
                         className="flex items-center justify-between w-full px-4 py-3 font-bold"
                         style={{ color: 'white' }}
                       >
-                        <span>{item.label}</span>
+                        <span>{item.mobileLabel || item.label}</span>
                         <svg
-                          className={`w-4 h-4 transition-transform ${mobileServiceOpen ? 'rotate-180' : ''}`}
+                          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -370,10 +392,10 @@ export default function Header() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                       </button>
-                      {mobileServiceOpen && (
+                      {isOpen && (
                         <div className="bg-white">
                           <ul>
-                            {serviceSubmenu.map((subItem) => (
+                            {submenuItems.map((subItem) => (
                               <li key={subItem.href} className="border-b border-gray-100 last:border-b-0">
                                 {'external' in subItem && subItem.external ? (
                                   <a
@@ -382,7 +404,7 @@ export default function Header() {
                                     rel="noopener noreferrer"
                                     className="block px-4 py-2.5 text-sm text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
                                     onClick={() => {
-                                      setMobileServiceOpen(false);
+                                      setIsOpen(false);
                                       setIsMobileMenuOpen(false);
                                     }}
                                   >
@@ -391,12 +413,17 @@ export default function Header() {
                                 ) : (
                                   <Link
                                     href={subItem.href}
-                                    className="block px-4 py-2.5 text-sm text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
+                                    className={`flex items-center gap-1.5 px-4 py-2.5 text-sm hover:text-[#62bb46] hover:bg-gray-50 transition-colors ${'highlighted' in subItem && subItem.highlighted ? 'font-bold text-gray-900' : 'text-gray-600'}`}
                                     onClick={() => {
-                                      setMobileServiceOpen(false);
+                                      setIsOpen(false);
                                       setIsMobileMenuOpen(false);
                                     }}
                                   >
+                                    {'highlighted' in subItem && subItem.highlighted && (
+                                      <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#f5b800">
+                                        <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                      </svg>
+                                    )}
                                     {subItem.label}
                                   </Link>
                                 )}
@@ -418,11 +445,12 @@ export default function Header() {
                           <path d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                       )}
-                      {item.label}
+                      {item.mobileLabel || item.label}
                     </Link>
                   )}
                 </li>
-              ))}
+                );
+              })}
               {/* Mobile-only menu items */}
               {mobileOnlyItems.map((item) => (
                 <li key={item.href}>
@@ -441,6 +469,75 @@ export default function Header() {
                   </a>
                 </li>
               ))}
+              {/* Items that should appear last on mobile (Сотрудничество) */}
+              {menuItems.filter(item => item.showLastOnMobile).map((item) => {
+                const isBusinessMenu = item.submenuType === 'business';
+                const isOpen = isBusinessMenu ? mobileBusinessOpen : mobileServiceOpen;
+                const setIsOpen = isBusinessMenu ? setMobileBusinessOpen : setMobileServiceOpen;
+                const submenuItems = isBusinessMenu ? businessSubmenu : serviceSubmenu;
+
+                return (
+                <li key={item.href}>
+                  <div>
+                    <button
+                      onClick={() => setIsOpen(!isOpen)}
+                      className="flex items-center justify-between w-full px-4 py-3 font-bold"
+                      style={{ color: 'white' }}
+                    >
+                      <span>{item.mobileLabel || item.label}</span>
+                      <svg
+                        className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {isOpen && (
+                      <div className="bg-white">
+                        <ul>
+                          {submenuItems.map((subItem) => (
+                            <li key={subItem.href} className="border-b border-gray-100 last:border-b-0">
+                              {'external' in subItem && subItem.external ? (
+                                <a
+                                  href={subItem.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block px-4 py-2.5 text-sm text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
+                                  onClick={() => {
+                                    setIsOpen(false);
+                                    setIsMobileMenuOpen(false);
+                                  }}
+                                >
+                                  {subItem.label}
+                                </a>
+                              ) : (
+                                <Link
+                                  href={subItem.href}
+                                  className={`flex items-center gap-1.5 px-4 py-2.5 text-sm hover:text-[#62bb46] hover:bg-gray-50 transition-colors ${'highlighted' in subItem && subItem.highlighted ? 'font-bold text-gray-900' : 'text-gray-600'}`}
+                                  onClick={() => {
+                                    setIsOpen(false);
+                                    setIsMobileMenuOpen(false);
+                                  }}
+                                >
+                                  {'highlighted' in subItem && subItem.highlighted && (
+                                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#f5b800">
+                                      <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                  )}
+                                  {subItem.label}
+                                </Link>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </li>
+                );
+              })}
             </ul>
           </nav>
           </div>
