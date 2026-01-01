@@ -10,21 +10,27 @@ const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
-// Загружаем переменные окружения из .env.local
-const envPath = path.join(__dirname, '../.env.local');
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, 'utf8');
-  envContent.split('\n').forEach(line => {
-    const match = line.match(/^([^#=]+)=(.*)$/);
-    if (match) {
-      const key = match[1].trim();
-      const value = match[2].trim().replace(/^["']|["']$/g, '');
-      if (!process.env[key]) {
-        process.env[key] = value;
+// Загружаем переменные окружения из .env и .env.local
+const envFiles = [
+  path.join(__dirname, '../.env'),
+  path.join(__dirname, '../.env.local')
+];
+
+envFiles.forEach(envPath => {
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split('\n').forEach(line => {
+      const match = line.match(/^([^#=]+)=(.*)$/);
+      if (match) {
+        const key = match[1].trim();
+        const value = match[2].trim().replace(/^["']|["']$/g, '');
+        if (!process.env[key]) {
+          process.env[key] = value;
+        }
       }
-    }
-  });
-}
+    });
+  }
+});
 
 // Путь к папке с миграциями
 const migrationsDir = path.join(__dirname, '../src/lib/migrations');
