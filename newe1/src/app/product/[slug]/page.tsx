@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -63,7 +63,11 @@ const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
 export default function ProductPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const slug = (params?.slug as string) || '';
+  const isInitialLoad = useRef(true);
+  const urlParamsApplied = useRef(false);
 
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState<CatalogProduct | null>(null);
@@ -154,36 +158,99 @@ export default function ProductPage() {
         setFilling(data.filling);
         setSeries(data.series);
 
-        // Установить начальные значения из первого варианта
+        // Читаем параметры из URL
+        const urlHeight = searchParams.get('h');
+        const urlWidth = searchParams.get('w');
+        const urlDepth = searchParams.get('d');
+        const urlBodyColor = searchParams.get('bc');
+        const urlProfileColor = searchParams.get('pc');
+
+        // Установить значения из URL или из первого варианта
         if (data.variants.length > 0) {
           const firstVariant = data.variants[0];
-          setSelectedHeight(firstVariant.height);
-          setSelectedWidth(firstVariant.width);
-          setSelectedDepth(firstVariant.depth);
 
-          // Устанавливаем цвета из первого варианта
-          if (firstVariant.body_color_id) {
+          // Размеры
+          const height = urlHeight ? Number(urlHeight) : firstVariant.height;
+          const width = urlWidth ? Number(urlWidth) : firstVariant.width;
+          const depth = urlDepth ? Number(urlDepth) : firstVariant.depth;
+
+          // Проверяем, что такой вариант существует
+          const variantExists = data.variants.some((v: CatalogVariant) =>
+            v.height === height && v.width === width && v.depth === depth
+          );
+
+          if (variantExists) {
+            setSelectedHeight(height);
+            setSelectedWidth(width);
+            setSelectedDepth(depth);
+          } else {
+            setSelectedHeight(firstVariant.height);
+            setSelectedWidth(firstVariant.width);
+            setSelectedDepth(firstVariant.depth);
+          }
+
+          // Цвет корпуса
+          if (urlBodyColor) {
+            const bc = data.bodyColors.find((c: CatalogBodyColor) => c.id === Number(urlBodyColor));
+            if (bc) setSelectedBodyColor(bc);
+            else if (firstVariant.body_color_id) {
+              const defaultBc = data.bodyColors.find((c: CatalogBodyColor) => c.id === firstVariant.body_color_id);
+              if (defaultBc) setSelectedBodyColor(defaultBc);
+            }
+          } else if (firstVariant.body_color_id) {
             const bc = data.bodyColors.find((c: CatalogBodyColor) => c.id === firstVariant.body_color_id);
             if (bc) setSelectedBodyColor(bc);
           }
-          if (firstVariant.profile_color_id) {
+
+          // Цвет профиля
+          if (urlProfileColor) {
+            const pc = data.profileColors.find((c: { id: number; name: string }) => c.id === Number(urlProfileColor));
+            if (pc) setSelectedProfileColor(pc);
+            else if (firstVariant.profile_color_id) {
+              const defaultPc = data.profileColors.find((c: { id: number; name: string }) => c.id === firstVariant.profile_color_id);
+              if (defaultPc) setSelectedProfileColor(defaultPc);
+            }
+          } else if (firstVariant.profile_color_id) {
             const pc = data.profileColors.find((c: { id: number; name: string }) => c.id === firstVariant.profile_color_id);
             if (pc) setSelectedProfileColor(pc);
           }
         }
+
+        urlParamsApplied.current = true;
       }
     } catch (error) {
       console.error('Error fetching product:', error);
     } finally {
       setLoading(false);
+      isInitialLoad.current = false;
     }
-  }, [slug]);
+  }, [slug, searchParams]);
 
   useEffect(() => {
     if (slug) {
       fetchProduct();
     }
   }, [slug, fetchProduct]);
+
+  // Обновляем URL при изменении параметров
+  useEffect(() => {
+    if (!urlParamsApplied.current || isInitialLoad.current) return;
+    if (selectedHeight === null || selectedWidth === null || selectedDepth === null) return;
+
+    const params = new URLSearchParams();
+    params.set('h', String(selectedHeight));
+    params.set('w', String(selectedWidth));
+    params.set('d', String(selectedDepth));
+    if (selectedBodyColor) {
+      params.set('bc', String(selectedBodyColor.id));
+    }
+    if (selectedProfileColor) {
+      params.set('pc', String(selectedProfileColor.id));
+    }
+
+    const newUrl = `/product/${slug}?${params.toString()}`;
+    router.replace(newUrl, { scroll: false });
+  }, [selectedHeight, selectedWidth, selectedDepth, selectedBodyColor, selectedProfileColor, slug, router]);
 
   // При изменении высоты - проверяем доступность ширины и глубины
   useEffect(() => {
