@@ -376,6 +376,12 @@ export default function ProductPage() {
 
     const loadFilling = async () => {
       try {
+        console.log('loadFilling запрос:', {
+          seriesId: product.series_id,
+          height: selectedHeight,
+          width: selectedWidth,
+          depth: selectedDepth
+        });
         const response = await fetch(`/api/catalog/product/${slug}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -389,6 +395,7 @@ export default function ProductPage() {
           })
         });
         const data = await response.json();
+        console.log('loadFilling ответ:', { fillingsCount: data.fillings?.length, filling: data.filling });
         // Устанавливаем варианты наполнения для выбранного размера
         if (data.fillings && data.fillings.length > 0) {
           setFillings(data.fillings);
