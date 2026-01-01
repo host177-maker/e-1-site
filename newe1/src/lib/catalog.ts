@@ -1,4 +1,4 @@
-import { getPool } from './db';
+import { getPool, queryWithRetry } from './db';
 
 // Утилита для создания slug
 function createSlug(text: string): string {
@@ -309,8 +309,6 @@ export async function getVariantByParams(
   bodyColorId?: number,
   profileColorId?: number
 ): Promise<CatalogVariant | null> {
-  const pool = getPool();
-
   const conditions = [
     'product_id = $1',
     'height = $2',
@@ -331,7 +329,8 @@ export async function getVariantByParams(
     params.push(profileColorId);
   }
 
-  const result = await pool.query(
+  // Используем queryWithRetry для устойчивости к временным ошибкам соединения
+  const result = await queryWithRetry<CatalogVariant>(
     `SELECT v.*,
             bc.name as body_color_name,
             pc.name as profile_color_name
@@ -358,8 +357,6 @@ export async function getFilling(
   width: number,
   depth: number
 ): Promise<CatalogFilling | null> {
-  const pool = getPool();
-
   // Ищем по серии и размерам с допуском (door_count игнорируем)
   const query = `SELECT * FROM catalog_fillings
      WHERE series_id = $1
@@ -369,7 +366,8 @@ export async function getFilling(
 
   const params = [seriesId, height, width, depth, SIZE_TOLERANCE];
 
-  const result = await pool.query(query, params);
+  // Используем queryWithRetry для устойчивости к временным ошибкам соединения
+  const result = await queryWithRetry<CatalogFilling>(query, params);
   return result.rows[0] || null;
 }
 
@@ -382,8 +380,6 @@ export async function getFillings(
   width: number,
   depth: number
 ): Promise<CatalogFilling[]> {
-  const pool = getPool();
-
   // Ищем по серии и размерам с допуском (door_count игнорируем)
   const query = `SELECT * FROM catalog_fillings
      WHERE series_id = $1
@@ -392,7 +388,8 @@ export async function getFillings(
 
   const params = [seriesId, height, width, depth, SIZE_TOLERANCE];
 
-  const result = await pool.query(query, params);
+  // Используем queryWithRetry для устойчивости к временным ошибкам соединения
+  const result = await queryWithRetry<CatalogFilling>(query, params);
   return result.rows;
 }
 
