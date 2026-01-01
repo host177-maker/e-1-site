@@ -263,26 +263,49 @@ export async function getProductBySlug(slug: string): Promise<{
   // Получаем наполнение (для первого варианта)
   let filling = null;
   let fillings: CatalogFilling[] = [];
-  if (variantsResult.rows.length > 0 && product.door_count) {
+  if (variantsResult.rows.length > 0) {
     const firstVariant = variantsResult.rows[0];
-    const fillingResult = await pool.query(
-      `SELECT * FROM catalog_fillings
-       WHERE series_id = $1 AND door_count = $2
-         AND height = $3 AND width = $4 AND depth = $5
-       LIMIT 1`,
-      [product.series_id, product.door_count, firstVariant.height, firstVariant.width, firstVariant.depth]
-    );
-    filling = fillingResult.rows[0] || null;
+    const doorCount = product.door_count;
 
-    // Получаем все варианты наполнения для выбранного размера
-    const fillingsResult = await pool.query(
-      `SELECT * FROM catalog_fillings
-       WHERE series_id = $1 AND door_count = $2
-         AND height = $3 AND width = $4 AND depth = $5
-       ORDER BY short_name NULLS LAST`,
-      [product.series_id, product.door_count, firstVariant.height, firstVariant.width, firstVariant.depth]
-    );
-    fillings = fillingsResult.rows;
+    // Если есть door_count, фильтруем по нему
+    if (doorCount) {
+      const fillingResult = await pool.query(
+        `SELECT * FROM catalog_fillings
+         WHERE series_id = $1 AND door_count = $2
+           AND height = $3 AND width = $4 AND depth = $5
+         LIMIT 1`,
+        [product.series_id, doorCount, firstVariant.height, firstVariant.width, firstVariant.depth]
+      );
+      filling = fillingResult.rows[0] || null;
+
+      const fillingsResult = await pool.query(
+        `SELECT * FROM catalog_fillings
+         WHERE series_id = $1 AND door_count = $2
+           AND height = $3 AND width = $4 AND depth = $5
+         ORDER BY short_name NULLS LAST`,
+        [product.series_id, doorCount, firstVariant.height, firstVariant.width, firstVariant.depth]
+      );
+      fillings = fillingsResult.rows;
+    } else {
+      // Без door_count - ищем по серии и размерам
+      const fillingResult = await pool.query(
+        `SELECT * FROM catalog_fillings
+         WHERE series_id = $1
+           AND height = $2 AND width = $3 AND depth = $4
+         LIMIT 1`,
+        [product.series_id, firstVariant.height, firstVariant.width, firstVariant.depth]
+      );
+      filling = fillingResult.rows[0] || null;
+
+      const fillingsResult = await pool.query(
+        `SELECT * FROM catalog_fillings
+         WHERE series_id = $1
+           AND height = $2 AND width = $3 AND depth = $4
+         ORDER BY door_count, short_name NULLS LAST`,
+        [product.series_id, firstVariant.height, firstVariant.width, firstVariant.depth]
+      );
+      fillings = fillingsResult.rows;
+    }
   }
 
   return {
@@ -346,37 +369,58 @@ export async function getVariantByParams(
 // Получить наполнение по параметрам
 export async function getFilling(
   seriesId: number,
-  doorCount: number,
+  doorCount: number | null,
   height: number,
   width: number,
   depth: number
 ): Promise<CatalogFilling | null> {
   const pool = getPool();
-  const result = await pool.query(
-    `SELECT * FROM catalog_fillings
-     WHERE series_id = $1 AND door_count = $2
-       AND height = $3 AND width = $4 AND depth = $5`,
-    [seriesId, doorCount, height, width, depth]
-  );
+
+  // Если есть door_count, фильтруем по нему, иначе берём любое подходящее
+  const query = doorCount
+    ? `SELECT * FROM catalog_fillings
+       WHERE series_id = $1 AND door_count = $2
+         AND height = $3 AND width = $4 AND depth = $5
+       LIMIT 1`
+    : `SELECT * FROM catalog_fillings
+       WHERE series_id = $1
+         AND height = $2 AND width = $3 AND depth = $4
+       LIMIT 1`;
+
+  const params = doorCount
+    ? [seriesId, doorCount, height, width, depth]
+    : [seriesId, height, width, depth];
+
+  const result = await pool.query(query, params);
   return result.rows[0] || null;
 }
 
-// Получить все варианты наполнения для серии, количества дверей и размеров
+// Получить все варианты наполнения для серии и размеров
 export async function getFillings(
   seriesId: number,
-  doorCount: number,
+  doorCount: number | null,
   height: number,
   width: number,
   depth: number
 ): Promise<CatalogFilling[]> {
   const pool = getPool();
-  const result = await pool.query(
-    `SELECT * FROM catalog_fillings
-     WHERE series_id = $1 AND door_count = $2
-       AND height = $3 AND width = $4 AND depth = $5
-     ORDER BY short_name NULLS LAST`,
-    [seriesId, doorCount, height, width, depth]
-  );
+
+  // Если есть door_count, фильтруем по нему, иначе показываем все для размера
+  const query = doorCount
+    ? `SELECT * FROM catalog_fillings
+       WHERE series_id = $1 AND door_count = $2
+         AND height = $3 AND width = $4 AND depth = $5
+       ORDER BY short_name NULLS LAST`
+    : `SELECT * FROM catalog_fillings
+       WHERE series_id = $1
+         AND height = $2 AND width = $3 AND depth = $4
+       ORDER BY door_count, short_name NULLS LAST`;
+
+  const params = doorCount
+    ? [seriesId, doorCount, height, width, depth]
+    : [seriesId, height, width, depth];
+
+  const result = await pool.query(query, params);
   return result.rows;
 }
 
