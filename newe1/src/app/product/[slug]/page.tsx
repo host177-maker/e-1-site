@@ -88,7 +88,17 @@ export default function ProductPage() {
 
   // Модальные окна
   const [showFillingModal, setShowFillingModal] = useState(false);
+  const [showBodyColorModal, setShowBodyColorModal] = useState(false);
   const [showBodyColorInfo, setShowBodyColorInfo] = useState(false);
+  const [showAdditionalConfig, setShowAdditionalConfig] = useState(false);
+
+  // Сборка
+  const [includeAssembly, setIncludeAssembly] = useState(false);
+
+  // Цены (пока заглушки)
+  const basePrice = 35990;
+  const oldPrice = 72000;
+  const assemblyPrice = Math.round(basePrice * 0.12);
 
   // Все уникальные цвета профиля из вариантов (для проверки наличия)
   const variantProfileColors = useMemo(() => {
@@ -447,6 +457,37 @@ export default function ProductPage() {
               </h1>
             </div>
 
+            {/* Цена */}
+            <div className="bg-white rounded-xl shadow-sm p-5">
+              <div className="flex items-baseline gap-3 mb-1">
+                <span className="text-3xl font-bold text-gray-900">
+                  {(basePrice + (includeAssembly ? assemblyPrice : 0)).toLocaleString('ru-RU')} ₽
+                </span>
+                <span className="text-lg text-gray-400 line-through">
+                  {oldPrice.toLocaleString('ru-RU')} ₽
+                </span>
+              </div>
+              <div className="text-sm text-gray-500 mb-4">Цена в базовой комплектации</div>
+
+              {/* Сборка */}
+              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-gray-200 hover:border-[#62bb46] transition-colors">
+                <input
+                  type="checkbox"
+                  checked={includeAssembly}
+                  onChange={(e) => setIncludeAssembly(e.target.checked)}
+                  className="w-5 h-5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
+                />
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">Добавить сборку</div>
+                  <div className="text-sm text-gray-500">Профессиональная сборка изделия</div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-gray-900">+{assemblyPrice.toLocaleString('ru-RU')} ₽</div>
+                  <div className="text-xs text-gray-400">12% от стоимости</div>
+                </div>
+              </label>
+            </div>
+
             {/* Выбрать размер и цвет */}
             <div className="bg-white rounded-xl shadow-sm p-5">
               <h3 className="text-base font-medium text-gray-900 mb-4">Выбрать размер и цвет</h3>
@@ -514,57 +555,27 @@ export default function ProductPage() {
                 </div>
               </div>
 
-              {/* Цвета в 2 колонки */}
+              {/* Цвета и доп. комплектация */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Цвет корпуса */}
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-sm text-gray-500">Цвет корпуса</label>
-                    {selectedBodyColor?.description && (
-                      <button
-                        onClick={() => setShowBodyColorInfo(true)}
-                        className="text-xs text-[#62bb46] hover:underline"
-                      >
-                        Подробнее
-                      </button>
-                    )}
-                  </div>
-                  {availableBodyColors.length > 1 ? (
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-1">
-                        {availableBodyColors.slice(0, 4).map((color) => (
-                          <button
-                            key={color.id}
-                            onClick={() => setSelectedBodyColor(color)}
-                            title={color.name}
-                            className={`relative w-8 h-8 rounded-md overflow-hidden border-2 transition-all ${
-                              selectedBodyColor?.id === color.id
-                                ? 'border-[#62bb46]'
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
-                          >
-                            {color.image_small ? (
-                              <Image src={color.image_small} alt={color.name} fill className="object-cover" />
-                            ) : (
-                              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xs">
-                                {color.name.charAt(0)}
-                              </div>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                      <span className="text-sm text-gray-600 truncate">{selectedBodyColor?.name}</span>
-                    </div>
-                  ) : (
+                  <label className="text-sm text-gray-500 mb-1.5 block">Цвет корпуса</label>
+                  <div className="flex items-center justify-between">
+                    <button
+                      onClick={() => setShowBodyColorModal(true)}
+                      className="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:border-[#62bb46] transition-colors"
+                    >
+                      Выбрать
+                    </button>
                     <div className="flex items-center gap-2">
                       {selectedBodyColor?.image_small && (
-                        <div className="relative w-8 h-8 rounded-md overflow-hidden border border-gray-200">
+                        <div className="relative w-6 h-6 rounded overflow-hidden border border-gray-200">
                           <Image src={selectedBodyColor.image_small} alt={selectedBodyColor.name} fill className="object-cover" />
                         </div>
                       )}
-                      <span className="text-sm text-gray-700">{selectedBodyColor?.name}</span>
+                      <span className="text-sm text-gray-600">{selectedBodyColor?.name}</span>
                     </div>
-                  )}
+                  </div>
                 </div>
 
                 {/* Цвет профиля */}
@@ -585,12 +596,26 @@ export default function ProductPage() {
                         ))}
                       </select>
                     ) : (
-                      <div className="px-3 py-2 text-sm text-gray-700 bg-gray-50 rounded-lg border border-gray-100">
-                        {selectedProfileColor?.name.replace(' профиль', '')}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-400">—</span>
+                        <span className="text-sm text-gray-700">{selectedProfileColor?.name.replace(' профиль', '')}</span>
                       </div>
                     )}
                   </div>
                 )}
+              </div>
+
+              {/* Доп. комплектация */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <button
+                  onClick={() => setShowAdditionalConfig(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-lg text-sm hover:border-[#62bb46] transition-colors"
+                >
+                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                  </svg>
+                  Доп. комплектация
+                </button>
               </div>
             </div>
 
@@ -778,6 +803,72 @@ export default function ProductPage() {
         </div>
       )}
 
+      {/* Модальное окно выбора цвета корпуса */}
+      {showBodyColorModal && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowBodyColorModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Выберите цвет корпуса</h2>
+              <button
+                onClick={() => setShowBodyColorModal(false)}
+                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {availableBodyColors.map((color) => (
+                  <button
+                    key={color.id}
+                    onClick={() => {
+                      setSelectedBodyColor(color);
+                      setShowBodyColorModal(false);
+                    }}
+                    className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                      selectedBodyColor?.id === color.id
+                        ? 'border-[#62bb46] ring-2 ring-[#62bb46] ring-offset-2'
+                        : 'border-gray-200 hover:border-gray-400'
+                    }`}
+                  >
+                    {color.image_small ? (
+                      <Image src={color.image_small} alt={color.name} fill className="object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center text-lg font-medium text-gray-500">
+                        {color.name.charAt(0)}
+                      </div>
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 bg-black/60 px-1 py-1">
+                      <span className="text-white text-xs truncate block text-center">{color.name}</span>
+                    </div>
+                    {selectedBodyColor?.id === color.id && (
+                      <div className="absolute top-1 right-1 w-5 h-5 bg-[#62bb46] rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {selectedBodyColor?.description && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-600">{selectedBodyColor.description}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Модальное окно информации о цвете корпуса */}
       {showBodyColorInfo && selectedBodyColor && (
         <div
@@ -813,6 +904,39 @@ export default function ProductPage() {
               {selectedBodyColor.description && (
                 <p className="text-gray-600 text-sm">{selectedBodyColor.description}</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно доп. комплектации */}
+      {showAdditionalConfig && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowAdditionalConfig(false)}
+        >
+          <div
+            className="bg-white rounded-xl max-w-lg w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="border-b p-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Дополнительная комплектация</h2>
+              <button
+                onClick={() => setShowAdditionalConfig(false)}
+                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="text-center text-gray-500 py-8">
+                <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <p>Дополнительные товары скоро появятся</p>
+              </div>
             </div>
           </div>
         </div>
