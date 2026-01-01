@@ -46,8 +46,12 @@ export async function POST(request: NextRequest, { params }: Params) {
     let fillings: Awaited<ReturnType<typeof getFillings>> = [];
     if (seriesId && height && width && depth) {
       // doorCount может быть null - тогда покажем все наполнения для размера
+      console.log('Поиск наполнения:', { seriesId, doorCount, height, width, depth });
       filling = await getFilling(seriesId, doorCount || null, height, width, depth);
       fillings = await getFillings(seriesId, doorCount || null, height, width, depth);
+      console.log('Найдено наполнений:', fillings.length);
+    } else {
+      console.log('Пропуск поиска наполнения:', { seriesId, height, width, depth });
     }
 
     return NextResponse.json({
