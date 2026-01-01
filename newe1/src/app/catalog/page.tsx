@@ -168,41 +168,40 @@ function CatalogPageContent() {
             <p className="text-gray-500">Попробуйте изменить фильтры</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {products.map((product) => (
               <Link
                 key={product.id}
                 href={`/product/${product.slug}`}
-                className="bg-white rounded-xl shadow-sm overflow-hidden group hover:shadow-lg transition-shadow"
+                className="group"
               >
-                <div className="aspect-[4/3] relative bg-gray-100">
+                <div className="aspect-square relative mb-2">
                   <Image
                     src={product.default_image || PLACEHOLDER_IMAGE}
                     alt={product.name}
                     fill
-                    className="object-contain p-4 group-hover:scale-105 transition-transform"
+                    className="object-contain group-hover:scale-105 transition-transform"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = PLACEHOLDER_IMAGE;
                     }}
                   />
                 </div>
-                <div className="p-4">
-                  <div className="text-xs text-[#62bb46] font-medium mb-1">
-                    {product.series_name}
-                  </div>
-                  <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 group-hover:text-[#62bb46] transition-colors">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    {product.door_type_name && (
-                      <span>{product.door_type_name}</span>
-                    )}
-                    {product.variants_count && product.variants_count > 1 && (
-                      <span className="text-[#62bb46]">{product.variants_count} вариантов</span>
-                    )}
-                  </div>
+                <div className="flex gap-1 mb-1">
+                  {/* Цветовые варианты - заглушка */}
+                  <div className="w-4 h-4 rounded-sm bg-[#f5f5dc] border border-gray-200" />
+                  <div className="w-4 h-4 rounded-sm bg-[#d4a574] border border-gray-200" />
+                  <div className="w-4 h-4 rounded-sm bg-[#8b7355] border border-gray-200" />
+                  <div className="w-4 h-4 rounded-sm bg-[#4a4a4a] border border-gray-200" />
+                  <div className="w-4 h-4 rounded-sm bg-white border border-gray-200" />
                 </div>
+                <div className="flex items-center gap-1 text-xs text-gray-400 mb-1">
+                  <span>★★★★★</span>
+                  <span>5/5</span>
+                </div>
+                <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2">
+                  {product.name}
+                </h3>
               </Link>
             ))}
           </div>
