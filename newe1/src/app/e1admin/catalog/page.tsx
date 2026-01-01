@@ -18,6 +18,13 @@ interface ImportHistory {
   error_message?: string;
 }
 
+interface SkippedRow {
+  row: number;
+  article: string;
+  cardName: string;
+  reason: string;
+}
+
 interface ImportResult {
   success: boolean;
   message: string;
@@ -27,8 +34,10 @@ interface ImportResult {
     fillings: number;
     products: number;
     variants: number;
+    skipped?: number;
   };
   errors: string[];
+  skippedRows?: SkippedRow[];
 }
 
 interface ImportProgress {
@@ -232,6 +241,33 @@ export default function CatalogPage() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const downloadSkippedRows = (skippedRows: SkippedRow[]) => {
+    // Создаём CSV контент
+    const headers = ['Строка', 'Артикул', 'Наименование карточки', 'Причина'];
+    const csvContent = [
+      headers.join(';'),
+      ...skippedRows.map(row => [
+        row.row,
+        `"${row.article.replace(/"/g, '""')}"`,
+        `"${row.cardName.replace(/"/g, '""')}"`,
+        `"${row.reason.replace(/"/g, '""')}"`
+      ].join(';'))
+    ].join('\n');
+
+    // Создаём blob с BOM для корректного отображения кириллицы в Excel
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `skipped_rows_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -446,7 +482,7 @@ export default function CatalogPage() {
                     <h3 className={`font-bold ${importResult.success ? 'text-green-800' : 'text-yellow-800'}`}>
                       {importResult.message}
                     </h3>
-                    <div className="mt-3 grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                    <div className="mt-3 grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
                       <div>
                         <span className="text-gray-500">Серий:</span>
                         <span className="font-medium ml-1">{importResult.stats.series}</span>
@@ -467,7 +503,29 @@ export default function CatalogPage() {
                         <span className="text-gray-500">Вариантов:</span>
                         <span className="font-medium ml-1">{importResult.stats.variants}</span>
                       </div>
+                      {importResult.stats.skipped !== undefined && importResult.stats.skipped > 0 && (
+                        <div>
+                          <span className="text-red-500">Пропущено:</span>
+                          <span className="font-medium ml-1 text-red-600">{importResult.stats.skipped}</span>
+                        </div>
+                      )}
                     </div>
+
+                    {/* Кнопка скачивания пропущенных строк */}
+                    {importResult.skippedRows && importResult.skippedRows.length > 0 && (
+                      <div className="mt-4">
+                        <button
+                          onClick={() => downloadSkippedRows(importResult.skippedRows!)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          Скачать список пропущенных строк ({importResult.skippedRows.length})
+                        </button>
+                      </div>
+                    )}
+
                     {importResult.errors.length > 0 && (
                       <details className="mt-4">
                         <summary className="cursor-pointer text-yellow-700 hover:text-yellow-800">

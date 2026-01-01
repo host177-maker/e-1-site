@@ -71,11 +71,11 @@ export async function POST(request: NextRequest) {
       // Парсим данные
       const data = parseExcelData(workbook);
 
-      await send('progress', { current: 10, total: 100, stage: 'Импорт', item: `${data.products.length} вариантов найдено` });
+      await send('progress', { current: 10, total: 100, stage: 'Импорт', item: `${data.products.length} вариантов найдено, ${data.skippedRows.length} пропущено при парсинге` });
 
       const result = await importCatalogOptimized(data, admin.id, async (progress) => {
         await send('progress', progress);
-      });
+      }, data.skippedRows);
 
       await send('complete', {
         success: result.success,
@@ -85,9 +85,11 @@ export async function POST(request: NextRequest) {
           bodyColors: result.bodyColorsCount,
           fillings: result.fillingsCount,
           products: result.productsCount,
-          variants: result.variantsCount
+          variants: result.variantsCount,
+          skipped: result.skippedRows.length
         },
-        errors: result.errors.slice(0, 50)
+        errors: result.errors.slice(0, 50),
+        skippedRows: result.skippedRows
       });
     } catch (error) {
       console.error('Import error:', error);
@@ -115,6 +117,8 @@ function parseExcelData(workbook: XLSX.WorkBook) {
   const fillings: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bodyColors: any[] = [];
+  // Пропущенные строки с причинами
+  const skippedRows: { row: number; article: string; cardName: string; reason: string }[] = [];
 
   // 1. Парсинг листа "Карточки товаров"
   const productsSheet = workbook.Sheets['Карточки товаров'];
@@ -122,18 +126,44 @@ function parseExcelData(workbook: XLSX.WorkBook) {
     const rows = XLSX.utils.sheet_to_json<string[]>(productsSheet, { header: 1 });
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      if (!row || !row[0] || !row[2]) continue;
+      const rowNum = i + 1; // Номер строки в Excel (с 1, учитывая заголовок)
+
+      // Проверяем обязательные поля
+      if (!row) {
+        skippedRows.push({ row: rowNum, article: '', cardName: '', reason: 'Пустая строка' });
+        continue;
+      }
+
+      const cardName = String(row[0] || '').trim();
+      const article = String(row[2] || '').trim();
+      const seriesName = String(row[8] || '').trim();
+
+      if (!cardName) {
+        skippedRows.push({ row: rowNum, article, cardName: '', reason: 'Отсутствует наименование карточки (колонка A)' });
+        continue;
+      }
+
+      if (!article) {
+        skippedRows.push({ row: rowNum, article: '', cardName, reason: 'Отсутствует артикул (колонка C)' });
+        continue;
+      }
+
+      if (!seriesName) {
+        skippedRows.push({ row: rowNum, article, cardName, reason: 'Отсутствует серия (колонка I)' });
+        continue;
+      }
 
       products.push({
-        card_name: String(row[0] || '').trim(),
+        rowNum,
+        card_name: cardName,
         full_name: String(row[1] || '').trim(),
-        article: String(row[2] || '').trim(),
+        article: article,
         body_color: String(row[3] || '').trim(),
         profile_color: String(row[4] || '').trim(),
         height: parseFloat(row[5]) || 0,
         width: parseFloat(row[6]) || 0,
         depth: parseFloat(row[7]) || 0,
-        series: String(row[8] || '').trim(),
+        series: seriesName,
         group: String(row[9] || '').trim(),
         door_type: String(row[10] || '').trim(),
         door_count: parseInt(row[11]) || 0,
@@ -256,16 +286,24 @@ function parseExcelData(workbook: XLSX.WorkBook) {
     }
   }
 
-  return { products, series, fillings, bodyColors };
+  return { products, series, fillings, bodyColors, skippedRows };
 }
 
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
+
+interface SkippedRow {
+  row: number;
+  article: string;
+  cardName: string;
+  reason: string;
+}
 
 async function importCatalogOptimized(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any,
   adminId: number,
-  onProgress: (progress: { current: number; total: number; stage: string; item?: string }) => Promise<void>
+  onProgress: (progress: { current: number; total: number; stage: string; item?: string }) => Promise<void>,
+  skippedRows: SkippedRow[]
 ) {
   const pool = getPool();
   const errors: string[] = [];
@@ -274,6 +312,9 @@ async function importCatalogOptimized(
   let fillingsCount = 0;
   let productsCount = 0;
   let variantsCount = 0;
+
+  // Глобальный трекер дубликатов артикулов
+  const globalSeenArticles = new Set<string>();
 
   // Создаём запись в истории импорта
   const historyResult = await pool.query(
@@ -488,15 +529,26 @@ async function importCatalogOptimized(
       for (const p of batch) {
         const productId = productMap[p.card_name];
         if (!productId) {
-          console.log(`Skipping variant "${p.article}" - product "${p.card_name}" not found in productMap`);
+          skippedRows.push({
+            row: p.rowNum,
+            article: p.article,
+            cardName: p.card_name,
+            reason: `Товар "${p.card_name}" не найден (серия не существует)`
+          });
           continue;
         }
 
-        // Пропускаем дубликаты артикулов в пределах batch
-        if (seenArticles.has(p.article)) {
-          console.log(`Skipping duplicate article "${p.article}" in batch`);
+        // Пропускаем дубликаты артикулов глобально
+        if (globalSeenArticles.has(p.article)) {
+          skippedRows.push({
+            row: p.rowNum,
+            article: p.article,
+            cardName: p.card_name,
+            reason: `Дубликат артикула "${p.article}"`
+          });
           continue;
         }
+        globalSeenArticles.add(p.article);
         seenArticles.add(p.article);
 
         const bodyColorId = bodyColorMap[`${p.series}:${p.body_color}`] || null;
@@ -568,7 +620,8 @@ async function importCatalogOptimized(
       fillingsCount,
       productsCount,
       variantsCount,
-      errors
+      errors,
+      skippedRows
     };
   } catch (e) {
     await pool.query(
