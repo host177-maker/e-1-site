@@ -274,12 +274,13 @@ export async function getProductBySlug(slug: string): Promise<{
     );
     filling = fillingResult.rows[0] || null;
 
-    // Получаем все варианты наполнения для серии и количества дверей
+    // Получаем все варианты наполнения для выбранного размера
     const fillingsResult = await pool.query(
       `SELECT * FROM catalog_fillings
        WHERE series_id = $1 AND door_count = $2
-       ORDER BY height, width, depth`,
-      [product.series_id, product.door_count]
+         AND height = $3 AND width = $4 AND depth = $5
+       ORDER BY short_name NULLS LAST`,
+      [product.series_id, product.door_count, firstVariant.height, firstVariant.width, firstVariant.depth]
     );
     fillings = fillingsResult.rows;
   }
@@ -360,17 +361,21 @@ export async function getFilling(
   return result.rows[0] || null;
 }
 
-// Получить все варианты наполнения для серии и количества дверей
+// Получить все варианты наполнения для серии, количества дверей и размеров
 export async function getFillings(
   seriesId: number,
-  doorCount: number
+  doorCount: number,
+  height: number,
+  width: number,
+  depth: number
 ): Promise<CatalogFilling[]> {
   const pool = getPool();
   const result = await pool.query(
     `SELECT * FROM catalog_fillings
      WHERE series_id = $1 AND door_count = $2
-     ORDER BY height, width, depth`,
-    [seriesId, doorCount]
+       AND height = $3 AND width = $4 AND depth = $5
+     ORDER BY short_name NULLS LAST`,
+    [seriesId, doorCount, height, width, depth]
   );
   return result.rows;
 }

@@ -44,10 +44,10 @@ export async function POST(request: NextRequest, { params }: Params) {
     // Получаем наполнение для текущего размера
     let filling = null;
     let fillings: Awaited<ReturnType<typeof getFillings>> = [];
-    if (seriesId && doorCount) {
+    if (seriesId && doorCount && height && width && depth) {
       filling = await getFilling(seriesId, doorCount, height, width, depth);
-      // Получаем все варианты наполнения для серии и количества дверей
-      fillings = await getFillings(seriesId, doorCount);
+      // Получаем все варианты наполнения для выбранного размера
+      fillings = await getFillings(seriesId, doorCount, height, width, depth);
     }
 
     return NextResponse.json({

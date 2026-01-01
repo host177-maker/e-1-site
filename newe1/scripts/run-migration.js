@@ -2,8 +2,8 @@
 
 /**
  * Скрипт для выполнения миграций PostgreSQL через Node.js
- * Использование: node src/lib/migrations/run-migration.js [номер_миграции]
- * Пример: node src/lib/migrations/run-migration.js 007
+ * Использование: node scripts/run-migration.js [номер_миграции]
+ * Пример: node scripts/run-migration.js 007
  */
 
 const { Pool } = require('pg');
@@ -11,21 +11,24 @@ const fs = require('fs');
 const path = require('path');
 
 // Загружаем переменные окружения
-require('dotenv').config({ path: path.join(__dirname, '../../../.env.local') });
+require('dotenv').config({ path: path.join(__dirname, '../.env.local') });
+
+// Путь к папке с миграциями
+const migrationsDir = path.join(__dirname, '../src/lib/migrations');
 
 async function runMigration() {
   const migrationNumber = process.argv[2];
 
   if (!migrationNumber) {
     console.log('Доступные миграции:');
-    const files = fs.readdirSync(__dirname).filter(f => f.endsWith('.sql'));
+    const files = fs.readdirSync(migrationsDir).filter(f => f.endsWith('.sql'));
     files.forEach(f => console.log(`  - ${f}`));
-    console.log('\nИспользование: node src/lib/migrations/run-migration.js 007');
+    console.log('\nИспользование: node scripts/run-migration.js 007');
     process.exit(1);
   }
 
   // Найти файл миграции
-  const files = fs.readdirSync(__dirname);
+  const files = fs.readdirSync(migrationsDir);
   const migrationFile = files.find(f => f.startsWith(migrationNumber) && f.endsWith('.sql'));
 
   if (!migrationFile) {
@@ -33,7 +36,7 @@ async function runMigration() {
     process.exit(1);
   }
 
-  const migrationPath = path.join(__dirname, migrationFile);
+  const migrationPath = path.join(migrationsDir, migrationFile);
   const sql = fs.readFileSync(migrationPath, 'utf8');
 
   console.log(`Выполняется миграция: ${migrationFile}`);
