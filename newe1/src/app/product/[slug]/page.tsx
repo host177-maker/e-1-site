@@ -520,7 +520,7 @@ export default function ProductPage() {
                 {product.series_name}
               </div>
               <h1 className="text-xl md:text-2xl font-bold text-gray-900 min-h-[4.5rem] line-clamp-3">
-                {currentVariant?.full_name || product.name}
+                {product.name}
               </h1>
             </div>
 
@@ -556,99 +556,92 @@ export default function ProductPage() {
             </div>
 
             {/* Выбрать размер и цвет */}
-            <div className="bg-white rounded-xl shadow-sm p-5">
-              <h3 className="text-base font-medium text-gray-900 mb-4">Выбрать размер и цвет</h3>
+            <div className="bg-white rounded-xl shadow-sm p-4">
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Выбрать размер и цвет</h3>
 
-              {/* Размеры - выпадающие списки или информация */}
-              <div className="grid grid-cols-3 gap-4 mb-5">
-                {/* Ширина */}
+              {/* Размеры в ряд */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
                 <div>
-                  <label className="text-sm text-gray-500 mb-1.5 block">Ширина</label>
+                  <label className="text-xs text-gray-500 mb-1 block">Ширина</label>
                   {availableWidths.length > 1 ? (
                     <select
                       value={selectedWidth || ''}
                       onChange={(e) => setSelectedWidth(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-[#62bb46] cursor-pointer"
+                      className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm bg-white focus:outline-none focus:border-[#62bb46] cursor-pointer"
                     >
                       {availableWidths.map((width) => (
                         <option key={width} value={width}>{width} мм</option>
                       ))}
                     </select>
                   ) : (
-                    <div className="px-3 py-2 text-sm text-gray-700 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="px-2 py-1.5 text-sm text-gray-700 bg-gray-50 rounded border border-gray-100">
                       {selectedWidth} мм
                     </div>
                   )}
                 </div>
-
-                {/* Высота */}
                 <div>
-                  <label className="text-sm text-gray-500 mb-1.5 block">Высота</label>
+                  <label className="text-xs text-gray-500 mb-1 block">Высота</label>
                   {availableHeights.length > 1 ? (
                     <select
                       value={selectedHeight || ''}
                       onChange={(e) => setSelectedHeight(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-[#62bb46] cursor-pointer"
+                      className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm bg-white focus:outline-none focus:border-[#62bb46] cursor-pointer"
                     >
                       {availableHeights.map((height) => (
                         <option key={height} value={height}>{height} мм</option>
                       ))}
                     </select>
                   ) : (
-                    <div className="px-3 py-2 text-sm text-gray-700 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="px-2 py-1.5 text-sm text-gray-700 bg-gray-50 rounded border border-gray-100">
                       {selectedHeight} мм
                     </div>
                   )}
                 </div>
-
-                {/* Глубина */}
                 <div>
-                  <label className="text-sm text-gray-500 mb-1.5 block">Глубина</label>
+                  <label className="text-xs text-gray-500 mb-1 block">Глубина</label>
                   {availableDepths.length > 1 ? (
                     <select
                       value={selectedDepth || ''}
                       onChange={(e) => setSelectedDepth(Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-[#62bb46] cursor-pointer"
+                      className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm bg-white focus:outline-none focus:border-[#62bb46] cursor-pointer"
                     >
                       {availableDepths.map((depth) => (
                         <option key={depth} value={depth}>{depth} мм</option>
                       ))}
                     </select>
                   ) : (
-                    <div className="px-3 py-2 text-sm text-gray-700 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="px-2 py-1.5 text-sm text-gray-700 bg-gray-50 rounded border border-gray-100">
                       {selectedDepth} мм
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Цвета и доп. комплектация */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Цвета */}
+              <div className="grid grid-cols-2 gap-2 mb-3">
                 {/* Цвет корпуса */}
                 <div>
-                  <label className="text-sm text-gray-500 mb-1.5 block">Цвет корпуса</label>
-                  <div className="flex items-center justify-between">
-                    <button
-                      onClick={() => setShowBodyColorModal(true)}
-                      className="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:border-[#62bb46] transition-colors"
-                    >
-                      Выбрать
-                    </button>
-                    <div className="flex items-center gap-2">
-                      {selectedBodyColor?.image_small && (
-                        <div className="relative w-6 h-6 rounded overflow-hidden border border-gray-200">
-                          <Image src={selectedBodyColor.image_small} alt={selectedBodyColor.name} fill className="object-cover" />
-                        </div>
-                      )}
-                      <span className="text-sm text-gray-600">{selectedBodyColor?.name}</span>
-                    </div>
-                  </div>
+                  <label className="text-xs text-gray-500 mb-1 block">Цвет корпуса</label>
+                  <button
+                    onClick={() => setShowBodyColorModal(true)}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 border border-gray-200 rounded text-sm hover:border-[#62bb46] transition-colors text-left"
+                  >
+                    {selectedBodyColor?.image_small && (
+                      <div className="relative w-5 h-5 rounded overflow-hidden border border-gray-200 flex-shrink-0">
+                        <Image src={selectedBodyColor.image_small} alt={selectedBodyColor.name} fill className="object-cover" />
+                      </div>
+                    )}
+                    <span className="text-gray-700 truncate flex-1">{selectedBodyColor?.name || 'Выбрать'}</span>
+                    <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
                 </div>
 
                 {/* Цвет профиля */}
                 {variantProfileColors.length > 0 && (
                   <div>
-                    <label className="text-sm text-gray-500 mb-1.5 block">Цвет профиля</label>
+                    <label className="text-xs text-gray-500 mb-1 block">Цвет профиля</label>
                     {availableProfileColors.length > 1 ? (
                       <select
                         value={selectedProfileColor?.id || ''}
@@ -656,16 +649,15 @@ export default function ProductPage() {
                           const color = availableProfileColors.find(c => c.id === Number(e.target.value));
                           if (color) setSelectedProfileColor(color);
                         }}
-                        className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-[#62bb46] cursor-pointer"
+                        className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm bg-white focus:outline-none focus:border-[#62bb46] cursor-pointer"
                       >
                         {availableProfileColors.map((color) => (
                           <option key={color.id} value={color.id}>{color.name.replace(' профиль', '')}</option>
                         ))}
                       </select>
                     ) : (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-400">—</span>
-                        <span className="text-sm text-gray-700">{selectedProfileColor?.name.replace(' профиль', '')}</span>
+                      <div className="px-2 py-1.5 text-sm text-gray-700 bg-gray-50 rounded border border-gray-100">
+                        {selectedProfileColor?.name.replace(' профиль', '') || '—'}
                       </div>
                     )}
                   </div>
@@ -673,17 +665,15 @@ export default function ProductPage() {
               </div>
 
               {/* Доп. комплектация */}
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <button
-                  onClick={() => setShowAdditionalConfig(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 rounded-lg text-sm hover:border-[#62bb46] transition-colors"
-                >
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                  </svg>
-                  Доп. комплектация
-                </button>
-              </div>
+              <button
+                onClick={() => setShowAdditionalConfig(true)}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-gray-200 rounded text-sm hover:border-[#62bb46] transition-colors"
+              >
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                </svg>
+                Доп. комплектация
+              </button>
             </div>
 
             {/* Наполнение */}
@@ -715,29 +705,6 @@ export default function ProductPage() {
                     />
                   </div>
                 )}
-              </div>
-            )}
-
-            {/* Материалы дверей */}
-            {currentVariant?.door_material1 && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="font-bold text-gray-900 mb-4">Материалы дверей</h3>
-                <div className="space-y-2">
-                  {[
-                    currentVariant.door_material1,
-                    currentVariant.door_material2,
-                    currentVariant.door_material3
-                  ]
-                    .filter(Boolean)
-                    .map((material, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-gray-100 rounded flex items-center justify-center text-xs font-medium text-gray-500">
-                          {index + 1}
-                        </div>
-                        <span className="text-gray-600">{material}</span>
-                      </div>
-                    ))}
-                </div>
               </div>
             )}
 
