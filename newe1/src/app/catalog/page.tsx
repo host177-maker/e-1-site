@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -25,13 +26,32 @@ interface CatalogProduct {
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
 export default function CatalogPage() {
+  const searchParams = useSearchParams();
+  const isInitialLoad = useRef(true);
+
+  // Читаем начальные параметры из URL только один раз
+  const initialUrlParams = useRef<{
+    series: string | null;
+    page: string | null;
+  } | null>(null);
+
+  if (initialUrlParams.current === null && searchParams) {
+    initialUrlParams.current = {
+      series: searchParams.get('series'),
+      page: searchParams.get('page'),
+    };
+  }
+
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [series, setSeries] = useState<CatalogSeries[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSeries, setSelectedSeries] = useState<string>('');
+  const [selectedSeries, setSelectedSeries] = useState<string>(initialUrlParams.current?.series || '');
   const [total, setTotal] = useState(0);
-  const [offset, setOffset] = useState(0);
   const limit = 12;
+
+  // Инициализируем offset из URL параметра page
+  const initialPage = initialUrlParams.current?.page ? parseInt(initialUrlParams.current.page) : 1;
+  const [offset, setOffset] = useState((initialPage - 1) * limit);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -53,12 +73,31 @@ export default function CatalogPage() {
       console.error('Error fetching catalog:', error);
     } finally {
       setLoading(false);
+      isInitialLoad.current = false;
     }
   }, [selectedSeries, offset]);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  // Обновляем URL при изменении фильтров (без перезагрузки страницы)
+  useEffect(() => {
+    if (isInitialLoad.current) return;
+
+    const params = new URLSearchParams();
+    if (selectedSeries) {
+      params.set('series', selectedSeries);
+    }
+    const currentPage = Math.floor(offset / limit) + 1;
+    if (currentPage > 1) {
+      params.set('page', currentPage.toString());
+    }
+
+    const queryString = params.toString();
+    const newUrl = queryString ? `/catalog?${queryString}` : '/catalog';
+    window.history.replaceState(null, '', newUrl);
+  }, [selectedSeries, offset]);
 
   const handleSeriesChange = (slug: string) => {
     setSelectedSeries(slug);
