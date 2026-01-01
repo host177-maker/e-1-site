@@ -442,8 +442,9 @@ async function importCatalogOptimized(
         continue;
       }
 
-      // Проверяем на дубликат
-      const fillingKey = `${seriesId}:${f.door_count}:${f.height}:${f.width}:${f.depth}`;
+      // Проверяем на дубликат (включая short_name для разных типов наполнения)
+      const shortNameKey = f.short_name || '';
+      const fillingKey = `${seriesId}:${f.door_count}:${f.height}:${f.width}:${f.depth}:${shortNameKey}`;
       if (seenFillings.has(fillingKey)) {
         skippedFillings.push({
           row: f.rowNum,
@@ -451,23 +452,19 @@ async function importCatalogOptimized(
           doorCount: f.door_count,
           dimensions: `${f.width}×${f.height}×${f.depth}`,
           shortName: f.short_name || '',
-          reason: `Дубликат (серия "${f.series}", ${f.door_count} дв., ${f.width}×${f.height}×${f.depth})`
+          reason: `Дубликат (серия "${f.series}", ${f.door_count} дв., ${f.width}×${f.height}×${f.depth}, "${shortNameKey}")`
         });
         continue;
       }
       seenFillings.add(fillingKey);
 
       try {
+        // Используем INSERT без ON CONFLICT, так как таблица очищается перед импортом
+        // и мы уже проверили дубликаты выше
         await pool.query(
           `INSERT INTO catalog_fillings (series_id, door_count, height, width, depth, short_name, description,
              image_plain, image_dimensions, image_filled, base_article, extra_article1, extra_article2, extra_article3, extra_article4)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-           ON CONFLICT (series_id, door_count, height, width, depth) DO UPDATE SET
-             short_name = COALESCE(EXCLUDED.short_name, catalog_fillings.short_name),
-             description = COALESCE(EXCLUDED.description, catalog_fillings.description),
-             image_plain = COALESCE(EXCLUDED.image_plain, catalog_fillings.image_plain),
-             image_dimensions = COALESCE(EXCLUDED.image_dimensions, catalog_fillings.image_dimensions),
-             image_filled = COALESCE(EXCLUDED.image_filled, catalog_fillings.image_filled)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
           [seriesId, f.door_count, f.height, f.width, f.depth, f.short_name || null, f.description || null,
            f.image_plain || PLACEHOLDER_IMAGE, f.image_dimensions || PLACEHOLDER_IMAGE,
            f.image_filled || PLACEHOLDER_IMAGE, f.base_article || null,
