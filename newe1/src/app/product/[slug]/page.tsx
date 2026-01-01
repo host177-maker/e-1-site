@@ -78,7 +78,7 @@ export default function ProductPage() {
   } | null>(null);
 
   // Читаем параметры URL только один раз при первом рендере
-  if (initialUrlParams.current === null) {
+  if (initialUrlParams.current === null && searchParams) {
     initialUrlParams.current = {
       h: searchParams.get('h'),
       w: searchParams.get('w'),
