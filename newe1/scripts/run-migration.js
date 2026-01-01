@@ -70,7 +70,12 @@ async function runMigration() {
       client.release();
     }
   } catch (error) {
-    console.error('❌ Ошибка миграции:', error.message);
+    console.error('❌ Ошибка миграции:');
+    console.error('  Сообщение:', error.message || 'нет');
+    console.error('  Код:', error.code || 'нет');
+    console.error('  Детали:', error.detail || 'нет');
+    if (error.hint) console.error('  Подсказка:', error.hint);
+    if (error.position) console.error('  Позиция:', error.position);
     process.exit(1);
   } finally {
     await pool.end();
