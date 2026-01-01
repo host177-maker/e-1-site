@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -64,7 +64,6 @@ const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 export default function ProductPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const slug = (params?.slug as string) || '';
   const isInitialLoad = useRef(true);
   const urlParamsApplied = useRef(false);
@@ -232,7 +231,7 @@ export default function ProductPage() {
     }
   }, [slug, fetchProduct]);
 
-  // Обновляем URL при изменении параметров
+  // Обновляем URL при изменении параметров (без перезагрузки страницы)
   useEffect(() => {
     if (!urlParamsApplied.current || isInitialLoad.current) return;
     if (selectedHeight === null || selectedWidth === null || selectedDepth === null) return;
@@ -249,8 +248,9 @@ export default function ProductPage() {
     }
 
     const newUrl = `/product/${slug}?${params.toString()}`;
-    router.replace(newUrl, { scroll: false });
-  }, [selectedHeight, selectedWidth, selectedDepth, selectedBodyColor, selectedProfileColor, slug, router]);
+    // Используем history API напрямую, чтобы избежать перезагрузки
+    window.history.replaceState(null, '', newUrl);
+  }, [selectedHeight, selectedWidth, selectedDepth, selectedBodyColor, selectedProfileColor, slug]);
 
   // При изменении высоты - проверяем доступность ширины и глубины
   useEffect(() => {
@@ -522,7 +522,7 @@ export default function ProductPage() {
               <div className="text-sm text-gray-500 mb-1">
                 {product.series_name}
               </div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900 min-h-[4.5rem] line-clamp-3">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 min-h-[3rem] line-clamp-2">
                 {product.name}
               </h1>
             </div>
@@ -547,7 +547,7 @@ export default function ProductPage() {
             {/* Цена - показываем только если есть варианты */}
             {!hasNoVariants && (
               <div className="bg-white rounded-xl shadow-sm p-5">
-                <div className="flex items-baseline gap-3 mb-1">
+                <div className="flex items-baseline gap-3 mb-4">
                   <span className="text-3xl font-bold text-gray-900">
                     {(basePrice + (includeAssembly ? assemblyPrice : 0)).toLocaleString('ru-RU')} ₽
                   </span>
@@ -555,7 +555,6 @@ export default function ProductPage() {
                     {oldPrice.toLocaleString('ru-RU')} ₽
                   </span>
                 </div>
-                <div className="text-sm text-gray-500 mb-4">Цена в базовой комплектации</div>
 
                 {/* Сборка */}
                 <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-gray-200 hover:border-[#62bb46] transition-colors">
