@@ -46,10 +46,14 @@ export default function CatalogPage() {
     try {
       const response = await fetch('/api/e1admin/catalog/import');
       const data = await response.json();
-      if (data.stats) {
-        setStats(data.stats);
+      if (data.stats && typeof data.stats === 'object') {
+        setStats({
+          series: data.stats.series ?? 0,
+          products: data.stats.products ?? 0,
+          variants: data.stats.variants ?? 0
+        });
       }
-      if (data.imports) {
+      if (Array.isArray(data.imports)) {
         setImports(data.imports);
       }
       if (data.needsMigration) {
@@ -211,7 +215,7 @@ export default function CatalogPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Серий</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.series}</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats?.series ?? 0}</p>
                   </div>
                 </div>
               </div>
@@ -225,7 +229,7 @@ export default function CatalogPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Товаров</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.products}</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats?.products ?? 0}</p>
                   </div>
                 </div>
               </div>
@@ -239,7 +243,7 @@ export default function CatalogPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Вариантов (SKU)</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.variants}</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats?.variants ?? 0}</p>
                   </div>
                 </div>
               </div>
