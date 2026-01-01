@@ -310,11 +310,11 @@ export async function getVariantByParams(
   profileColorId?: number
 ): Promise<CatalogVariant | null> {
   const conditions = [
-    'product_id = $1',
-    'height = $2',
-    'width = $3',
-    'depth = $4',
-    'is_active = true'
+    'v.product_id = $1',
+    'v.height = $2',
+    'v.width = $3',
+    'v.depth = $4',
+    'v.is_active = true'
   ];
   const params: (number | undefined)[] = [productId, height, width, depth];
   let paramIndex = 5;
