@@ -92,7 +92,8 @@ export default function ProductPage() {
   const [product, setProduct] = useState<CatalogProduct | null>(null);
   const [variants, setVariants] = useState<CatalogVariant[]>([]);
   const [bodyColors, setBodyColors] = useState<CatalogBodyColor[]>([]);
-  const [profileColors, setProfileColors] = useState<{ id: number; name: string }[]>([]);
+  // profileColors загружается для начальной инициализации, но далее используется variantProfileColors
+  const [, setProfileColors] = useState<{ id: number; name: string }[]>([]);
   const [filling, setFilling] = useState<CatalogFilling | null>(null);
   const [series, setSeries] = useState<CatalogSeries | null>(null);
 
