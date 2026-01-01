@@ -43,15 +43,6 @@ interface CatalogBodyColor {
   image_large?: string;
 }
 
-interface CatalogProfileColor {
-  id: number;
-  name: string;
-  slug: string;
-  description?: string;
-  image_small?: string;
-  image_large?: string;
-}
-
 interface CatalogFilling {
   id: number;
   height: number;
@@ -106,7 +97,7 @@ export default function ProductPage() {
   const [variants, setVariants] = useState<CatalogVariant[]>([]);
   const [bodyColors, setBodyColors] = useState<CatalogBodyColor[]>([]);
   // profileColors загружается для начальной инициализации, но далее используется variantProfileColors
-  const [profileColors, setProfileColors] = useState<CatalogProfileColor[]>([]);
+  const [profileColors, setProfileColors] = useState<{ id: number; name: string }[]>([]);
   const [filling, setFilling] = useState<CatalogFilling | null>(null);
   const [fillings, setFillings] = useState<CatalogFilling[]>([]);
   const [series, setSeries] = useState<CatalogSeries | null>(null);
@@ -117,7 +108,7 @@ export default function ProductPage() {
   const [selectedDepth, setSelectedDepth] = useState<number | null>(null);
 
   const [selectedBodyColor, setSelectedBodyColor] = useState<CatalogBodyColor | null>(null);
-  const [selectedProfileColor, setSelectedProfileColor] = useState<CatalogProfileColor | null>(null);
+  const [selectedProfileColor, setSelectedProfileColor] = useState<{ id: number; name: string } | null>(null);
   const [currentVariant, setCurrentVariant] = useState<CatalogVariant | null>(null);
 
   // Галерея
@@ -134,11 +125,6 @@ export default function ProductPage() {
   const [tempBodyColor, setTempBodyColor] = useState<CatalogBodyColor | null>(null);
   // ID цвета для показа описания в модальном окне
   const [showColorInfoId, setShowColorInfoId] = useState<number | null>(null);
-
-  // Модальное окно выбора цвета профиля
-  const [showProfileColorModal, setShowProfileColorModal] = useState(false);
-  const [tempProfileColor, setTempProfileColor] = useState<CatalogProfileColor | null>(null);
-  const [showProfileColorInfoId, setShowProfileColorInfoId] = useState<number | null>(null);
 
   // Модальное окно выбора наполнения
   const [showFillingSelectModal, setShowFillingSelectModal] = useState(false);
@@ -461,7 +447,6 @@ export default function ProductPage() {
 
     // Собираем уникальные цвета профиля из отфильтрованных вариантов
     const availableIds = new Set(filtered.map(v => v.profile_color_id).filter(Boolean));
-    // Возвращаем полные объекты CatalogProfileColor
     return profileColors.filter(c => availableIds.has(c.id));
   }, [variants, selectedHeight, selectedWidth, selectedDepth, selectedBodyColor, profileColors]);
 
@@ -808,23 +793,24 @@ export default function ProductPage() {
                     {variantProfileColors.length > 0 && (
                       <div>
                         <label className="text-xs text-gray-500 mb-1 block">Цвет профиля</label>
-                        <button
-                          onClick={() => {
-                            setTempProfileColor(selectedProfileColor);
-                            setShowProfileColorModal(true);
-                          }}
-                          className="w-full flex items-center gap-2 px-2 py-1.5 border border-gray-200 rounded text-sm hover:border-[#62bb46] transition-colors text-left"
-                        >
-                          {selectedProfileColor?.image_small && (
-                            <div className="relative w-5 h-5 rounded overflow-hidden border border-gray-200 flex-shrink-0">
-                              <Image src={selectedProfileColor.image_small} alt={selectedProfileColor.name} fill className="object-cover" />
-                            </div>
-                          )}
-                          <span className="text-gray-700 truncate flex-1">{selectedProfileColor?.name.replace(' профиль', '') || 'Выбрать'}</span>
-                          <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                        </button>
+                        {availableProfileColors.length > 1 ? (
+                          <select
+                            value={selectedProfileColor?.id || ''}
+                            onChange={(e) => {
+                              const color = availableProfileColors.find(c => c.id === Number(e.target.value));
+                              if (color) setSelectedProfileColor(color);
+                            }}
+                            className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm bg-white focus:outline-none focus:border-[#62bb46] cursor-pointer"
+                          >
+                            {availableProfileColors.map((color) => (
+                              <option key={color.id} value={color.id}>{color.name.replace(' профиль', '')}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <div className="px-2 py-1.5 text-sm text-gray-700 bg-gray-50 rounded border border-gray-100">
+                            {selectedProfileColor?.name.replace(' профиль', '') || '—'}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1058,100 +1044,6 @@ export default function ProductPage() {
                     setSelectedBodyColor(tempBodyColor);
                   }
                   setShowBodyColorModal(false);
-                }}
-                className="w-full py-3 bg-[#62bb46] hover:bg-[#4a9935] text-white font-bold rounded-lg transition-colors"
-              >
-                Применить
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Модальное окно выбора цвета профиля */}
-      {showProfileColorModal && (
-        <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowProfileColorModal(false)}
-        >
-          <div
-            className="bg-white rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900">Выберите цвет профиля</h2>
-              <button
-                onClick={() => setShowProfileColorModal(false)}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-4">
-              <div className="space-y-3">
-                {availableProfileColors.map((color) => (
-                  <div key={color.id}>
-                    <div
-                      onClick={() => setTempProfileColor(color)}
-                      className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all ${
-                        tempProfileColor?.id === color.id
-                          ? 'bg-[#62bb46]/10 ring-2 ring-[#62bb46]'
-                          : 'bg-gray-50 hover:bg-gray-100'
-                      }`}
-                    >
-                      {/* Миниатюра цвета */}
-                      <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                        {color.image_small ? (
-                          <Image src={color.image_small} alt={color.name} fill className="object-cover" />
-                        ) : (
-                          <div className="w-full h-full bg-gray-200 flex items-center justify-center text-lg font-medium text-gray-500">
-                            {color.name.charAt(0)}
-                          </div>
-                        )}
-                      </div>
-                      {/* Название цвета */}
-                      <span className="flex-1 text-sm font-medium text-gray-900">{color.name.replace(' профиль', '')}</span>
-                      {/* Кнопка информации */}
-                      {color.description && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowProfileColorInfoId(showProfileColorInfoId === color.id ? null : color.id);
-                          }}
-                          className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 flex-shrink-0"
-                        >
-                          <span className="text-xs font-bold">i</span>
-                        </button>
-                      )}
-                      {/* Галочка выбора */}
-                      {tempProfileColor?.id === color.id && (
-                        <div className="w-6 h-6 bg-[#62bb46] rounded-full flex items-center justify-center flex-shrink-0">
-                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                    {/* Описание цвета (раскрывается при нажатии на i) */}
-                    {showProfileColorInfoId === color.id && color.description && (
-                      <div className="mt-2 ml-15 p-3 bg-gray-100 rounded-lg">
-                        <p className="text-sm text-gray-600">{color.description}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-            {/* Кнопка применить */}
-            <div className="sticky bottom-0 bg-white border-t p-4">
-              <button
-                onClick={() => {
-                  if (tempProfileColor) {
-                    setSelectedProfileColor(tempProfileColor);
-                  }
-                  setShowProfileColorModal(false);
                 }}
                 className="w-full py-3 bg-[#62bb46] hover:bg-[#4a9935] text-white font-bold rounded-lg transition-colors"
               >

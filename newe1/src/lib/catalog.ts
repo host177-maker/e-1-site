@@ -203,7 +203,7 @@ export async function getProductBySlug(slug: string): Promise<{
   product: CatalogProduct;
   variants: CatalogVariant[];
   bodyColors: CatalogBodyColor[];
-  profileColors: CatalogProfileColor[];
+  profileColors: { id: number; name: string }[];
   sizes: { height: number; width: number; depth: number }[];
   filling?: CatalogFilling;
   fillings?: CatalogFilling[];
@@ -250,9 +250,9 @@ export async function getProductBySlug(slug: string): Promise<{
   );
 
   // Получаем цвета профилей
+  // Примечание: после применения миграции 008 можно добавить: slug, description, image_small, image_large
   const profileColorsResult = await pool.query(
-    `SELECT id, name, slug, description, image_small, image_large
-     FROM catalog_profile_colors WHERE is_active = true ORDER BY sort_order`
+    `SELECT id, name FROM catalog_profile_colors WHERE is_active = true ORDER BY sort_order`
   );
 
   // Получаем уникальные размеры для этого товара
