@@ -87,6 +87,15 @@ export interface CatalogBodyColor {
   image_large?: string;
 }
 
+export interface CatalogProfileColor {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  image_small?: string;
+  image_large?: string;
+}
+
 export interface CatalogFilling {
   id: number;
   series_id: number;
@@ -194,7 +203,7 @@ export async function getProductBySlug(slug: string): Promise<{
   product: CatalogProduct;
   variants: CatalogVariant[];
   bodyColors: CatalogBodyColor[];
-  profileColors: { id: number; name: string }[];
+  profileColors: CatalogProfileColor[];
   sizes: { height: number; width: number; depth: number }[];
   filling?: CatalogFilling;
   fillings?: CatalogFilling[];
@@ -242,7 +251,8 @@ export async function getProductBySlug(slug: string): Promise<{
 
   // Получаем цвета профилей
   const profileColorsResult = await pool.query(
-    `SELECT id, name FROM catalog_profile_colors WHERE is_active = true ORDER BY sort_order`
+    `SELECT id, name, slug, description, image_small, image_large
+     FROM catalog_profile_colors WHERE is_active = true ORDER BY sort_order`
   );
 
   // Получаем уникальные размеры для этого товара
