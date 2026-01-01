@@ -71,11 +71,11 @@ export async function POST(request: NextRequest) {
       // Парсим данные
       const data = parseExcelData(workbook);
 
-      await send('progress', { current: 10, total: 100, stage: 'Импорт', item: `${data.products.length} вариантов найдено` });
+      await send('progress', { current: 10, total: 100, stage: 'Импорт', item: `${data.products.length} вариантов найдено, ${data.skippedRows.length} пропущено при парсинге` });
 
       const result = await importCatalogOptimized(data, admin.id, async (progress) => {
         await send('progress', progress);
-      });
+      }, data.skippedRows);
 
       await send('complete', {
         success: result.success,
@@ -85,9 +85,13 @@ export async function POST(request: NextRequest) {
           bodyColors: result.bodyColorsCount,
           fillings: result.fillingsCount,
           products: result.productsCount,
-          variants: result.variantsCount
+          variants: result.variantsCount,
+          skipped: result.skippedRows.length,
+          skippedFillings: result.skippedFillings.length
         },
-        errors: result.errors.slice(0, 50)
+        errors: result.errors.slice(0, 50),
+        skippedRows: result.skippedRows,
+        skippedFillings: result.skippedFillings
       });
     } catch (error) {
       console.error('Import error:', error);
@@ -115,6 +119,8 @@ function parseExcelData(workbook: XLSX.WorkBook) {
   const fillings: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bodyColors: any[] = [];
+  // Пропущенные строки с причинами
+  const skippedRows: { row: number; article: string; cardName: string; reason: string }[] = [];
 
   // 1. Парсинг листа "Карточки товаров"
   const productsSheet = workbook.Sheets['Карточки товаров'];
@@ -122,18 +128,44 @@ function parseExcelData(workbook: XLSX.WorkBook) {
     const rows = XLSX.utils.sheet_to_json<string[]>(productsSheet, { header: 1 });
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      if (!row || !row[0] || !row[2]) continue;
+      const rowNum = i + 1; // Номер строки в Excel (с 1, учитывая заголовок)
+
+      // Проверяем обязательные поля
+      if (!row) {
+        skippedRows.push({ row: rowNum, article: '', cardName: '', reason: 'Пустая строка' });
+        continue;
+      }
+
+      const cardName = String(row[0] || '').trim();
+      const article = String(row[2] || '').trim();
+      const seriesName = String(row[8] || '').trim();
+
+      if (!cardName) {
+        skippedRows.push({ row: rowNum, article, cardName: '', reason: 'Отсутствует наименование карточки (колонка A)' });
+        continue;
+      }
+
+      if (!article) {
+        skippedRows.push({ row: rowNum, article: '', cardName, reason: 'Отсутствует артикул (колонка C)' });
+        continue;
+      }
+
+      if (!seriesName) {
+        skippedRows.push({ row: rowNum, article, cardName, reason: 'Отсутствует серия (колонка I)' });
+        continue;
+      }
 
       products.push({
-        card_name: String(row[0] || '').trim(),
+        rowNum,
+        card_name: cardName,
         full_name: String(row[1] || '').trim(),
-        article: String(row[2] || '').trim(),
+        article: article,
         body_color: String(row[3] || '').trim(),
         profile_color: String(row[4] || '').trim(),
         height: parseFloat(row[5]) || 0,
         width: parseFloat(row[6]) || 0,
         depth: parseFloat(row[7]) || 0,
-        series: String(row[8] || '').trim(),
+        series: seriesName,
         group: String(row[9] || '').trim(),
         door_type: String(row[10] || '').trim(),
         door_count: parseInt(row[11]) || 0,
@@ -203,9 +235,11 @@ function parseExcelData(workbook: XLSX.WorkBook) {
     const rows = XLSX.utils.sheet_to_json<string[]>(fillingsSheet, { header: 1 });
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
+      const rowNum = i + 1; // Номер строки в Excel
       if (!row || !row[0]) continue;
 
       fillings.push({
+        rowNum,
         series: String(row[0] || '').trim(),
         door_count: parseInt(row[1]) || 0,
         height: parseFloat(row[2]) || 0,
@@ -256,24 +290,47 @@ function parseExcelData(workbook: XLSX.WorkBook) {
     }
   }
 
-  return { products, series, fillings, bodyColors };
+  return { products, series, fillings, bodyColors, skippedRows };
 }
 
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
+
+interface SkippedRow {
+  row: number;
+  article: string;
+  cardName: string;
+  reason: string;
+}
+
+interface SkippedFilling {
+  row: number;
+  series: string;
+  doorCount: number;
+  dimensions: string;
+  shortName: string;
+  reason: string;
+}
 
 async function importCatalogOptimized(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any,
   adminId: number,
-  onProgress: (progress: { current: number; total: number; stage: string; item?: string }) => Promise<void>
+  onProgress: (progress: { current: number; total: number; stage: string; item?: string }) => Promise<void>,
+  skippedRows: SkippedRow[]
 ) {
   const pool = getPool();
   const errors: string[] = [];
+  const skippedFillings: SkippedFilling[] = [];
   let seriesCount = 0;
   let bodyColorsCount = 0;
   let fillingsCount = 0;
   let productsCount = 0;
   let variantsCount = 0;
+
+  // Глобальный трекер дубликатов артикулов
+  const globalSeenArticles = new Set<string>();
+  // Трекер дубликатов наполнений (ключ: series_id:door_count:height:width:depth)
+  const seenFillings = new Set<string>();
 
   // Создаём запись в истории импорта
   const historyResult = await pool.query(
@@ -292,6 +349,13 @@ async function importCatalogOptimized(
     await pool.query('DELETE FROM catalog_body_colors');
     await pool.query('DELETE FROM catalog_fillings');
     await pool.query('DELETE FROM catalog_series');
+
+    // Применяем миграцию для поддержки нескольких вариантов наполнения на один размер
+    await pool.query('ALTER TABLE catalog_fillings DROP CONSTRAINT IF EXISTS catalog_fillings_series_id_door_count_height_width_depth_key');
+    await pool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS catalog_fillings_unique_idx
+      ON catalog_fillings (series_id, door_count, height, width, depth, COALESCE(short_name, ''))
+    `);
 
     await onProgress({ current: 12, total: 100, stage: 'Импорт серий', item: `${data.series.length} серий` });
 
@@ -373,18 +437,41 @@ async function importCatalogOptimized(
     // 3. Импорт наполнений
     for (const f of data.fillings) {
       const seriesId = seriesMap[f.series];
-      if (!seriesId) continue;
+      if (!seriesId) {
+        skippedFillings.push({
+          row: f.rowNum,
+          series: f.series,
+          doorCount: f.door_count,
+          dimensions: `${f.width}×${f.height}×${f.depth}`,
+          shortName: f.short_name || '',
+          reason: `Серия "${f.series}" не найдена`
+        });
+        continue;
+      }
+
+      // Проверяем на дубликат (включая short_name для разных типов наполнения)
+      const shortNameKey = f.short_name || '';
+      const fillingKey = `${seriesId}:${f.door_count}:${f.height}:${f.width}:${f.depth}:${shortNameKey}`;
+      if (seenFillings.has(fillingKey)) {
+        skippedFillings.push({
+          row: f.rowNum,
+          series: f.series,
+          doorCount: f.door_count,
+          dimensions: `${f.width}×${f.height}×${f.depth}`,
+          shortName: f.short_name || '',
+          reason: `Дубликат (серия "${f.series}", ${f.door_count} дв., ${f.width}×${f.height}×${f.depth}, "${shortNameKey}")`
+        });
+        continue;
+      }
+      seenFillings.add(fillingKey);
+
       try {
+        // Используем INSERT без ON CONFLICT, так как таблица очищается перед импортом
+        // и мы уже проверили дубликаты выше
         await pool.query(
           `INSERT INTO catalog_fillings (series_id, door_count, height, width, depth, short_name, description,
              image_plain, image_dimensions, image_filled, base_article, extra_article1, extra_article2, extra_article3, extra_article4)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-           ON CONFLICT (series_id, door_count, height, width, depth) DO UPDATE SET
-             short_name = COALESCE(EXCLUDED.short_name, catalog_fillings.short_name),
-             description = COALESCE(EXCLUDED.description, catalog_fillings.description),
-             image_plain = COALESCE(EXCLUDED.image_plain, catalog_fillings.image_plain),
-             image_dimensions = COALESCE(EXCLUDED.image_dimensions, catalog_fillings.image_dimensions),
-             image_filled = COALESCE(EXCLUDED.image_filled, catalog_fillings.image_filled)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
           [seriesId, f.door_count, f.height, f.width, f.depth, f.short_name || null, f.description || null,
            f.image_plain || PLACEHOLDER_IMAGE, f.image_dimensions || PLACEHOLDER_IMAGE,
            f.image_filled || PLACEHOLDER_IMAGE, f.base_article || null,
@@ -488,15 +575,26 @@ async function importCatalogOptimized(
       for (const p of batch) {
         const productId = productMap[p.card_name];
         if (!productId) {
-          console.log(`Skipping variant "${p.article}" - product "${p.card_name}" not found in productMap`);
+          skippedRows.push({
+            row: p.rowNum,
+            article: p.article,
+            cardName: p.card_name,
+            reason: `Товар "${p.card_name}" не найден (серия не существует)`
+          });
           continue;
         }
 
-        // Пропускаем дубликаты артикулов в пределах batch
-        if (seenArticles.has(p.article)) {
-          console.log(`Skipping duplicate article "${p.article}" in batch`);
+        // Пропускаем дубликаты артикулов глобально
+        if (globalSeenArticles.has(p.article)) {
+          skippedRows.push({
+            row: p.rowNum,
+            article: p.article,
+            cardName: p.card_name,
+            reason: `Дубликат артикула "${p.article}"`
+          });
           continue;
         }
+        globalSeenArticles.add(p.article);
         seenArticles.add(p.article);
 
         const bodyColorId = bodyColorMap[`${p.series}:${p.body_color}`] || null;
@@ -568,7 +666,9 @@ async function importCatalogOptimized(
       fillingsCount,
       productsCount,
       variantsCount,
-      errors
+      errors,
+      skippedRows,
+      skippedFillings
     };
   } catch (e) {
     await pool.query(

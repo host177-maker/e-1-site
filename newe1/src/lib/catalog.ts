@@ -1,4 +1,4 @@
-import { getPool } from './db';
+import { getPool, queryWithRetry } from './db';
 
 // Утилита для создания slug
 function createSlug(text: string): string {
@@ -80,6 +80,15 @@ export interface CatalogVariant {
 export interface CatalogBodyColor {
   id: number;
   series_id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  image_small?: string;
+  image_large?: string;
+}
+
+export interface CatalogProfileColor {
+  id: number;
   name: string;
   slug: string;
   description?: string;
@@ -197,6 +206,7 @@ export async function getProductBySlug(slug: string): Promise<{
   profileColors: { id: number; name: string }[];
   sizes: { height: number; width: number; depth: number }[];
   filling?: CatalogFilling;
+  fillings?: CatalogFilling[];
   series?: CatalogSeries;
 } | null> {
   const pool = getPool();
@@ -240,6 +250,7 @@ export async function getProductBySlug(slug: string): Promise<{
   );
 
   // Получаем цвета профилей
+  // Примечание: после применения миграции 008 можно добавить: slug, description, image_small, image_large
   const profileColorsResult = await pool.query(
     `SELECT id, name FROM catalog_profile_colors WHERE is_active = true ORDER BY sort_order`
   );
@@ -259,18 +270,32 @@ export async function getProductBySlug(slug: string): Promise<{
     [product.series_id]
   );
 
-  // Получаем наполнение (для первого варианта)
+  // Получаем наполнение (для первого варианта) с допуском ±15мм
+  // Ищем только по серии и размерам, без door_count
   let filling = null;
+  let fillings: CatalogFilling[] = [];
+  const tolerance = 15;
   if (variantsResult.rows.length > 0) {
     const firstVariant = variantsResult.rows[0];
+
     const fillingResult = await pool.query(
       `SELECT * FROM catalog_fillings
-       WHERE series_id = $1 AND door_count = $2
-         AND height = $3 AND width = $4 AND depth = $5
+       WHERE series_id = $1
+         AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
+       ORDER BY ABS(height - $2) + ABS(width - $3) + ABS(depth - $4)
        LIMIT 1`,
-      [product.series_id, product.door_count, firstVariant.height, firstVariant.width, firstVariant.depth]
+      [product.series_id, firstVariant.height, firstVariant.width, firstVariant.depth, tolerance]
     );
     filling = fillingResult.rows[0] || null;
+
+    const fillingsResult = await pool.query(
+      `SELECT * FROM catalog_fillings
+       WHERE series_id = $1
+         AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
+       ORDER BY door_count, short_name NULLS LAST`,
+      [product.series_id, firstVariant.height, firstVariant.width, firstVariant.depth, tolerance]
+    );
+    fillings = fillingsResult.rows;
   }
 
   return {
@@ -280,6 +305,7 @@ export async function getProductBySlug(slug: string): Promise<{
     profileColors: profileColorsResult.rows,
     sizes: sizesResult.rows,
     filling,
+    fillings,
     series: seriesResult.rows[0]
   };
 }
@@ -293,14 +319,12 @@ export async function getVariantByParams(
   bodyColorId?: number,
   profileColorId?: number
 ): Promise<CatalogVariant | null> {
-  const pool = getPool();
-
   const conditions = [
-    'product_id = $1',
-    'height = $2',
-    'width = $3',
-    'depth = $4',
-    'is_active = true'
+    'v.product_id = $1',
+    'v.height = $2',
+    'v.width = $3',
+    'v.depth = $4',
+    'v.is_active = true'
   ];
   const params: (number | undefined)[] = [productId, height, width, depth];
   let paramIndex = 5;
@@ -315,7 +339,8 @@ export async function getVariantByParams(
     params.push(profileColorId);
   }
 
-  const result = await pool.query(
+  // Используем queryWithRetry для устойчивости к временным ошибкам соединения
+  const result = await queryWithRetry<CatalogVariant>(
     `SELECT v.*,
             bc.name as body_color_name,
             pc.name as profile_color_name
@@ -330,22 +355,54 @@ export async function getVariantByParams(
   return result.rows[0] || null;
 }
 
-// Получить наполнение по параметрам
+// Получить наполнение по параметрам (точное совпадение размеров и кол-ва дверей)
 export async function getFilling(
   seriesId: number,
-  doorCount: number,
+  doorCount: number | null,
   height: number,
   width: number,
   depth: number
 ): Promise<CatalogFilling | null> {
-  const pool = getPool();
-  const result = await pool.query(
-    `SELECT * FROM catalog_fillings
-     WHERE series_id = $1 AND door_count = $2
-       AND height = $3 AND width = $4 AND depth = $5`,
-    [seriesId, doorCount, height, width, depth]
-  );
+  // Ищем по серии, размерам и количеству дверей (точное совпадение)
+  const conditions = ['series_id = $1', 'height = $2', 'width = $3', 'depth = $4'];
+  const params: (number | null)[] = [seriesId, height, width, depth];
+
+  if (doorCount !== null) {
+    conditions.push('door_count = $5');
+    params.push(doorCount);
+  }
+
+  const query = `SELECT * FROM catalog_fillings
+     WHERE ${conditions.join(' AND ')}
+     LIMIT 1`;
+
+  const result = await queryWithRetry<CatalogFilling>(query, params);
   return result.rows[0] || null;
+}
+
+// Получить все варианты наполнения для серии, размеров и кол-ва дверей (точное совпадение)
+export async function getFillings(
+  seriesId: number,
+  doorCount: number | null,
+  height: number,
+  width: number,
+  depth: number
+): Promise<CatalogFilling[]> {
+  // Ищем по серии, размерам и количеству дверей (точное совпадение)
+  const conditions = ['series_id = $1', 'height = $2', 'width = $3', 'depth = $4'];
+  const params: (number | null)[] = [seriesId, height, width, depth];
+
+  if (doorCount !== null) {
+    conditions.push('door_count = $5');
+    params.push(doorCount);
+  }
+
+  const query = `SELECT * FROM catalog_fillings
+     WHERE ${conditions.join(' AND ')}
+     ORDER BY short_name NULLS LAST`;
+
+  const result = await queryWithRetry<CatalogFilling>(query, params);
+  return result.rows;
 }
 
 // Импорт каталога из данных (для API)

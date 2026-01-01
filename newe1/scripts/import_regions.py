@@ -9,13 +9,17 @@ import re
 import psycopg2
 from bs4 import BeautifulSoup
 
-# Database connection parameters
+# Database connection parameters (все значения из env переменных)
+if not os.environ.get('POSTGRES_HOST'):
+    print("❌ POSTGRES_HOST не установлен")
+    sys.exit(1)
+
 DB_CONFIG = {
-    'host': os.environ.get('POSTGRES_HOST', '192.168.40.41'),
+    'host': os.environ.get('POSTGRES_HOST'),
     'port': int(os.environ.get('POSTGRES_PORT', '5432')),
-    'database': os.environ.get('POSTGRES_DB', 'newe1'),
-    'user': os.environ.get('POSTGRES_USER', 'newe1'),
-    'password': os.environ.get('POSTGRES_PASSWORD', 'newe1pass'),
+    'database': os.environ.get('POSTGRES_DB'),
+    'user': os.environ.get('POSTGRES_USER'),
+    'password': os.environ.get('POSTGRES_PASSWORD'),
 }
 
 # SQL to create tables

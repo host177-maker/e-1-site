@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -24,14 +25,33 @@ interface CatalogProduct {
 
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
-export default function CatalogPage() {
+function CatalogPageContent() {
+  const searchParams = useSearchParams();
+  const isInitialLoad = useRef(true);
+
+  // Читаем начальные параметры из URL только один раз
+  const initialUrlParams = useRef<{
+    series: string | null;
+    page: string | null;
+  } | null>(null);
+
+  if (initialUrlParams.current === null && searchParams) {
+    initialUrlParams.current = {
+      series: searchParams.get('series'),
+      page: searchParams.get('page'),
+    };
+  }
+
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [series, setSeries] = useState<CatalogSeries[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSeries, setSelectedSeries] = useState<string>('');
+  const [selectedSeries, setSelectedSeries] = useState<string>(initialUrlParams.current?.series || '');
   const [total, setTotal] = useState(0);
-  const [offset, setOffset] = useState(0);
   const limit = 12;
+
+  // Инициализируем offset из URL параметра page
+  const initialPage = initialUrlParams.current?.page ? parseInt(initialUrlParams.current.page) : 1;
+  const [offset, setOffset] = useState((initialPage - 1) * limit);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -53,12 +73,31 @@ export default function CatalogPage() {
       console.error('Error fetching catalog:', error);
     } finally {
       setLoading(false);
+      isInitialLoad.current = false;
     }
   }, [selectedSeries, offset]);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  // Обновляем URL при изменении фильтров (без перезагрузки страницы)
+  useEffect(() => {
+    if (isInitialLoad.current) return;
+
+    const params = new URLSearchParams();
+    if (selectedSeries) {
+      params.set('series', selectedSeries);
+    }
+    const currentPage = Math.floor(offset / limit) + 1;
+    if (currentPage > 1) {
+      params.set('page', currentPage.toString());
+    }
+
+    const queryString = params.toString();
+    const newUrl = queryString ? `/catalog?${queryString}` : '/catalog';
+    window.history.replaceState(null, '', newUrl);
+  }, [selectedSeries, offset]);
 
   const handleSeriesChange = (slug: string) => {
     setSelectedSeries(slug);
@@ -129,41 +168,40 @@ export default function CatalogPage() {
             <p className="text-gray-500">Попробуйте изменить фильтры</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {products.map((product) => (
               <Link
                 key={product.id}
                 href={`/product/${product.slug}`}
-                className="bg-white rounded-xl shadow-sm overflow-hidden group hover:shadow-lg transition-shadow"
+                className="group"
               >
-                <div className="aspect-[4/3] relative bg-gray-100">
+                <div className="aspect-square relative mb-2">
                   <Image
                     src={product.default_image || PLACEHOLDER_IMAGE}
                     alt={product.name}
                     fill
-                    className="object-contain p-4 group-hover:scale-105 transition-transform"
+                    className="object-contain group-hover:scale-105 transition-transform"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = PLACEHOLDER_IMAGE;
                     }}
                   />
                 </div>
-                <div className="p-4">
-                  <div className="text-xs text-[#62bb46] font-medium mb-1">
-                    {product.series_name}
-                  </div>
-                  <h3 className="font-medium text-gray-900 mb-2 line-clamp-2 group-hover:text-[#62bb46] transition-colors">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    {product.door_type_name && (
-                      <span>{product.door_type_name}</span>
-                    )}
-                    {product.variants_count && product.variants_count > 1 && (
-                      <span className="text-[#62bb46]">{product.variants_count} вариантов</span>
-                    )}
-                  </div>
+                <div className="flex gap-1 mb-1">
+                  {/* Цветовые варианты - заглушка */}
+                  <div className="w-4 h-4 rounded-sm bg-[#f5f5dc] border border-gray-200" />
+                  <div className="w-4 h-4 rounded-sm bg-[#d4a574] border border-gray-200" />
+                  <div className="w-4 h-4 rounded-sm bg-[#8b7355] border border-gray-200" />
+                  <div className="w-4 h-4 rounded-sm bg-[#4a4a4a] border border-gray-200" />
+                  <div className="w-4 h-4 rounded-sm bg-white border border-gray-200" />
                 </div>
+                <div className="flex items-center gap-1 text-xs text-gray-400 mb-1">
+                  <span>★★★★★</span>
+                  <span>5/5</span>
+                </div>
+                <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2">
+                  {product.name}
+                </h3>
               </Link>
             ))}
           </div>
@@ -224,5 +262,25 @@ export default function CatalogPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function CatalogPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-gradient-to-r from-[#62bb46] to-[#4a9935] text-white py-12">
+          <div className="max-w-[1348px] mx-auto px-4">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">Каталог шкафов-купе</h1>
+            <p className="text-white/80 text-lg">Выберите идеальный шкаф для вашего интерьера</p>
+          </div>
+        </div>
+        <div className="flex justify-center py-16">
+          <div className="w-10 h-10 border-4 border-[#62bb46] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>
+    }>
+      <CatalogPageContent />
+    </Suspense>
   );
 }
