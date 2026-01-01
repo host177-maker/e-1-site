@@ -355,11 +355,7 @@ export async function getVariantByParams(
   return result.rows[0] || null;
 }
 
-// Допуск при сравнении размеров (мм)
-const SIZE_TOLERANCE = 15;
-
-// Получить наполнение по параметрам (с допуском размеров ±15мм)
-// Поиск только по серии и размерам, без door_count
+// Получить наполнение по параметрам (точное совпадение размеров и кол-ва дверей)
 export async function getFilling(
   seriesId: number,
   doorCount: number | null,
@@ -367,22 +363,24 @@ export async function getFilling(
   width: number,
   depth: number
 ): Promise<CatalogFilling | null> {
-  // Ищем по серии и размерам с допуском (door_count игнорируем)
+  // Ищем по серии, размерам и количеству дверей (точное совпадение)
+  const conditions = ['series_id = $1', 'height = $2', 'width = $3', 'depth = $4'];
+  const params: (number | null)[] = [seriesId, height, width, depth];
+
+  if (doorCount !== null) {
+    conditions.push('door_count = $5');
+    params.push(doorCount);
+  }
+
   const query = `SELECT * FROM catalog_fillings
-     WHERE series_id = $1
-       AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
-     ORDER BY ABS(height - $2) + ABS(width - $3) + ABS(depth - $4)
+     WHERE ${conditions.join(' AND ')}
      LIMIT 1`;
 
-  const params = [seriesId, height, width, depth, SIZE_TOLERANCE];
-
-  // Используем queryWithRetry для устойчивости к временным ошибкам соединения
   const result = await queryWithRetry<CatalogFilling>(query, params);
   return result.rows[0] || null;
 }
 
-// Получить все варианты наполнения для серии и размеров (с допуском ±15мм)
-// Поиск только по серии и размерам, без door_count
+// Получить все варианты наполнения для серии, размеров и кол-ва дверей (точное совпадение)
 export async function getFillings(
   seriesId: number,
   doorCount: number | null,
@@ -390,15 +388,19 @@ export async function getFillings(
   width: number,
   depth: number
 ): Promise<CatalogFilling[]> {
-  // Ищем по серии и размерам с допуском (door_count игнорируем)
+  // Ищем по серии, размерам и количеству дверей (точное совпадение)
+  const conditions = ['series_id = $1', 'height = $2', 'width = $3', 'depth = $4'];
+  const params: (number | null)[] = [seriesId, height, width, depth];
+
+  if (doorCount !== null) {
+    conditions.push('door_count = $5');
+    params.push(doorCount);
+  }
+
   const query = `SELECT * FROM catalog_fillings
-     WHERE series_id = $1
-       AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
-     ORDER BY door_count, short_name NULLS LAST`;
+     WHERE ${conditions.join(' AND ')}
+     ORDER BY short_name NULLS LAST`;
 
-  const params = [seriesId, height, width, depth, SIZE_TOLERANCE];
-
-  // Используем queryWithRetry для устойчивости к временным ошибкам соединения
   const result = await queryWithRetry<CatalogFilling>(query, params);
   return result.rows;
 }
