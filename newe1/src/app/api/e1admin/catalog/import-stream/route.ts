@@ -86,10 +86,12 @@ export async function POST(request: NextRequest) {
           fillings: result.fillingsCount,
           products: result.productsCount,
           variants: result.variantsCount,
-          skipped: result.skippedRows.length
+          skipped: result.skippedRows.length,
+          skippedFillings: result.skippedFillings.length
         },
         errors: result.errors.slice(0, 50),
-        skippedRows: result.skippedRows
+        skippedRows: result.skippedRows,
+        skippedFillings: result.skippedFillings
       });
     } catch (error) {
       console.error('Import error:', error);
@@ -233,9 +235,11 @@ function parseExcelData(workbook: XLSX.WorkBook) {
     const rows = XLSX.utils.sheet_to_json<string[]>(fillingsSheet, { header: 1 });
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
+      const rowNum = i + 1; // Номер строки в Excel
       if (!row || !row[0]) continue;
 
       fillings.push({
+        rowNum,
         series: String(row[0] || '').trim(),
         door_count: parseInt(row[1]) || 0,
         height: parseFloat(row[2]) || 0,
@@ -298,6 +302,15 @@ interface SkippedRow {
   reason: string;
 }
 
+interface SkippedFilling {
+  row: number;
+  series: string;
+  doorCount: number;
+  dimensions: string;
+  shortName: string;
+  reason: string;
+}
+
 async function importCatalogOptimized(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any,
@@ -307,6 +320,7 @@ async function importCatalogOptimized(
 ) {
   const pool = getPool();
   const errors: string[] = [];
+  const skippedFillings: SkippedFilling[] = [];
   let seriesCount = 0;
   let bodyColorsCount = 0;
   let fillingsCount = 0;
@@ -315,6 +329,8 @@ async function importCatalogOptimized(
 
   // Глобальный трекер дубликатов артикулов
   const globalSeenArticles = new Set<string>();
+  // Трекер дубликатов наполнений (ключ: series_id:door_count:height:width:depth)
+  const seenFillings = new Set<string>();
 
   // Создаём запись в истории импорта
   const historyResult = await pool.query(
@@ -414,7 +430,33 @@ async function importCatalogOptimized(
     // 3. Импорт наполнений
     for (const f of data.fillings) {
       const seriesId = seriesMap[f.series];
-      if (!seriesId) continue;
+      if (!seriesId) {
+        skippedFillings.push({
+          row: f.rowNum,
+          series: f.series,
+          doorCount: f.door_count,
+          dimensions: `${f.width}×${f.height}×${f.depth}`,
+          shortName: f.short_name || '',
+          reason: `Серия "${f.series}" не найдена`
+        });
+        continue;
+      }
+
+      // Проверяем на дубликат
+      const fillingKey = `${seriesId}:${f.door_count}:${f.height}:${f.width}:${f.depth}`;
+      if (seenFillings.has(fillingKey)) {
+        skippedFillings.push({
+          row: f.rowNum,
+          series: f.series,
+          doorCount: f.door_count,
+          dimensions: `${f.width}×${f.height}×${f.depth}`,
+          shortName: f.short_name || '',
+          reason: `Дубликат (серия "${f.series}", ${f.door_count} дв., ${f.width}×${f.height}×${f.depth})`
+        });
+        continue;
+      }
+      seenFillings.add(fillingKey);
+
       try {
         await pool.query(
           `INSERT INTO catalog_fillings (series_id, door_count, height, width, depth, short_name, description,
@@ -621,7 +663,8 @@ async function importCatalogOptimized(
       productsCount,
       variantsCount,
       errors,
-      skippedRows
+      skippedRows,
+      skippedFillings
     };
   } catch (e) {
     await pool.query(
