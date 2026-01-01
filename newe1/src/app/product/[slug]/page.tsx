@@ -68,6 +68,26 @@ export default function ProductPage() {
   const isInitialLoad = useRef(true);
   const urlParamsApplied = useRef(false);
 
+  // Сохраняем начальные параметры URL в ref, чтобы не перезагружать при изменении
+  const initialUrlParams = useRef<{
+    h: string | null;
+    w: string | null;
+    d: string | null;
+    bc: string | null;
+    pc: string | null;
+  } | null>(null);
+
+  // Читаем параметры URL только один раз при первом рендере
+  if (initialUrlParams.current === null) {
+    initialUrlParams.current = {
+      h: searchParams.get('h'),
+      w: searchParams.get('w'),
+      d: searchParams.get('d'),
+      bc: searchParams.get('bc'),
+      pc: searchParams.get('pc'),
+    };
+  }
+
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState<CatalogProduct | null>(null);
   const [variants, setVariants] = useState<CatalogVariant[]>([]);
@@ -157,12 +177,13 @@ export default function ProductPage() {
         setFilling(data.filling);
         setSeries(data.series);
 
-        // Читаем параметры из URL
-        const urlHeight = searchParams.get('h');
-        const urlWidth = searchParams.get('w');
-        const urlDepth = searchParams.get('d');
-        const urlBodyColor = searchParams.get('bc');
-        const urlProfileColor = searchParams.get('pc');
+        // Читаем параметры из сохраненных начальных значений URL
+        const urlParams = initialUrlParams.current;
+        const urlHeight = urlParams?.h;
+        const urlWidth = urlParams?.w;
+        const urlDepth = urlParams?.d;
+        const urlBodyColor = urlParams?.bc;
+        const urlProfileColor = urlParams?.pc;
 
         // Установить значения из URL или из первого варианта
         if (data.variants.length > 0) {
@@ -223,7 +244,7 @@ export default function ProductPage() {
       setLoading(false);
       isInitialLoad.current = false;
     }
-  }, [slug, searchParams]);
+  }, [slug]);
 
   useEffect(() => {
     if (slug) {
