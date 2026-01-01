@@ -239,12 +239,29 @@ export async function GET() {
 
     const pool = getPool();
 
+    // Проверяем существование таблиц
+    const tablesExist = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_name = 'catalog_series'
+      ) as exists
+    `);
+
+    if (!tablesExist.rows[0]?.exists) {
+      return NextResponse.json({
+        stats: { series: 0, products: 0, variants: 0 },
+        imports: [],
+        needsMigration: true,
+        message: 'Таблицы каталога не созданы. Примените миграцию 006_catalog.sql'
+      });
+    }
+
     // Статистика
     const [series, products, variants, lastImport] = await Promise.all([
       pool.query('SELECT COUNT(*) as count FROM catalog_series'),
       pool.query('SELECT COUNT(*) as count FROM catalog_products'),
       pool.query('SELECT COUNT(*) as count FROM catalog_variants'),
-      pool.query('SELECT * FROM catalog_import_history ORDER BY imported_at DESC LIMIT 5')
+      pool.query('SELECT * FROM catalog_import_history ORDER BY imported_at DESC LIMIT 5').catch(() => ({ rows: [] }))
     ]);
 
     return NextResponse.json({
@@ -257,9 +274,10 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Get catalog status error:', error);
-    return NextResponse.json(
-      { error: 'Ошибка получения статуса' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      stats: { series: 0, products: 0, variants: 0 },
+      imports: [],
+      error: 'Ошибка получения статуса. Возможно, таблицы каталога не созданы.'
+    });
   }
 }
