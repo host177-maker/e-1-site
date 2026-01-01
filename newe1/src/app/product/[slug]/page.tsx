@@ -362,8 +362,17 @@ export default function ProductPage() {
   }, [selectedHeight, selectedWidth, selectedDepth, selectedBodyColor, selectedProfileColor, variants]);
 
   // Загрузить наполнение при смене размера
+  // Ref для отслеживания первой загрузки наполнения
+  const isFirstFillingLoad = useRef(true);
+
   useEffect(() => {
     if (!product || selectedHeight === null || selectedWidth === null || selectedDepth === null) return;
+
+    // Пропускаем первую загрузку - данные уже есть из GET запроса
+    if (isFirstFillingLoad.current) {
+      isFirstFillingLoad.current = false;
+      return;
+    }
 
     const loadFilling = async () => {
       try {
