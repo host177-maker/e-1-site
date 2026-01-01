@@ -149,36 +149,52 @@ function parseExcelData(workbook: XLSX.WorkBook) {
     }
   }
 
-  // 2. Парсинг листа "Описание серий"
+  // 2. Сначала собираем уникальные серии ТОЛЬКО из колонки I (Серия) листа товаров
+  const uniqueSeriesNames = new Set(products.map(p => p.series).filter(Boolean));
+
+  // 3. Парсинг листа "Описание серий" - только для дополнительной информации
   const seriesSheetName = workbook.SheetNames.find(n => n.includes('Описание серий'));
   const seriesSheet = seriesSheetName ? workbook.Sheets[seriesSheetName] : null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const seriesInfoMap: { [name: string]: any } = {};
+
   if (seriesSheet) {
     const rows = XLSX.utils.sheet_to_json<string[]>(seriesSheet, { header: 1 });
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       if (!row || !row[0]) continue;
 
-      series.push({
-        name: String(row[0] || '').trim(),
-        description: String(row[1] || '').trim() || null,
-        image1: String(row[2] || '').trim() || null,
-        image2: String(row[3] || '').trim() || null,
-        image3: String(row[4] || '').trim() || null,
-        image4: String(row[5] || '').trim() || null,
-        video1: String(row[6] || '').trim() || null,
-        video2: String(row[7] || '').trim() || null,
-        gallery_folder: String(row[8] || '').trim() || null
-      });
+      const seriesName = String(row[0] || '').trim();
+      // Сохраняем информацию только если эта серия есть в товарах
+      if (uniqueSeriesNames.has(seriesName)) {
+        seriesInfoMap[seriesName] = {
+          description: String(row[1] || '').trim() || null,
+          image1: String(row[2] || '').trim() || null,
+          image2: String(row[3] || '').trim() || null,
+          image3: String(row[4] || '').trim() || null,
+          image4: String(row[5] || '').trim() || null,
+          video1: String(row[6] || '').trim() || null,
+          video2: String(row[7] || '').trim() || null,
+          gallery_folder: String(row[8] || '').trim() || null
+        };
+      }
     }
   }
 
-  // Добавляем серии из товаров
-  const existingSeriesNames = new Set(series.map(s => s.name));
-  const productSeriesNames = new Set(products.map(p => p.series).filter(Boolean));
-  for (const seriesName of productSeriesNames) {
-    if (!existingSeriesNames.has(seriesName)) {
-      series.push({ name: seriesName });
-    }
+  // 4. Создаём массив серий только на основе уникальных значений из товаров
+  for (const seriesName of uniqueSeriesNames) {
+    const info = seriesInfoMap[seriesName] || {};
+    series.push({
+      name: seriesName,
+      description: info.description || null,
+      image1: info.image1 || null,
+      image2: info.image2 || null,
+      image3: info.image3 || null,
+      image4: info.image4 || null,
+      video1: info.video1 || null,
+      video2: info.video2 || null,
+      gallery_folder: info.gallery_folder || null
+    });
   }
 
   // 3. Парсинг листа "Наполнение корпуса"
@@ -267,6 +283,16 @@ async function importCatalogOptimized(
   const importId = historyResult.rows[0].id;
 
   try {
+    await onProgress({ current: 10, total: 100, stage: 'Очистка старых данных', item: 'Удаление неактуальных серий' });
+
+    // 0. Очистка старых серий (удаляем все и вставляем только актуальные из товаров)
+    // Сначала удаляем варианты, затем товары, затем серии
+    await pool.query('DELETE FROM catalog_variants');
+    await pool.query('DELETE FROM catalog_products');
+    await pool.query('DELETE FROM catalog_body_colors');
+    await pool.query('DELETE FROM catalog_fillings');
+    await pool.query('DELETE FROM catalog_series');
+
     await onProgress({ current: 12, total: 100, stage: 'Импорт серий', item: `${data.series.length} серий` });
 
     // 1. Импорт серий (их мало, можно по одной)
