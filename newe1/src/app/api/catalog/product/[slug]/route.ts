@@ -32,21 +32,22 @@ export async function GET(request: NextRequest, { params }: Params) {
 
 // POST - получить конкретный вариант по параметрам
 export async function POST(request: NextRequest, { params }: Params) {
+  const errors: string[] = [];
+
   try {
     // slug извлекается для возможного использования в будущем
     await params;
     const body = await request.json();
     const { productId, height, width, depth, bodyColorId, profileColorId, seriesId, doorCount } = body;
 
-    let hasErrors = false;
-
     // Получаем вариант
     let variant = null;
     try {
       variant = await getVariantByParams(productId, height, width, depth, bodyColorId, profileColorId);
     } catch (variantError) {
-      console.error('getVariantByParams error:', variantError);
-      hasErrors = true;
+      const errMsg = variantError instanceof Error ? variantError.message : String(variantError);
+      console.error('getVariantByParams error:', errMsg);
+      errors.push(`variant: ${errMsg}`);
     }
 
     // Получаем наполнение для текущего размера
@@ -56,22 +57,24 @@ export async function POST(request: NextRequest, { params }: Params) {
       try {
         filling = await getFilling(seriesId, doorCount || null, height, width, depth);
       } catch (fillingError) {
-        console.error('getFilling error:', fillingError);
-        hasErrors = true;
+        const errMsg = fillingError instanceof Error ? fillingError.message : String(fillingError);
+        console.error('getFilling error:', errMsg);
+        errors.push(`filling: ${errMsg}`);
       }
 
       try {
         fillings = await getFillings(seriesId, doorCount || null, height, width, depth);
       } catch (fillingsError) {
-        console.error('getFillings error:', fillingsError);
-        hasErrors = true;
+        const errMsg = fillingsError instanceof Error ? fillingsError.message : String(fillingsError);
+        console.error('getFillings error:', errMsg);
+        errors.push(`fillings: ${errMsg}`);
       }
     }
 
     // Если были ошибки базы данных - возвращаем 500 чтобы фронтенд не очищал данные
-    if (hasErrors) {
+    if (errors.length > 0) {
       return NextResponse.json(
-        { success: false, error: 'Ошибка базы данных', variant, filling, fillings },
+        { success: false, error: 'Ошибка базы данных', details: errors.join('; '), variant, filling, fillings },
         { status: 500 }
       );
     }
