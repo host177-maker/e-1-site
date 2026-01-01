@@ -118,6 +118,8 @@ export default function ProductPage() {
 
   // Временный выбор цвета корпуса в модальном окне (до нажатия "Применить")
   const [tempBodyColor, setTempBodyColor] = useState<CatalogBodyColor | null>(null);
+  // ID цвета для показа описания в модальном окне
+  const [showColorInfoId, setShowColorInfoId] = useState<number | null>(null);
 
   // Сборка
   const [includeAssembly, setIncludeAssembly] = useState(false);
@@ -496,6 +498,16 @@ export default function ProductPage() {
       </div>
 
       <div className="max-w-[1348px] mx-auto px-4 py-8">
+        {/* Заголовок - мобильная версия (над изображением) */}
+        <div className="lg:hidden mb-4">
+          <div className="text-sm text-gray-500 mb-1">
+            {product.series_name}
+          </div>
+          <h1 className="text-xl font-bold text-gray-900 line-clamp-2">
+            {product.name}
+          </h1>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Галерея */}
           <div className="space-y-4">
@@ -542,12 +554,12 @@ export default function ProductPage() {
 
           {/* Информация о товаре */}
           <div className="space-y-4">
-            {/* Заголовок - фиксированная высота 3 строки */}
-            <div>
+            {/* Заголовок - только десктоп (скрыт на мобильных) */}
+            <div className="hidden lg:block">
               <div className="text-sm text-gray-500 mb-1">
                 {product.series_name}
               </div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900 min-h-[3rem] line-clamp-2">
+              <h1 className="text-2xl font-bold text-gray-900 min-h-[3rem] line-clamp-2">
                 {product.name}
               </h1>
             </div>
@@ -915,42 +927,59 @@ export default function ProductPage() {
               </button>
             </div>
             <div className="p-4">
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              <div className="space-y-3">
                 {availableBodyColors.map((color) => (
-                  <button
-                    key={color.id}
-                    onClick={() => setTempBodyColor(color)}
-                    className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                      tempBodyColor?.id === color.id
-                        ? 'border-[#62bb46] ring-2 ring-[#62bb46] ring-offset-2'
-                        : 'border-gray-200 hover:border-gray-400'
-                    }`}
-                  >
-                    {color.image_small ? (
-                      <Image src={color.image_small} alt={color.name} fill className="object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center text-lg font-medium text-gray-500">
-                        {color.name.charAt(0)}
+                  <div key={color.id}>
+                    <div
+                      onClick={() => setTempBodyColor(color)}
+                      className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all ${
+                        tempBodyColor?.id === color.id
+                          ? 'bg-[#62bb46]/10 ring-2 ring-[#62bb46]'
+                          : 'bg-gray-50 hover:bg-gray-100'
+                      }`}
+                    >
+                      {/* Миниатюра цвета */}
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                        {color.image_small ? (
+                          <Image src={color.image_small} alt={color.name} fill className="object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gray-200 flex items-center justify-center text-lg font-medium text-gray-500">
+                            {color.name.charAt(0)}
+                          </div>
+                        )}
                       </div>
-                    )}
-                    <div className="absolute inset-x-0 bottom-0 bg-black/60 px-1 py-1">
-                      <span className="text-white text-xs truncate block text-center">{color.name}</span>
+                      {/* Название цвета */}
+                      <span className="flex-1 text-sm font-medium text-gray-900">{color.name}</span>
+                      {/* Кнопка информации */}
+                      {color.description && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowColorInfoId(showColorInfoId === color.id ? null : color.id);
+                          }}
+                          className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center text-gray-600 flex-shrink-0"
+                        >
+                          <span className="text-xs font-bold">i</span>
+                        </button>
+                      )}
+                      {/* Галочка выбора */}
+                      {tempBodyColor?.id === color.id && (
+                        <div className="w-6 h-6 bg-[#62bb46] rounded-full flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
-                    {tempBodyColor?.id === color.id && (
-                      <div className="absolute top-1 right-1 w-5 h-5 bg-[#62bb46] rounded-full flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
+                    {/* Описание цвета (раскрывается при нажатии на i) */}
+                    {showColorInfoId === color.id && color.description && (
+                      <div className="mt-2 ml-15 p-3 bg-gray-100 rounded-lg">
+                        <p className="text-sm text-gray-600">{color.description}</p>
                       </div>
                     )}
-                  </button>
+                  </div>
                 ))}
               </div>
-              {tempBodyColor?.description && (
-                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">{tempBodyColor.description}</p>
-                </div>
-              )}
             </div>
             {/* Кнопка применить */}
             <div className="sticky bottom-0 bg-white border-t p-4">
