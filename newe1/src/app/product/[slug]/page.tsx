@@ -378,11 +378,13 @@ export default function ProductPage() {
           })
         });
         const data = await response.json();
-        if (data.filling) {
-          setFilling(data.filling);
-        }
-        if (data.fillings) {
+        // Устанавливаем варианты наполнения для выбранного размера
+        if (data.fillings && data.fillings.length > 0) {
           setFillings(data.fillings);
+          setFilling(data.fillings[0]); // Первый вариант по умолчанию
+        } else {
+          setFillings([]);
+          setFilling(null);
         }
       } catch (error) {
         console.error('Error loading filling:', error);
