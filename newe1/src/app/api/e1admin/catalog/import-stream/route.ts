@@ -27,65 +27,77 @@ function createSlug(text: string): string {
 }
 
 export async function POST(request: NextRequest) {
-  const admin = await getCurrentAdmin();
-  if (!admin) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
-  }
-
-  const formData = await request.formData();
-  const file = formData.get('file') as File | null;
-
-  if (!file) {
-    return new Response(JSON.stringify({ error: 'Файл не указан' }), { status: 400 });
-  }
-
-  if (file.size > MAX_FILE_SIZE) {
-    return new Response(JSON.stringify({ error: 'Файл слишком большой (макс. 10 МБ)' }), { status: 400 });
-  }
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const workbook = XLSX.read(buffer, { type: 'buffer' });
-
-  // Парсим данные
-  const data = parseExcelData(workbook);
-  const totalItems = data.series.length + data.bodyColors.length + data.fillings.length + data.products.length;
-
-  // Создаем SSE stream
   const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    async start(controller) {
-      const send = (event: string, data: object) => {
-        controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
-      };
 
-      try {
-        send('start', { total: totalItems, message: 'Начинаем импорт...' });
+  const stream = new TransformStream();
+  const writer = stream.writable.getWriter();
 
-        const result = await importCatalogWithProgress(data, admin.id, (progress) => {
-          send('progress', progress);
-        });
+  const send = async (event: string, data: object) => {
+    await writer.write(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+  };
 
-        send('complete', {
-          success: result.success,
-          message: result.success ? 'Импорт завершён успешно' : 'Импорт завершён с ошибками',
-          stats: {
-            series: result.seriesCount,
-            bodyColors: result.bodyColorsCount,
-            fillings: result.fillingsCount,
-            products: result.productsCount,
-            variants: result.variantsCount
-          },
-          errors: result.errors.slice(0, 50)
-        });
-      } catch (error) {
-        send('error', { message: error instanceof Error ? error.message : 'Ошибка импорта' });
-      } finally {
-        controller.close();
+  // Start processing in background
+  (async () => {
+    try {
+      const admin = await getCurrentAdmin();
+      if (!admin) {
+        await send('error', { message: 'Unauthorized' });
+        await writer.close();
+        return;
       }
-    }
-  });
 
-  return new Response(stream, {
+      const formData = await request.formData();
+      const file = formData.get('file') as File | null;
+
+      if (!file) {
+        await send('error', { message: 'Файл не указан' });
+        await writer.close();
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        await send('error', { message: 'Файл слишком большой (макс. 10 МБ)' });
+        await writer.close();
+        return;
+      }
+
+      await send('progress', { current: 0, total: 100, stage: 'Чтение файла', item: file.name });
+
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const workbook = XLSX.read(buffer, { type: 'buffer' });
+
+      await send('progress', { current: 5, total: 100, stage: 'Парсинг данных', item: 'Анализ структуры' });
+
+      // Парсим данные
+      const data = parseExcelData(workbook);
+
+      await send('progress', { current: 10, total: 100, stage: 'Импорт', item: `${data.products.length} вариантов найдено` });
+
+      const result = await importCatalogOptimized(data, admin.id, async (progress) => {
+        await send('progress', progress);
+      });
+
+      await send('complete', {
+        success: result.success,
+        message: result.success ? 'Импорт завершён успешно' : 'Импорт завершён с ошибками',
+        stats: {
+          series: result.seriesCount,
+          bodyColors: result.bodyColorsCount,
+          fillings: result.fillingsCount,
+          products: result.productsCount,
+          variants: result.variantsCount
+        },
+        errors: result.errors.slice(0, 50)
+      });
+    } catch (error) {
+      console.error('Import error:', error);
+      await send('error', { message: error instanceof Error ? error.message : 'Ошибка импорта' });
+    } finally {
+      await writer.close();
+    }
+  })();
+
+  return new Response(stream.readable, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -233,11 +245,11 @@ function parseExcelData(workbook: XLSX.WorkBook) {
 
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
-async function importCatalogWithProgress(
+async function importCatalogOptimized(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any,
   adminId: number,
-  onProgress: (progress: { current: number; total: number; stage: string; item?: string }) => void
+  onProgress: (progress: { current: number; total: number; stage: string; item?: string }) => Promise<void>
 ) {
   const pool = getPool();
   const errors: string[] = [];
@@ -247,9 +259,6 @@ async function importCatalogWithProgress(
   let productsCount = 0;
   let variantsCount = 0;
 
-  const total = data.series.length + data.bodyColors.length + data.fillings.length + data.products.length;
-  let current = 0;
-
   // Создаём запись в истории импорта
   const historyResult = await pool.query(
     `INSERT INTO catalog_import_history (status, imported_by) VALUES ('in_progress', $1) RETURNING id`,
@@ -258,12 +267,11 @@ async function importCatalogWithProgress(
   const importId = historyResult.rows[0].id;
 
   try {
-    // 1. Импорт серий
+    await onProgress({ current: 12, total: 100, stage: 'Импорт серий', item: `${data.series.length} серий` });
+
+    // 1. Импорт серий (их мало, можно по одной)
     const seriesMap: { [name: string]: number } = {};
     for (const s of data.series) {
-      current++;
-      onProgress({ current, total, stage: 'Серии', item: s.name });
-
       try {
         const slug = createSlug(s.name);
         const result = await pool.query(
@@ -298,17 +306,13 @@ async function importCatalogWithProgress(
       }
     }
 
+    await onProgress({ current: 18, total: 100, stage: 'Импорт цветов', item: `${data.bodyColors.length} цветов` });
+
     // 2. Импорт цветов корпуса
     const bodyColorMap: { [key: string]: number } = {};
     for (const bc of data.bodyColors) {
-      current++;
-      onProgress({ current, total, stage: 'Цвета', item: bc.name });
-
       const seriesId = seriesMap[bc.series];
-      if (!seriesId) {
-        errors.push(`Серия "${bc.series}" не найдена для цвета "${bc.name}"`);
-        continue;
-      }
+      if (!seriesId) continue;
       try {
         const slug = createSlug(bc.name);
         const result = await pool.query(
@@ -338,11 +342,10 @@ async function importCatalogWithProgress(
       }
     }
 
+    await onProgress({ current: 22, total: 100, stage: 'Импорт наполнений', item: `${data.fillings.length} наполнений` });
+
     // 3. Импорт наполнений
     for (const f of data.fillings) {
-      current++;
-      onProgress({ current, total, stage: 'Наполнения', item: f.short_name || `${f.series} ${f.door_count}дв` });
-
       const seriesId = seriesMap[f.series];
       if (!seriesId) continue;
       try {
@@ -367,7 +370,7 @@ async function importCatalogWithProgress(
       }
     }
 
-    // 4. Импорт типов открывания и цветов профилей
+    // 4. Загрузка справочников
     const doorTypeMap: { [name: string]: number } = {};
     const doorTypes = await pool.query('SELECT id, name FROM catalog_door_types');
     for (const row of doorTypes.rows) {
@@ -380,26 +383,39 @@ async function importCatalogWithProgress(
       profileColorMap[row.name] = row.id;
     }
 
-    // 5. Импорт товаров и вариантов
+    await onProgress({ current: 25, total: 100, stage: 'Импорт товаров', item: `Подготовка ${data.products.length} записей` });
+
+    // 5. Сначала создаём уникальные товары (карточки)
     const productMap: { [name: string]: number } = {};
+    const uniqueProducts = new Map<string, { name: string; series: string; doorType: string; doorCount: number }>();
 
     for (const p of data.products) {
-      current++;
-      if (current % 100 === 0 || current === total) {
-        onProgress({ current, total, stage: 'Товары', item: p.card_name });
+      if (!uniqueProducts.has(p.card_name)) {
+        uniqueProducts.set(p.card_name, {
+          name: p.card_name,
+          series: p.series,
+          doorType: p.door_type,
+          doorCount: p.door_count
+        });
       }
+    }
 
-      const seriesId = seriesMap[p.series];
-      if (!seriesId) {
-        errors.push(`Серия "${p.series}" не найдена для товара "${p.card_name}"`);
-        continue;
-      }
+    await onProgress({ current: 30, total: 100, stage: 'Создание товаров', item: `${uniqueProducts.size} карточек` });
 
-      // Создаём или обновляем товар
-      if (!productMap[p.card_name]) {
+    // Создаём товары пачками
+    const productEntries = Array.from(uniqueProducts.entries());
+    const productBatchSize = 100;
+
+    for (let i = 0; i < productEntries.length; i += productBatchSize) {
+      const batch = productEntries.slice(i, i + productBatchSize);
+
+      for (const [cardName, prod] of batch) {
+        const seriesId = seriesMap[prod.series];
+        if (!seriesId) continue;
+
         try {
-          const slug = createSlug(p.card_name);
-          const doorTypeId = doorTypeMap[p.door_type] || null;
+          const slug = createSlug(cardName);
+          const doorTypeId = doorTypeMap[prod.doorType] || null;
 
           const result = await pool.query(
             `INSERT INTO catalog_products (name, slug, series_id, door_type_id, door_count)
@@ -410,60 +426,97 @@ async function importCatalogWithProgress(
                door_count = EXCLUDED.door_count,
                updated_at = CURRENT_TIMESTAMP
              RETURNING id`,
-            [p.card_name, slug, seriesId, doorTypeId, p.door_count || null]
+            [cardName, slug, seriesId, doorTypeId, prod.doorCount || null]
           );
-          productMap[p.card_name] = result.rows[0].id;
+          productMap[cardName] = result.rows[0].id;
           productsCount++;
         } catch (e) {
-          errors.push(`Ошибка товара "${p.card_name}": ${e instanceof Error ? e.message : String(e)}`);
-          continue;
+          errors.push(`Ошибка товара "${cardName}": ${e instanceof Error ? e.message : String(e)}`);
         }
       }
 
-      const productId = productMap[p.card_name];
-      const bodyColorId = bodyColorMap[`${p.series}:${p.body_color}`] || null;
-      const profileColorId = profileColorMap[p.profile_color] || null;
-
-      // Создаём вариант
-      try {
-        await pool.query(
-          `INSERT INTO catalog_variants (product_id, article, full_name, body_color_id, profile_color_id,
-             height, width, depth, door_material1, door_material2, door_material3, door_material4,
-             door_material5, door_material6, image_white, image_interior)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-           ON CONFLICT (article) DO UPDATE SET
-             full_name = EXCLUDED.full_name,
-             body_color_id = EXCLUDED.body_color_id,
-             profile_color_id = EXCLUDED.profile_color_id,
-             height = EXCLUDED.height,
-             width = EXCLUDED.width,
-             depth = EXCLUDED.depth,
-             door_material1 = EXCLUDED.door_material1,
-             door_material2 = EXCLUDED.door_material2,
-             door_material3 = EXCLUDED.door_material3,
-             door_material4 = EXCLUDED.door_material4,
-             door_material5 = EXCLUDED.door_material5,
-             door_material6 = EXCLUDED.door_material6,
-             image_white = COALESCE(EXCLUDED.image_white, catalog_variants.image_white),
-             image_interior = COALESCE(EXCLUDED.image_interior, catalog_variants.image_interior)`,
-          [productId, p.article, p.full_name, bodyColorId, profileColorId,
-           p.height, p.width, p.depth,
-           p.door_material1 || null, p.door_material2 || null, p.door_material3 || null,
-           p.door_material4 || null, p.door_material5 || null, p.door_material6 || null,
-           p.image_white || null, p.image_interior || null]
-        );
-        variantsCount++;
-      } catch (e) {
-        errors.push(`Ошибка варианта "${p.article}": ${e instanceof Error ? e.message : String(e)}`);
-      }
+      const progress = 30 + Math.round((i / productEntries.length) * 15);
+      await onProgress({ current: progress, total: 100, stage: 'Создание товаров', item: `${Math.min(i + productBatchSize, productEntries.length)} / ${productEntries.length}` });
     }
+
+    await onProgress({ current: 45, total: 100, stage: 'Импорт вариантов', item: `${data.products.length} артикулов` });
+
+    // 6. Теперь вставляем варианты пачками через COPY или multi-value INSERT
+    const BATCH_SIZE = 500;
+    const totalVariants = data.products.length;
+
+    for (let i = 0; i < totalVariants; i += BATCH_SIZE) {
+      const batch = data.products.slice(i, i + BATCH_SIZE);
+
+      // Собираем значения для batch insert
+      const values: string[] = [];
+      const params: (string | number | null)[] = [];
+      let paramIndex = 1;
+
+      for (const p of batch) {
+        const productId = productMap[p.card_name];
+        if (!productId) continue;
+
+        const bodyColorId = bodyColorMap[`${p.series}:${p.body_color}`] || null;
+        const profileColorId = profileColorMap[p.profile_color] || null;
+
+        values.push(`($${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++}, $${paramIndex++})`);
+        params.push(
+          productId, p.article, p.full_name, bodyColorId, profileColorId,
+          p.height, p.width, p.depth,
+          p.door_material1 || null, p.door_material2 || null, p.door_material3 || null,
+          p.door_material4 || null, p.door_material5 || null, p.door_material6 || null,
+          p.image_white || null, p.image_interior || null
+        );
+      }
+
+      if (values.length > 0) {
+        try {
+          const result = await pool.query(
+            `INSERT INTO catalog_variants (product_id, article, full_name, body_color_id, profile_color_id,
+               height, width, depth, door_material1, door_material2, door_material3, door_material4,
+               door_material5, door_material6, image_white, image_interior)
+             VALUES ${values.join(', ')}
+             ON CONFLICT (article) DO UPDATE SET
+               full_name = EXCLUDED.full_name,
+               body_color_id = EXCLUDED.body_color_id,
+               profile_color_id = EXCLUDED.profile_color_id,
+               height = EXCLUDED.height,
+               width = EXCLUDED.width,
+               depth = EXCLUDED.depth,
+               door_material1 = EXCLUDED.door_material1,
+               door_material2 = EXCLUDED.door_material2,
+               door_material3 = EXCLUDED.door_material3,
+               door_material4 = EXCLUDED.door_material4,
+               door_material5 = EXCLUDED.door_material5,
+               door_material6 = EXCLUDED.door_material6,
+               image_white = COALESCE(EXCLUDED.image_white, catalog_variants.image_white),
+               image_interior = COALESCE(EXCLUDED.image_interior, catalog_variants.image_interior)`,
+            params
+          );
+          variantsCount += result.rowCount || 0;
+        } catch (e) {
+          errors.push(`Ошибка batch вариантов: ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
+
+      const progress = 45 + Math.round(((i + BATCH_SIZE) / totalVariants) * 50);
+      await onProgress({
+        current: Math.min(progress, 95),
+        total: 100,
+        stage: 'Импорт вариантов',
+        item: `${Math.min(i + BATCH_SIZE, totalVariants).toLocaleString()} / ${totalVariants.toLocaleString()}`
+      });
+    }
+
+    await onProgress({ current: 98, total: 100, stage: 'Завершение', item: 'Сохранение результатов' });
 
     // Обновляем историю импорта
     await pool.query(
       `UPDATE catalog_import_history
        SET status = 'completed', products_count = $1, variants_count = $2, error_message = $3
        WHERE id = $4`,
-      [productsCount, variantsCount, errors.length > 0 ? errors.join('\n') : null, importId]
+      [productsCount, variantsCount, errors.length > 0 ? errors.slice(0, 100).join('\n') : null, importId]
     );
 
     return {
