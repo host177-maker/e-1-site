@@ -10,8 +10,21 @@ const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
-// Загружаем переменные окружения
-require('dotenv').config({ path: path.join(__dirname, '../.env.local') });
+// Загружаем переменные окружения из .env.local
+const envPath = path.join(__dirname, '../.env.local');
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  envContent.split('\n').forEach(line => {
+    const match = line.match(/^([^#=]+)=(.*)$/);
+    if (match) {
+      const key = match[1].trim();
+      const value = match[2].trim().replace(/^["']|["']$/g, '');
+      if (!process.env[key]) {
+        process.env[key] = value;
+      }
+    }
+  });
+}
 
 // Путь к папке с миграциями
 const migrationsDir = path.join(__dirname, '../src/lib/migrations');
