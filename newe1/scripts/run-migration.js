@@ -63,19 +63,25 @@ async function runMigration() {
   console.log(sql);
   console.log('---');
 
-  const dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) {
-    console.error('❌ DATABASE_URL не найден в .env.local');
+  // Поддержка DATABASE_URL или отдельных POSTGRES_* переменных
+  let pool;
+  if (process.env.DATABASE_URL) {
+    const maskedUrl = process.env.DATABASE_URL.replace(/:([^:@]+)@/, ':***@');
+    console.log('Подключение к:', maskedUrl);
+    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  } else if (process.env.POSTGRES_HOST) {
+    console.log(`Подключение к: ${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`);
+    pool = new Pool({
+      host: process.env.POSTGRES_HOST,
+      port: parseInt(process.env.POSTGRES_PORT || '5432'),
+      database: process.env.POSTGRES_DB,
+      user: process.env.POSTGRES_USER,
+      password: process.env.POSTGRES_PASSWORD,
+    });
+  } else {
+    console.error('❌ Не найдены настройки базы данных (DATABASE_URL или POSTGRES_*)');
     process.exit(1);
   }
-
-  // Показываем URL с замаскированным паролем
-  const maskedUrl = dbUrl.replace(/:([^:@]+)@/, ':***@');
-  console.log('Подключение к:', maskedUrl);
-
-  const pool = new Pool({
-    connectionString: dbUrl,
-  });
 
   try {
     const client = await pool.connect();
