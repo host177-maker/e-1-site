@@ -350,6 +350,13 @@ async function importCatalogOptimized(
     await pool.query('DELETE FROM catalog_fillings');
     await pool.query('DELETE FROM catalog_series');
 
+    // Применяем миграцию для поддержки нескольких вариантов наполнения на один размер
+    await pool.query('ALTER TABLE catalog_fillings DROP CONSTRAINT IF EXISTS catalog_fillings_series_id_door_count_height_width_depth_key');
+    await pool.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS catalog_fillings_unique_idx
+      ON catalog_fillings (series_id, door_count, height, width, depth, COALESCE(short_name, ''))
+    `);
+
     await onProgress({ current: 12, total: 100, stage: 'Импорт серий', item: `${data.series.length} серий` });
 
     // 1. Импорт серий (их мало, можно по одной)
