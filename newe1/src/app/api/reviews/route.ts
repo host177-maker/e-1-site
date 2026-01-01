@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { getEmailByKey, EMAIL_KEYS } from '@/lib/emailSettings';
+import { getPool } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -27,16 +28,7 @@ interface NewReviewRequest {
 // GET: Fetch reviews
 export async function GET(request: NextRequest) {
   try {
-    const { Pool } = await import('pg');
-
-    const pool = new Pool({
-      host: process.env.POSTGRES_HOST || '192.168.40.41',
-      port: parseInt(process.env.POSTGRES_PORT || '5432'),
-      database: process.env.POSTGRES_DB || 'newe1',
-      user: process.env.POSTGRES_USER || 'newe1',
-      password: process.env.POSTGRES_PASSWORD || 'newe1pass',
-    });
-
+    const pool = getPool();
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
@@ -72,8 +64,6 @@ export async function GET(request: NextRequest) {
       `SELECT AVG(rating)::numeric(2,1) as avg_rating, COUNT(*) as rated_count
        FROM reviews WHERE is_active = true AND rating IS NOT NULL`
     );
-
-    await pool.end();
 
     return NextResponse.json({
       success: true,
@@ -136,15 +126,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { Pool } = await import('pg');
-
-    const pool = new Pool({
-      host: process.env.POSTGRES_HOST || '192.168.40.41',
-      port: parseInt(process.env.POSTGRES_PORT || '5432'),
-      database: process.env.POSTGRES_DB || 'newe1',
-      user: process.env.POSTGRES_USER || 'newe1',
-      password: process.env.POSTGRES_PASSWORD || 'newe1pass',
-    });
+    const pool = getPool();
 
     // Insert review with is_active = false (needs moderation)
     const result = await pool.query(
@@ -160,8 +142,6 @@ export async function POST(request: NextRequest) {
         body.photos && body.photos.length > 0 ? body.photos : null,
       ]
     );
-
-    await pool.end();
 
     // Send email notification
     await sendReviewNotification(body);

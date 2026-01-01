@@ -1,19 +1,12 @@
 import { NextResponse } from 'next/server';
+import { getPool } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function GET() {
   try {
-    const { Pool } = await import('pg');
-
-    const pool = new Pool({
-      host: process.env.POSTGRES_HOST || '192.168.40.41',
-      port: parseInt(process.env.POSTGRES_PORT || '5432'),
-      database: process.env.POSTGRES_DB || 'newe1',
-      user: process.env.POSTGRES_USER || 'newe1',
-      password: process.env.POSTGRES_PASSWORD || 'newe1pass',
-    });
+    const pool = getPool();
 
     // Get regions that have salons
     const result = await pool.query(`
@@ -24,8 +17,6 @@ export async function GET() {
       GROUP BY r.id, r.name, r.sort_order
       ORDER BY r.sort_order, r.name
     `);
-
-    await pool.end();
 
     return NextResponse.json({
       success: true,
@@ -40,15 +31,7 @@ export async function GET() {
 
     // Fallback: get unique regions from salons table
     try {
-      const { Pool } = await import('pg');
-
-      const pool = new Pool({
-        host: process.env.POSTGRES_HOST || '192.168.40.41',
-        port: parseInt(process.env.POSTGRES_PORT || '5432'),
-        database: process.env.POSTGRES_DB || 'newe1',
-        user: process.env.POSTGRES_USER || 'newe1',
-        password: process.env.POSTGRES_PASSWORD || 'newe1pass',
-      });
+      const pool = getPool();
 
       const result = await pool.query(`
         SELECT region as name, COUNT(*) as salon_count
@@ -57,8 +40,6 @@ export async function GET() {
         GROUP BY region
         ORDER BY region
       `);
-
-      await pool.end();
 
       return NextResponse.json({
         success: true,
