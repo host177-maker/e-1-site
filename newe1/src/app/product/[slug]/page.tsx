@@ -185,8 +185,10 @@ export default function ProductPage() {
         setVariants(data.variants);
         setBodyColors(data.bodyColors);
         setProfileColors(data.profileColors);
-        setFilling(data.filling);
-        setFillings(data.fillings || []);
+        // Устанавливаем наполнение: берём первое из массива если есть
+        const fillingsList = data.fillings || [];
+        setFillings(fillingsList);
+        setFilling(data.filling || fillingsList[0] || null);
         setSeries(data.series);
 
         // Читаем параметры из сохраненных начальных значений URL
