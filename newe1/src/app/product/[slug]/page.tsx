@@ -140,6 +140,11 @@ export default function ProductPage() {
   const [tempProfileColor, setTempProfileColor] = useState<CatalogProfileColor | null>(null);
   const [showProfileColorInfoId, setShowProfileColorInfoId] = useState<number | null>(null);
 
+  // Модальное окно выбора наполнения
+  const [showFillingSelectModal, setShowFillingSelectModal] = useState(false);
+  const [tempFilling, setTempFilling] = useState<CatalogFilling | null>(null);
+  const [showFillingInfoId, setShowFillingInfoId] = useState<number | null>(null);
+
   // Сборка
   const [includeAssembly, setIncludeAssembly] = useState(false);
 
@@ -677,28 +682,25 @@ export default function ProductPage() {
                         Подробнее
                       </button>
                     </div>
-                    {/* Селектор наполнения если доступно несколько вариантов */}
-                    {fillings.length > 1 && (
-                      <div className="mb-2">
-                        <select
-                          value={filling.id}
-                          onChange={(e) => {
-                            const selected = fillings.find(f => f.id === Number(e.target.value));
-                            if (selected) setFilling(selected);
-                          }}
-                          className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs bg-white focus:outline-none focus:border-[#62bb46] cursor-pointer"
-                        >
-                          {fillings.map((f) => (
-                            <option key={f.id} value={f.id}>
-                              {f.short_name || `${f.width}×${f.height}×${f.depth}`}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                    {filling.short_name && fillings.length <= 1 && (
+                    {/* Кнопка выбора наполнения */}
+                    {fillings.length > 1 ? (
+                      <button
+                        onClick={() => {
+                          setTempFilling(filling);
+                          setShowFillingSelectModal(true);
+                        }}
+                        className="w-full flex items-center gap-2 px-2 py-1.5 border border-gray-200 rounded text-xs hover:border-[#62bb46] transition-colors text-left mb-2"
+                      >
+                        <span className="text-gray-700 truncate flex-1">
+                          {filling.short_name || `${filling.width}×${filling.height}×${filling.depth}`}
+                        </span>
+                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    ) : filling.short_name ? (
                       <p className="text-gray-600 text-xs mb-2">{filling.short_name}</p>
-                    )}
+                    ) : null}
                     {filling.image_plain && (
                       <div className="relative h-32 bg-gray-50 rounded-lg overflow-hidden">
                         <Image
@@ -1150,6 +1152,110 @@ export default function ProductPage() {
                     setSelectedProfileColor(tempProfileColor);
                   }
                   setShowProfileColorModal(false);
+                }}
+                className="w-full py-3 bg-[#62bb46] hover:bg-[#4a9935] text-white font-bold rounded-lg transition-colors"
+              >
+                Применить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно выбора наполнения */}
+      {showFillingSelectModal && fillings.length > 0 && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowFillingSelectModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
+              <h2 className="text-lg font-bold text-gray-900">Выберите наполнение</h2>
+              <button
+                onClick={() => setShowFillingSelectModal(false)}
+                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <div className="space-y-4">
+                {fillings.map((f) => (
+                  <div key={f.id}>
+                    <div
+                      onClick={() => setTempFilling(f)}
+                      className={`flex gap-4 p-3 rounded-lg cursor-pointer transition-all ${
+                        tempFilling?.id === f.id
+                          ? 'bg-[#62bb46]/10 ring-2 ring-[#62bb46]'
+                          : 'bg-gray-50 hover:bg-gray-100'
+                      }`}
+                    >
+                      {/* Изображение наполнения */}
+                      <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 bg-white">
+                        {f.image_plain ? (
+                          <Image src={f.image_plain} alt={f.short_name || 'Наполнение'} fill className="object-contain" />
+                        ) : (
+                          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                            <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      {/* Информация */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-medium text-gray-900 text-sm">
+                            {f.short_name || `Наполнение ${f.width}×${f.height}×${f.depth}`}
+                          </h3>
+                          {/* Галочка выбора */}
+                          {tempFilling?.id === f.id && (
+                            <div className="w-6 h-6 bg-[#62bb46] rounded-full flex items-center justify-center flex-shrink-0">
+                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Размер: {f.width}×{f.height}×{f.depth} мм
+                        </p>
+                        {f.description && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowFillingInfoId(showFillingInfoId === f.id ? null : f.id);
+                            }}
+                            className="mt-2 text-xs text-[#62bb46] hover:underline"
+                          >
+                            {showFillingInfoId === f.id ? 'Скрыть описание' : 'Показать описание'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {/* Описание наполнения (раскрывается) */}
+                    {showFillingInfoId === f.id && f.description && (
+                      <div className="mt-2 ml-28 p-3 bg-gray-100 rounded-lg">
+                        <p className="text-sm text-gray-600 whitespace-pre-line">{f.description}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Кнопка применить */}
+            <div className="sticky bottom-0 bg-white border-t p-4">
+              <button
+                onClick={() => {
+                  if (tempFilling) {
+                    setFilling(tempFilling);
+                  }
+                  setShowFillingSelectModal(false);
                 }}
                 className="w-full py-3 bg-[#62bb46] hover:bg-[#4a9935] text-white font-bold rounded-lg transition-colors"
               >
