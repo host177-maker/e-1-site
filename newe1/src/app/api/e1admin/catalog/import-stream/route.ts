@@ -437,7 +437,11 @@ async function importCatalogOptimized(
 
       for (const [cardName, prod] of batch) {
         const seriesId = seriesMap[prod.series];
-        if (!seriesId) continue;
+        if (!seriesId) {
+          console.log(`Skipping product "${cardName}" - series "${prod.series}" not found in seriesMap`);
+          errors.push(`Товар "${cardName}" пропущен - серия "${prod.series}" не найдена`);
+          continue;
+        }
 
         try {
           const slug = createSlug(cardName);
@@ -481,7 +485,10 @@ async function importCatalogOptimized(
 
       for (const p of batch) {
         const productId = productMap[p.card_name];
-        if (!productId) continue;
+        if (!productId) {
+          console.log(`Skipping variant "${p.article}" - product "${p.card_name}" not found in productMap`);
+          continue;
+        }
 
         const bodyColorId = bodyColorMap[`${p.series}:${p.body_color}`] || null;
         const profileColorId = profileColorMap[p.profile_color] || null;

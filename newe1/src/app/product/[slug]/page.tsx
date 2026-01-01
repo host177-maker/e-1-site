@@ -449,6 +449,9 @@ export default function ProductPage() {
     );
   }
 
+  // Если товар есть, но нет вариантов - показываем информацию
+  const hasNoVariants = variants.length === 0;
+
   const availableBodyColors = getAvailableBodyColors;
   const availableProfileColors = getAvailableProfileColors;
 
@@ -524,38 +527,58 @@ export default function ProductPage() {
               </h1>
             </div>
 
-            {/* Цена */}
-            <div className="bg-white rounded-xl shadow-sm p-5">
-              <div className="flex items-baseline gap-3 mb-1">
-                <span className="text-3xl font-bold text-gray-900">
-                  {(basePrice + (includeAssembly ? assemblyPrice : 0)).toLocaleString('ru-RU')} ₽
-                </span>
-                <span className="text-lg text-gray-400 line-through">
-                  {oldPrice.toLocaleString('ru-RU')} ₽
-                </span>
+            {/* Сообщение о недоступности вариантов */}
+            {hasNoVariants && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <div>
+                    <div className="font-medium text-amber-800">Варианты товара недоступны</div>
+                    <p className="text-sm text-amber-700 mt-1">
+                      Для этого товара не найдены варианты в базе данных. Возможно, требуется повторный импорт данных.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="text-sm text-gray-500 mb-4">Цена в базовой комплектации</div>
+            )}
 
-              {/* Сборка */}
-              <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-gray-200 hover:border-[#62bb46] transition-colors">
-                <input
-                  type="checkbox"
-                  checked={includeAssembly}
-                  onChange={(e) => setIncludeAssembly(e.target.checked)}
-                  className="w-5 h-5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
-                />
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900">Добавить сборку</div>
-                  <div className="text-sm text-gray-500">Профессиональная сборка изделия</div>
+            {/* Цена - показываем только если есть варианты */}
+            {!hasNoVariants && (
+              <div className="bg-white rounded-xl shadow-sm p-5">
+                <div className="flex items-baseline gap-3 mb-1">
+                  <span className="text-3xl font-bold text-gray-900">
+                    {(basePrice + (includeAssembly ? assemblyPrice : 0)).toLocaleString('ru-RU')} ₽
+                  </span>
+                  <span className="text-lg text-gray-400 line-through">
+                    {oldPrice.toLocaleString('ru-RU')} ₽
+                  </span>
                 </div>
-                <div className="text-right">
-                  <div className="font-bold text-gray-900">+{assemblyPrice.toLocaleString('ru-RU')} ₽</div>
-                  <div className="text-xs text-gray-400">12% от стоимости</div>
-                </div>
-              </label>
-            </div>
+                <div className="text-sm text-gray-500 mb-4">Цена в базовой комплектации</div>
 
-            {/* Выбрать размер и цвет */}
+                {/* Сборка */}
+                <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-gray-200 hover:border-[#62bb46] transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={includeAssembly}
+                    onChange={(e) => setIncludeAssembly(e.target.checked)}
+                    className="w-5 h-5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
+                  />
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900">Добавить сборку</div>
+                    <div className="text-sm text-gray-500">Профессиональная сборка изделия</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-gray-900">+{assemblyPrice.toLocaleString('ru-RU')} ₽</div>
+                    <div className="text-xs text-gray-400">12% от стоимости</div>
+                  </div>
+                </label>
+              </div>
+            )}
+
+            {/* Выбрать размер и цвет - показываем только если есть варианты */}
+            {!hasNoVariants && (
             <div className="bg-white rounded-xl shadow-sm p-4">
               <h3 className="text-sm font-medium text-gray-900 mb-3">Выбрать размер и цвет</h3>
 
@@ -675,6 +698,7 @@ export default function ProductPage() {
                 Доп. комплектация
               </button>
             </div>
+            )}
 
             {/* Наполнение */}
             {filling && (
@@ -708,15 +732,17 @@ export default function ProductPage() {
               </div>
             )}
 
-            {/* Кнопки действий */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button className="flex-1 py-3 bg-[#62bb46] hover:bg-[#4a9935] text-white font-bold rounded-xl transition-colors">
-                Добавить в корзину
-              </button>
-              <button className="flex-1 py-3 border-2 border-[#62bb46] text-[#62bb46] hover:bg-[#62bb46] hover:text-white font-bold rounded-xl transition-colors">
-                Купить в 1 клик
-              </button>
-            </div>
+            {/* Кнопки действий - показываем только если есть варианты */}
+            {!hasNoVariants && (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button className="flex-1 py-3 bg-[#62bb46] hover:bg-[#4a9935] text-white font-bold rounded-xl transition-colors">
+                  Добавить в корзину
+                </button>
+                <button className="flex-1 py-3 border-2 border-[#62bb46] text-[#62bb46] hover:bg-[#62bb46] hover:text-white font-bold rounded-xl transition-colors">
+                  Купить в 1 клик
+                </button>
+              </div>
+            )}
 
             {/* Артикул внизу мелким шрифтом */}
             {currentVariant && (
