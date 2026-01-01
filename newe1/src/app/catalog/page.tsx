@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -25,7 +25,7 @@ interface CatalogProduct {
 
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
-export default function CatalogPage() {
+function CatalogPageContent() {
   const searchParams = useSearchParams();
   const isInitialLoad = useRef(true);
 
@@ -263,5 +263,25 @@ export default function CatalogPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function CatalogPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <div className="bg-gradient-to-r from-[#62bb46] to-[#4a9935] text-white py-12">
+          <div className="max-w-[1348px] mx-auto px-4">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">Каталог шкафов-купе</h1>
+            <p className="text-white/80 text-lg">Выберите идеальный шкаф для вашего интерьера</p>
+          </div>
+        </div>
+        <div className="flex justify-center py-16">
+          <div className="w-10 h-10 border-4 border-[#62bb46] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>
+    }>
+      <CatalogPageContent />
+    </Suspense>
   );
 }
