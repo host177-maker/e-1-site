@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getProductBySlug, getVariantByParams, getFilling } from '@/lib/catalog';
+import { getProductBySlug, getVariantByParams, getFilling, getFillings } from '@/lib/catalog';
 
 interface Params {
   params: Promise<{ slug: string }>;
@@ -41,16 +41,20 @@ export async function POST(request: NextRequest, { params }: Params) {
     // Получаем вариант
     const variant = await getVariantByParams(productId, height, width, depth, bodyColorId, profileColorId);
 
-    // Получаем наполнение
+    // Получаем наполнение для текущего размера
     let filling = null;
+    let fillings: Awaited<ReturnType<typeof getFillings>> = [];
     if (seriesId && doorCount) {
       filling = await getFilling(seriesId, doorCount, height, width, depth);
+      // Получаем все варианты наполнения для серии и количества дверей
+      fillings = await getFillings(seriesId, doorCount);
     }
 
     return NextResponse.json({
       success: true,
       variant,
-      filling
+      filling,
+      fillings
     });
   } catch (error) {
     console.error('Variant API error:', error);

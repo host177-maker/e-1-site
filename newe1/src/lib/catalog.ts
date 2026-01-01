@@ -197,6 +197,7 @@ export async function getProductBySlug(slug: string): Promise<{
   profileColors: { id: number; name: string }[];
   sizes: { height: number; width: number; depth: number }[];
   filling?: CatalogFilling;
+  fillings?: CatalogFilling[];
   series?: CatalogSeries;
 } | null> {
   const pool = getPool();
@@ -261,7 +262,8 @@ export async function getProductBySlug(slug: string): Promise<{
 
   // Получаем наполнение (для первого варианта)
   let filling = null;
-  if (variantsResult.rows.length > 0) {
+  let fillings: CatalogFilling[] = [];
+  if (variantsResult.rows.length > 0 && product.door_count) {
     const firstVariant = variantsResult.rows[0];
     const fillingResult = await pool.query(
       `SELECT * FROM catalog_fillings
@@ -271,6 +273,15 @@ export async function getProductBySlug(slug: string): Promise<{
       [product.series_id, product.door_count, firstVariant.height, firstVariant.width, firstVariant.depth]
     );
     filling = fillingResult.rows[0] || null;
+
+    // Получаем все варианты наполнения для серии и количества дверей
+    const fillingsResult = await pool.query(
+      `SELECT * FROM catalog_fillings
+       WHERE series_id = $1 AND door_count = $2
+       ORDER BY height, width, depth`,
+      [product.series_id, product.door_count]
+    );
+    fillings = fillingsResult.rows;
   }
 
   return {
@@ -280,6 +291,7 @@ export async function getProductBySlug(slug: string): Promise<{
     profileColors: profileColorsResult.rows,
     sizes: sizesResult.rows,
     filling,
+    fillings,
     series: seriesResult.rows[0]
   };
 }
@@ -346,6 +358,21 @@ export async function getFilling(
     [seriesId, doorCount, height, width, depth]
   );
   return result.rows[0] || null;
+}
+
+// Получить все варианты наполнения для серии и количества дверей
+export async function getFillings(
+  seriesId: number,
+  doorCount: number
+): Promise<CatalogFilling[]> {
+  const pool = getPool();
+  const result = await pool.query(
+    `SELECT * FROM catalog_fillings
+     WHERE series_id = $1 AND door_count = $2
+     ORDER BY height, width, depth`,
+    [seriesId, doorCount]
+  );
+  return result.rows;
 }
 
 // Импорт каталога из данных (для API)

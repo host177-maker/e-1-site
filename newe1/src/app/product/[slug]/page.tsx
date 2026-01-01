@@ -44,6 +44,10 @@ interface CatalogBodyColor {
 }
 
 interface CatalogFilling {
+  id: number;
+  height: number;
+  width: number;
+  depth: number;
   short_name?: string;
   description?: string;
   image_plain?: string;
@@ -95,6 +99,7 @@ export default function ProductPage() {
   // profileColors загружается для начальной инициализации, но далее используется variantProfileColors
   const [, setProfileColors] = useState<{ id: number; name: string }[]>([]);
   const [filling, setFilling] = useState<CatalogFilling | null>(null);
+  const [fillings, setFillings] = useState<CatalogFilling[]>([]);
   const [series, setSeries] = useState<CatalogSeries | null>(null);
 
   // Выбранные параметры размеров (отдельно)
@@ -181,6 +186,7 @@ export default function ProductPage() {
         setBodyColors(data.bodyColors);
         setProfileColors(data.profileColors);
         setFilling(data.filling);
+        setFillings(data.fillings || []);
         setSeries(data.series);
 
         // Читаем параметры из сохраненных начальных значений URL
@@ -374,6 +380,9 @@ export default function ProductPage() {
         const data = await response.json();
         if (data.filling) {
           setFilling(data.filling);
+        }
+        if (data.fillings) {
+          setFillings(data.fillings);
         }
       } catch (error) {
         console.error('Error loading filling:', error);
@@ -628,7 +637,26 @@ export default function ProductPage() {
                         Подробнее
                       </button>
                     </div>
-                    {filling.short_name && (
+                    {/* Селектор наполнения если доступно несколько вариантов */}
+                    {fillings.length > 1 && (
+                      <div className="mb-2">
+                        <select
+                          value={filling.id}
+                          onChange={(e) => {
+                            const selected = fillings.find(f => f.id === Number(e.target.value));
+                            if (selected) setFilling(selected);
+                          }}
+                          className="w-full px-2 py-1.5 border border-gray-200 rounded text-xs bg-white focus:outline-none focus:border-[#62bb46] cursor-pointer"
+                        >
+                          {fillings.map((f) => (
+                            <option key={f.id} value={f.id}>
+                              {f.short_name || `${f.width}×${f.height}×${f.depth}`}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    {filling.short_name && fillings.length <= 1 && (
                       <p className="text-gray-600 text-xs mb-2">{filling.short_name}</p>
                     )}
                     {filling.image_plain && (
