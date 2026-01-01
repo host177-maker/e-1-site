@@ -139,12 +139,16 @@ export default function ProductPage() {
           setSelectedHeight(firstVariant.height);
           setSelectedWidth(firstVariant.width);
           setSelectedDepth(firstVariant.depth);
-        }
-        if (data.bodyColors.length > 0) {
-          setSelectedBodyColor(data.bodyColors[0]);
-        }
-        if (data.profileColors.length > 0) {
-          setSelectedProfileColor(data.profileColors[0]);
+
+          // Устанавливаем цвета из первого варианта
+          if (firstVariant.body_color_id) {
+            const bc = data.bodyColors.find((c: CatalogBodyColor) => c.id === firstVariant.body_color_id);
+            if (bc) setSelectedBodyColor(bc);
+          }
+          if (firstVariant.profile_color_id) {
+            const pc = data.profileColors.find((c: { id: number; name: string }) => c.id === firstVariant.profile_color_id);
+            if (pc) setSelectedProfileColor(pc);
+          }
         }
       }
     } catch (error) {
@@ -265,45 +269,76 @@ export default function ProductPage() {
   }, [product, selectedHeight, selectedWidth, selectedDepth, slug]);
 
   // Получить доступные цвета профилей для текущего размера и цвета корпуса
-  const getAvailableProfileColors = () => {
-    if (selectedHeight === null || selectedWidth === null || selectedDepth === null || !selectedBodyColor) {
-      return profileColors;
+  const getAvailableProfileColors = useMemo(() => {
+    // Фильтруем варианты по выбранным параметрам
+    let filtered = variants;
+
+    if (selectedHeight !== null) {
+      filtered = filtered.filter(v => v.height === selectedHeight);
+    }
+    if (selectedWidth !== null) {
+      filtered = filtered.filter(v => v.width === selectedWidth);
+    }
+    if (selectedDepth !== null) {
+      filtered = filtered.filter(v => v.depth === selectedDepth);
+    }
+    if (selectedBodyColor) {
+      filtered = filtered.filter(v => v.body_color_id === selectedBodyColor.id);
     }
 
-    const availableProfileIds = new Set(
-      variants
-        .filter(v =>
-          v.height === selectedHeight &&
-          v.width === selectedWidth &&
-          v.depth === selectedDepth &&
-          v.body_color_id === selectedBodyColor.id &&
-          v.profile_color_id
-        )
-        .map(v => v.profile_color_id)
-    );
-
-    return profileColors.filter(c => availableProfileIds.has(c.id));
-  };
+    // Собираем уникальные цвета профиля из отфильтрованных вариантов
+    const colorMap = new Map<number, { id: number; name: string }>();
+    for (const v of filtered) {
+      if (v.profile_color_id && v.profile_color_name) {
+        colorMap.set(v.profile_color_id, { id: v.profile_color_id, name: v.profile_color_name });
+      }
+    }
+    return Array.from(colorMap.values());
+  }, [variants, selectedHeight, selectedWidth, selectedDepth, selectedBodyColor]);
 
   // Получить доступные цвета корпуса для текущего размера
-  const getAvailableBodyColors = () => {
-    if (selectedHeight === null || selectedWidth === null || selectedDepth === null) {
-      return bodyColors;
+  const getAvailableBodyColors = useMemo(() => {
+    // Фильтруем варианты по выбранным размерам
+    let filtered = variants;
+
+    if (selectedHeight !== null) {
+      filtered = filtered.filter(v => v.height === selectedHeight);
+    }
+    if (selectedWidth !== null) {
+      filtered = filtered.filter(v => v.width === selectedWidth);
+    }
+    if (selectedDepth !== null) {
+      filtered = filtered.filter(v => v.depth === selectedDepth);
     }
 
-    const availableBodyIds = new Set(
-      variants
-        .filter(v =>
-          v.height === selectedHeight &&
-          v.width === selectedWidth &&
-          v.depth === selectedDepth &&
-          v.body_color_id
-        )
-        .map(v => v.body_color_id)
-    );
+    // Собираем уникальные цвета корпуса из отфильтрованных вариантов
+    const availableIds = new Set(filtered.map(v => v.body_color_id).filter(Boolean));
+    return bodyColors.filter(c => availableIds.has(c.id));
+  }, [variants, selectedHeight, selectedWidth, selectedDepth, bodyColors]);
 
-    return bodyColors.filter(c => availableBodyIds.has(c.id));
-  };
+  // Автовыбор цвета корпуса если текущий недоступен
+  useEffect(() => {
+    if (getAvailableBodyColors.length > 0 && selectedBodyColor) {
+      const isAvailable = getAvailableBodyColors.some(c => c.id === selectedBodyColor.id);
+      if (!isAvailable) {
+        setSelectedBodyColor(getAvailableBodyColors[0]);
+      }
+    } else if (getAvailableBodyColors.length > 0 && !selectedBodyColor) {
+      setSelectedBodyColor(getAvailableBodyColors[0]);
+    }
+  }, [getAvailableBodyColors, selectedBodyColor]);
+
+  // Автовыбор цвета профиля если текущий недоступен
+  useEffect(() => {
+    if (getAvailableProfileColors.length > 0 && selectedProfileColor) {
+      const isAvailable = getAvailableProfileColors.some(c => c.id === selectedProfileColor.id);
+      if (!isAvailable) {
+        setSelectedProfileColor(getAvailableProfileColors[0]);
+      }
+    } else if (getAvailableProfileColors.length > 0 && !selectedProfileColor) {
+      setSelectedProfileColor(getAvailableProfileColors[0]);
+    }
+  }, [getAvailableProfileColors, selectedProfileColor]);
 
   if (loading) {
     return (
@@ -326,8 +361,8 @@ export default function ProductPage() {
     );
   }
 
-  const availableBodyColors = getAvailableBodyColors();
-  const availableProfileColors = getAvailableProfileColors();
+  const availableBodyColors = getAvailableBodyColors;
+  const availableProfileColors = getAvailableProfileColors;
 
   return (
     <div className="min-h-screen bg-gray-50">
