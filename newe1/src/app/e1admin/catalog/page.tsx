@@ -85,7 +85,7 @@ export default function CatalogPage() {
   const handleImportFromFile = async (file: File) => {
     setImporting(true);
     setImportResult(null);
-    setImportProgress(null);
+    setImportProgress({ current: 0, total: 1, stage: 'Загрузка файла', item: file.name });
 
     try {
       const formData = new FormData();
@@ -115,50 +115,50 @@ export default function CatalogPage() {
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
 
-        for (const line of lines) {
-          if (line.startsWith('event: ')) {
-            const eventType = line.slice(7);
-            const dataLineIndex = lines.indexOf(line) + 1;
-            if (dataLineIndex < lines.length && lines[dataLineIndex].startsWith('data: ')) {
-              const dataStr = lines[dataLineIndex].slice(6);
-              try {
-                const data = JSON.parse(dataStr);
+        // Разбираем SSE события
+        const events = buffer.split('\n\n');
+        buffer = events.pop() || '';
 
-                if (eventType === 'progress') {
-                  setImportProgress(data);
-                } else if (eventType === 'complete') {
-                  setImportResult(data);
-                  setImportProgress(null);
-                  fetchStatus();
-                } else if (eventType === 'error') {
-                  setImportResult({
-                    success: false,
-                    message: data.message,
-                    stats: { series: 0, bodyColors: 0, fillings: 0, products: 0, variants: 0 },
-                    errors: [data.message]
-                  });
-                  setImportProgress(null);
-                }
-              } catch (e) {
-                console.error('Parse error:', e);
-              }
+        for (const event of events) {
+          const lines = event.split('\n');
+          let eventType = '';
+          let eventData = '';
+
+          for (const line of lines) {
+            if (line.startsWith('event: ')) {
+              eventType = line.slice(7).trim();
+            } else if (line.startsWith('data: ')) {
+              eventData = line.slice(6);
             }
-          } else if (line.startsWith('data: ')) {
-            const dataStr = line.slice(6);
+          }
+
+          if (eventData) {
             try {
-              const data = JSON.parse(dataStr);
-              if (data.current !== undefined && data.total !== undefined) {
-                setImportProgress(data);
-              } else if (data.success !== undefined) {
+              const data = JSON.parse(eventData);
+
+              if (eventType === 'progress' || eventType === 'start') {
+                setImportProgress({
+                  current: data.current ?? 0,
+                  total: data.total ?? 1,
+                  stage: data.stage ?? data.message ?? 'Обработка',
+                  item: data.item
+                });
+              } else if (eventType === 'complete') {
                 setImportResult(data);
                 setImportProgress(null);
                 fetchStatus();
+              } else if (eventType === 'error') {
+                setImportResult({
+                  success: false,
+                  message: data.message,
+                  stats: { series: 0, bodyColors: 0, fillings: 0, products: 0, variants: 0 },
+                  errors: [data.message]
+                });
+                setImportProgress(null);
               }
             } catch (e) {
-              // Skip non-JSON lines
+              console.error('Parse error:', e, eventData);
             }
           }
         }
@@ -321,27 +321,29 @@ export default function CatalogPage() {
             </div>
 
             {/* Прогресс импорта */}
-            {importing && importProgress && (
+            {importing && (
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                <div className="flex items-center gap-4">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-medium text-blue-900">
-                        {importProgress.stage}: {importProgress.item || '...'}
+                        {importProgress ? `${importProgress.stage}: ${importProgress.item || '...'}` : 'Загрузка...'}
                       </span>
-                      <span className="text-sm text-blue-700">
-                        {importProgress.current} / {importProgress.total}
-                      </span>
+                      {importProgress && (
+                        <span className="text-sm text-blue-700">
+                          {importProgress.current.toLocaleString()} / {importProgress.total.toLocaleString()}
+                        </span>
+                      )}
                     </div>
                     <div className="w-full bg-blue-200 rounded-full h-3">
                       <div
                         className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.round((importProgress.current / importProgress.total) * 100)}%` }}
+                        style={{ width: importProgress ? `${Math.round((importProgress.current / importProgress.total) * 100)}%` : '0%' }}
                       />
                     </div>
                     <p className="text-sm text-blue-600 mt-1">
-                      {Math.round((importProgress.current / importProgress.total) * 100)}% завершено
+                      {importProgress ? `${Math.round((importProgress.current / importProgress.total) * 100)}% завершено` : 'Подготовка...'}
                     </p>
                   </div>
                 </div>
