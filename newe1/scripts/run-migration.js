@@ -57,8 +57,18 @@ async function runMigration() {
   console.log(sql);
   console.log('---');
 
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) {
+    console.error('❌ DATABASE_URL не найден в .env.local');
+    process.exit(1);
+  }
+
+  // Показываем URL с замаскированным паролем
+  const maskedUrl = dbUrl.replace(/:([^:@]+)@/, ':***@');
+  console.log('Подключение к:', maskedUrl);
+
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: dbUrl,
   });
 
   try {
