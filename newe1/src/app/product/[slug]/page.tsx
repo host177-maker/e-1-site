@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -59,12 +59,6 @@ interface CatalogSeries {
   video2?: string;
 }
 
-interface Size {
-  height: number;
-  width: number;
-  depth: number;
-}
-
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
 export default function ProductPage() {
@@ -76,12 +70,14 @@ export default function ProductPage() {
   const [variants, setVariants] = useState<CatalogVariant[]>([]);
   const [bodyColors, setBodyColors] = useState<CatalogBodyColor[]>([]);
   const [profileColors, setProfileColors] = useState<{ id: number; name: string }[]>([]);
-  const [sizes, setSizes] = useState<Size[]>([]);
   const [filling, setFilling] = useState<CatalogFilling | null>(null);
   const [series, setSeries] = useState<CatalogSeries | null>(null);
 
-  // Выбранные параметры
-  const [selectedSize, setSelectedSize] = useState<Size | null>(null);
+  // Выбранные параметры размеров (отдельно)
+  const [selectedHeight, setSelectedHeight] = useState<number | null>(null);
+  const [selectedWidth, setSelectedWidth] = useState<number | null>(null);
+  const [selectedDepth, setSelectedDepth] = useState<number | null>(null);
+
   const [selectedBodyColor, setSelectedBodyColor] = useState<CatalogBodyColor | null>(null);
   const [selectedProfileColor, setSelectedProfileColor] = useState<{ id: number; name: string } | null>(null);
   const [currentVariant, setCurrentVariant] = useState<CatalogVariant | null>(null);
@@ -92,6 +88,35 @@ export default function ProductPage() {
 
   // Модальное окно наполнения
   const [showFillingModal, setShowFillingModal] = useState(false);
+
+  // Получить уникальные значения для каждого параметра размера
+  const availableHeights = useMemo(() => {
+    const heights = [...new Set(variants.map(v => v.height))].sort((a, b) => a - b);
+    return heights;
+  }, [variants]);
+
+  const availableWidths = useMemo(() => {
+    // Фильтруем по выбранной высоте если она задана
+    let filtered = variants;
+    if (selectedHeight !== null) {
+      filtered = variants.filter(v => v.height === selectedHeight);
+    }
+    const widths = [...new Set(filtered.map(v => v.width))].sort((a, b) => a - b);
+    return widths;
+  }, [variants, selectedHeight]);
+
+  const availableDepths = useMemo(() => {
+    // Фильтруем по выбранной высоте и ширине
+    let filtered = variants;
+    if (selectedHeight !== null) {
+      filtered = filtered.filter(v => v.height === selectedHeight);
+    }
+    if (selectedWidth !== null) {
+      filtered = filtered.filter(v => v.width === selectedWidth);
+    }
+    const depths = [...new Set(filtered.map(v => v.depth))].sort((a, b) => a - b);
+    return depths;
+  }, [variants, selectedHeight, selectedWidth]);
 
   const fetchProduct = useCallback(async () => {
     setLoading(true);
@@ -104,13 +129,15 @@ export default function ProductPage() {
         setVariants(data.variants);
         setBodyColors(data.bodyColors);
         setProfileColors(data.profileColors);
-        setSizes(data.sizes);
         setFilling(data.filling);
         setSeries(data.series);
 
-        // Установить начальные значения
-        if (data.sizes.length > 0) {
-          setSelectedSize(data.sizes[0]);
+        // Установить начальные значения из первого варианта
+        if (data.variants.length > 0) {
+          const firstVariant = data.variants[0];
+          setSelectedHeight(firstVariant.height);
+          setSelectedWidth(firstVariant.width);
+          setSelectedDepth(firstVariant.depth);
         }
         if (data.bodyColors.length > 0) {
           setSelectedBodyColor(data.bodyColors[0]);
@@ -132,17 +159,47 @@ export default function ProductPage() {
     }
   }, [slug, fetchProduct]);
 
+  // При изменении высоты - проверяем доступность ширины и глубины
+  useEffect(() => {
+    if (selectedHeight === null || variants.length === 0) return;
+
+    // Проверяем, есть ли текущая ширина для новой высоты
+    const widthsForHeight = [...new Set(
+      variants.filter(v => v.height === selectedHeight).map(v => v.width)
+    )];
+
+    if (selectedWidth !== null && !widthsForHeight.includes(selectedWidth)) {
+      setSelectedWidth(widthsForHeight[0] || null);
+    }
+  }, [selectedHeight, variants, selectedWidth]);
+
+  // При изменении ширины - проверяем доступность глубины
+  useEffect(() => {
+    if (selectedHeight === null || selectedWidth === null || variants.length === 0) return;
+
+    const depthsForSize = [...new Set(
+      variants
+        .filter(v => v.height === selectedHeight && v.width === selectedWidth)
+        .map(v => v.depth)
+    )];
+
+    if (selectedDepth !== null && !depthsForSize.includes(selectedDepth)) {
+      setSelectedDepth(depthsForSize[0] || null);
+    }
+  }, [selectedHeight, selectedWidth, variants, selectedDepth]);
+
   // Найти подходящий вариант при изменении параметров
   useEffect(() => {
-    if (!selectedSize || !selectedBodyColor || !selectedProfileColor || variants.length === 0) {
+    if (selectedHeight === null || selectedWidth === null || selectedDepth === null ||
+        !selectedBodyColor || !selectedProfileColor || variants.length === 0) {
       return;
     }
 
     // Ищем вариант с точным совпадением
     let variant = variants.find(v =>
-      v.height === selectedSize.height &&
-      v.width === selectedSize.width &&
-      v.depth === selectedSize.depth &&
+      v.height === selectedHeight &&
+      v.width === selectedWidth &&
+      v.depth === selectedDepth &&
       v.body_color_id === selectedBodyColor.id &&
       v.profile_color_id === selectedProfileColor.id
     );
@@ -150,9 +207,9 @@ export default function ProductPage() {
     // Если не нашли точный, ищем с тем же размером и цветом корпуса
     if (!variant) {
       variant = variants.find(v =>
-        v.height === selectedSize.height &&
-        v.width === selectedSize.width &&
-        v.depth === selectedSize.depth &&
+        v.height === selectedHeight &&
+        v.width === selectedWidth &&
+        v.depth === selectedDepth &&
         v.body_color_id === selectedBodyColor.id
       );
     }
@@ -160,9 +217,9 @@ export default function ProductPage() {
     // Если не нашли, ищем с тем же размером
     if (!variant) {
       variant = variants.find(v =>
-        v.height === selectedSize.height &&
-        v.width === selectedSize.width &&
-        v.depth === selectedSize.depth
+        v.height === selectedHeight &&
+        v.width === selectedWidth &&
+        v.depth === selectedDepth
       );
     }
 
@@ -174,11 +231,11 @@ export default function ProductPage() {
     setCurrentVariant(variant);
     setMainImage(variant.image_white || PLACEHOLDER_IMAGE);
     setShowInterior(false);
-  }, [selectedSize, selectedBodyColor, selectedProfileColor, variants]);
+  }, [selectedHeight, selectedWidth, selectedDepth, selectedBodyColor, selectedProfileColor, variants]);
 
   // Загрузить наполнение при смене размера
   useEffect(() => {
-    if (!product || !selectedSize) return;
+    if (!product || selectedHeight === null || selectedWidth === null || selectedDepth === null) return;
 
     const loadFilling = async () => {
       try {
@@ -187,9 +244,9 @@ export default function ProductPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             productId: product.id,
-            height: selectedSize.height,
-            width: selectedSize.width,
-            depth: selectedSize.depth,
+            height: selectedHeight,
+            width: selectedWidth,
+            depth: selectedDepth,
             seriesId: product.series_id,
             doorCount: product.door_count
           })
@@ -204,18 +261,20 @@ export default function ProductPage() {
     };
 
     loadFilling();
-  }, [product, selectedSize, slug]);
+  }, [product, selectedHeight, selectedWidth, selectedDepth, slug]);
 
   // Получить доступные цвета профилей для текущего размера и цвета корпуса
   const getAvailableProfileColors = () => {
-    if (!selectedSize || !selectedBodyColor) return profileColors;
+    if (selectedHeight === null || selectedWidth === null || selectedDepth === null || !selectedBodyColor) {
+      return profileColors;
+    }
 
     const availableProfileIds = new Set(
       variants
         .filter(v =>
-          v.height === selectedSize.height &&
-          v.width === selectedSize.width &&
-          v.depth === selectedSize.depth &&
+          v.height === selectedHeight &&
+          v.width === selectedWidth &&
+          v.depth === selectedDepth &&
           v.body_color_id === selectedBodyColor.id &&
           v.profile_color_id
         )
@@ -227,24 +286,22 @@ export default function ProductPage() {
 
   // Получить доступные цвета корпуса для текущего размера
   const getAvailableBodyColors = () => {
-    if (!selectedSize) return bodyColors;
+    if (selectedHeight === null || selectedWidth === null || selectedDepth === null) {
+      return bodyColors;
+    }
 
     const availableBodyIds = new Set(
       variants
         .filter(v =>
-          v.height === selectedSize.height &&
-          v.width === selectedSize.width &&
-          v.depth === selectedSize.depth &&
+          v.height === selectedHeight &&
+          v.width === selectedWidth &&
+          v.depth === selectedDepth &&
           v.body_color_id
         )
         .map(v => v.body_color_id)
     );
 
     return bodyColors.filter(c => availableBodyIds.has(c.id));
-  };
-
-  const formatSize = (size: Size) => {
-    return `${size.width} × ${size.height} × ${size.depth}`;
   };
 
   if (loading) {
@@ -348,25 +405,79 @@ export default function ProductPage() {
               )}
             </div>
 
-            {/* Выбор размера */}
+            {/* Выбор размеров */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="font-bold text-gray-900 mb-4">Размеры (Ш × В × Г), мм</h3>
-              <div className="flex flex-wrap gap-2">
-                {sizes.map((size, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                      selectedSize?.height === size.height &&
-                      selectedSize?.width === size.width &&
-                      selectedSize?.depth === size.depth
-                        ? 'bg-[#62bb46] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {formatSize(size)}
-                  </button>
-                ))}
+              <h3 className="font-bold text-gray-900 mb-4">Размеры, мм</h3>
+              <div className="space-y-4">
+                {/* Высота */}
+                <div>
+                  <label className="text-sm text-gray-500 mb-2 block">Высота (В)</label>
+                  <div className="flex flex-wrap gap-2">
+                    {availableHeights.map((height) => (
+                      <button
+                        key={height}
+                        onClick={() => setSelectedHeight(height)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          selectedHeight === height
+                            ? 'bg-[#62bb46] text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {height}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Ширина */}
+                <div>
+                  <label className="text-sm text-gray-500 mb-2 block">Ширина (Ш)</label>
+                  <div className="flex flex-wrap gap-2">
+                    {availableWidths.map((width) => (
+                      <button
+                        key={width}
+                        onClick={() => setSelectedWidth(width)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          selectedWidth === width
+                            ? 'bg-[#62bb46] text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {width}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Глубина */}
+                <div>
+                  <label className="text-sm text-gray-500 mb-2 block">Глубина (Г)</label>
+                  <div className="flex flex-wrap gap-2">
+                    {availableDepths.map((depth) => (
+                      <button
+                        key={depth}
+                        onClick={() => setSelectedDepth(depth)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          selectedDepth === depth
+                            ? 'bg-[#62bb46] text-white'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        {depth}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Итоговый размер */}
+                {selectedHeight && selectedWidth && selectedDepth && (
+                  <div className="pt-2 border-t border-gray-100">
+                    <span className="text-sm text-gray-500">Выбрано: </span>
+                    <span className="font-medium text-gray-900">
+                      {selectedWidth} × {selectedHeight} × {selectedDepth} мм
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
