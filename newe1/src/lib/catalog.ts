@@ -260,9 +260,10 @@ export async function getProductBySlug(slug: string): Promise<{
     [product.series_id]
   );
 
-  // Получаем наполнение (для первого варианта)
+  // Получаем наполнение (для первого варианта) с допуском ±15мм
   let filling = null;
   let fillings: CatalogFilling[] = [];
+  const tolerance = 15;
   if (variantsResult.rows.length > 0) {
     const firstVariant = variantsResult.rows[0];
     const doorCount = product.door_count;
@@ -272,18 +273,19 @@ export async function getProductBySlug(slug: string): Promise<{
       const fillingResult = await pool.query(
         `SELECT * FROM catalog_fillings
          WHERE series_id = $1 AND door_count = $2
-           AND height = $3 AND width = $4 AND depth = $5
+           AND ABS(height - $3) <= $6 AND ABS(width - $4) <= $6 AND ABS(depth - $5) <= $6
+         ORDER BY ABS(height - $3) + ABS(width - $4) + ABS(depth - $5)
          LIMIT 1`,
-        [product.series_id, doorCount, firstVariant.height, firstVariant.width, firstVariant.depth]
+        [product.series_id, doorCount, firstVariant.height, firstVariant.width, firstVariant.depth, tolerance]
       );
       filling = fillingResult.rows[0] || null;
 
       const fillingsResult = await pool.query(
         `SELECT * FROM catalog_fillings
          WHERE series_id = $1 AND door_count = $2
-           AND height = $3 AND width = $4 AND depth = $5
+           AND ABS(height - $3) <= $6 AND ABS(width - $4) <= $6 AND ABS(depth - $5) <= $6
          ORDER BY short_name NULLS LAST`,
-        [product.series_id, doorCount, firstVariant.height, firstVariant.width, firstVariant.depth]
+        [product.series_id, doorCount, firstVariant.height, firstVariant.width, firstVariant.depth, tolerance]
       );
       fillings = fillingsResult.rows;
     } else {
@@ -291,18 +293,19 @@ export async function getProductBySlug(slug: string): Promise<{
       const fillingResult = await pool.query(
         `SELECT * FROM catalog_fillings
          WHERE series_id = $1
-           AND height = $2 AND width = $3 AND depth = $4
+           AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
+         ORDER BY ABS(height - $2) + ABS(width - $3) + ABS(depth - $4)
          LIMIT 1`,
-        [product.series_id, firstVariant.height, firstVariant.width, firstVariant.depth]
+        [product.series_id, firstVariant.height, firstVariant.width, firstVariant.depth, tolerance]
       );
       filling = fillingResult.rows[0] || null;
 
       const fillingsResult = await pool.query(
         `SELECT * FROM catalog_fillings
          WHERE series_id = $1
-           AND height = $2 AND width = $3 AND depth = $4
+           AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
          ORDER BY door_count, short_name NULLS LAST`,
-        [product.series_id, firstVariant.height, firstVariant.width, firstVariant.depth]
+        [product.series_id, firstVariant.height, firstVariant.width, firstVariant.depth, tolerance]
       );
       fillings = fillingsResult.rows;
     }
@@ -366,7 +369,10 @@ export async function getVariantByParams(
   return result.rows[0] || null;
 }
 
-// Получить наполнение по параметрам
+// Допуск при сравнении размеров (мм)
+const SIZE_TOLERANCE = 15;
+
+// Получить наполнение по параметрам (с допуском размеров ±15мм)
 export async function getFilling(
   seriesId: number,
   doorCount: number | null,
@@ -376,26 +382,28 @@ export async function getFilling(
 ): Promise<CatalogFilling | null> {
   const pool = getPool();
 
-  // Если есть door_count, фильтруем по нему, иначе берём любое подходящее
+  // Используем нечёткое сравнение с допуском
   const query = doorCount
     ? `SELECT * FROM catalog_fillings
        WHERE series_id = $1 AND door_count = $2
-         AND height = $3 AND width = $4 AND depth = $5
+         AND ABS(height - $3) <= $6 AND ABS(width - $4) <= $6 AND ABS(depth - $5) <= $6
+       ORDER BY ABS(height - $3) + ABS(width - $4) + ABS(depth - $5)
        LIMIT 1`
     : `SELECT * FROM catalog_fillings
        WHERE series_id = $1
-         AND height = $2 AND width = $3 AND depth = $4
+         AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
+       ORDER BY ABS(height - $2) + ABS(width - $3) + ABS(depth - $4)
        LIMIT 1`;
 
   const params = doorCount
-    ? [seriesId, doorCount, height, width, depth]
-    : [seriesId, height, width, depth];
+    ? [seriesId, doorCount, height, width, depth, SIZE_TOLERANCE]
+    : [seriesId, height, width, depth, SIZE_TOLERANCE];
 
   const result = await pool.query(query, params);
   return result.rows[0] || null;
 }
 
-// Получить все варианты наполнения для серии и размеров
+// Получить все варианты наполнения для серии и размеров (с допуском ±15мм)
 export async function getFillings(
   seriesId: number,
   doorCount: number | null,
@@ -405,20 +413,20 @@ export async function getFillings(
 ): Promise<CatalogFilling[]> {
   const pool = getPool();
 
-  // Если есть door_count, фильтруем по нему, иначе показываем все для размера
+  // Используем нечёткое сравнение с допуском
   const query = doorCount
     ? `SELECT * FROM catalog_fillings
        WHERE series_id = $1 AND door_count = $2
-         AND height = $3 AND width = $4 AND depth = $5
+         AND ABS(height - $3) <= $6 AND ABS(width - $4) <= $6 AND ABS(depth - $5) <= $6
        ORDER BY short_name NULLS LAST`
     : `SELECT * FROM catalog_fillings
        WHERE series_id = $1
-         AND height = $2 AND width = $3 AND depth = $4
+         AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
        ORDER BY door_count, short_name NULLS LAST`;
 
   const params = doorCount
-    ? [seriesId, doorCount, height, width, depth]
-    : [seriesId, height, width, depth];
+    ? [seriesId, doorCount, height, width, depth, SIZE_TOLERANCE]
+    : [seriesId, height, width, depth, SIZE_TOLERANCE];
 
   const result = await pool.query(query, params);
   return result.rows;
