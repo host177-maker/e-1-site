@@ -4,6 +4,17 @@ const nextConfig: NextConfig = {
   // Use standalone output for better compatibility
   output: 'standalone',
 
+  // Allow external images from Yandex Cloud Storage
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'storage.yandexcloud.net',
+        pathname: '/**',
+      },
+    ],
+  },
+
   // Disable automatic static optimization for error pages
   // This prevents useContext errors during prerendering
   experimental: {

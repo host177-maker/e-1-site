@@ -31,12 +31,20 @@ interface ImportResult {
   errors: string[];
 }
 
+interface ImportProgress {
+  current: number;
+  total: number;
+  stage: string;
+  item?: string;
+}
+
 export default function CatalogPage() {
   const [stats, setStats] = useState<CatalogStats>({ series: 0, products: 0, variants: 0 });
   const [imports, setImports] = useState<ImportHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
   const [needsMigration, setNeedsMigration] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [googleSheetUrl, setGoogleSheetUrl] = useState('https://docs.google.com/spreadsheets/d/1rzihgEmV69qLreTWNkYIXWEuL8J_I0t-cTngqrulnXY/edit');
@@ -77,21 +85,83 @@ export default function CatalogPage() {
   const handleImportFromFile = async (file: File) => {
     setImporting(true);
     setImportResult(null);
+    setImportProgress(null);
 
     try {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch('/api/e1admin/catalog/import', {
+      const response = await fetch('/api/e1admin/catalog/import-stream', {
         method: 'POST',
         body: formData,
       });
 
-      const result = await response.json();
-      setImportResult(result);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Ошибка импорта');
+      }
 
-      if (result.success || result.stats) {
-        fetchStatus();
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error('Не удалось получить поток данных');
+      }
+
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('event: ')) {
+            const eventType = line.slice(7);
+            const dataLineIndex = lines.indexOf(line) + 1;
+            if (dataLineIndex < lines.length && lines[dataLineIndex].startsWith('data: ')) {
+              const dataStr = lines[dataLineIndex].slice(6);
+              try {
+                const data = JSON.parse(dataStr);
+
+                if (eventType === 'progress') {
+                  setImportProgress(data);
+                } else if (eventType === 'complete') {
+                  setImportResult(data);
+                  setImportProgress(null);
+                  fetchStatus();
+                } else if (eventType === 'error') {
+                  setImportResult({
+                    success: false,
+                    message: data.message,
+                    stats: { series: 0, bodyColors: 0, fillings: 0, products: 0, variants: 0 },
+                    errors: [data.message]
+                  });
+                  setImportProgress(null);
+                }
+              } catch (e) {
+                console.error('Parse error:', e);
+              }
+            }
+          } else if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6);
+            try {
+              const data = JSON.parse(dataStr);
+              if (data.current !== undefined && data.total !== undefined) {
+                setImportProgress(data);
+              } else if (data.success !== undefined) {
+                setImportResult(data);
+                setImportProgress(null);
+                fetchStatus();
+              }
+            } catch (e) {
+              // Skip non-JSON lines
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('Import error:', error);
@@ -101,6 +171,7 @@ export default function CatalogPage() {
         stats: { series: 0, bodyColors: 0, fillings: 0, products: 0, variants: 0 },
         errors: [error instanceof Error ? error.message : 'Неизвестная ошибка']
       });
+      setImportProgress(null);
     } finally {
       setImporting(false);
     }
@@ -248,6 +319,34 @@ export default function CatalogPage() {
                 </div>
               </div>
             </div>
+
+            {/* Прогресс импорта */}
+            {importing && importProgress && (
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-medium text-blue-900">
+                        {importProgress.stage}: {importProgress.item || '...'}
+                      </span>
+                      <span className="text-sm text-blue-700">
+                        {importProgress.current} / {importProgress.total}
+                      </span>
+                    </div>
+                    <div className="w-full bg-blue-200 rounded-full h-3">
+                      <div
+                        className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                        style={{ width: `${Math.round((importProgress.current / importProgress.total) * 100)}%` }}
+                      />
+                    </div>
+                    <p className="text-sm text-blue-600 mt-1">
+                      {Math.round((importProgress.current / importProgress.total) * 100)}% завершено
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Импорт */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
