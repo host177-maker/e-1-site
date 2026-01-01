@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <rect width="400" height="300" fill="#f3f4f6"/>
+  <g opacity="0.5">
+    <rect x="100" y="50" width="200" height="200" rx="8" stroke="#9ca3af" stroke-width="2" fill="none"/>
+    <rect x="120" y="70" width="60" height="160" rx="4" stroke="#9ca3af" stroke-width="1.5" fill="none"/>
+    <rect x="190" y="70" width="90" height="160" rx="4" stroke="#9ca3af" stroke-width="1.5" fill="none"/>
+    <line x1="190" y1="100" x2="280" y2="100" stroke="#9ca3af" stroke-width="1"/>
+    <line x1="190" y1="130" x2="280" y2="130" stroke="#9ca3af" stroke-width="1"/>
+    <line x1="190" y1="160" x2="280" y2="160" stroke="#9ca3af" stroke-width="1"/>
+    <line x1="190" y1="190" x2="280" y2="190" stroke="#9ca3af" stroke-width="1"/>
+    <circle cx="150" cy="120" r="20" stroke="#9ca3af" stroke-width="1.5" fill="none"/>
+    <line x1="143" y1="120" x2="157" y2="120" stroke="#9ca3af" stroke-width="1.5"/>
+    <line x1="150" y1="113" x2="150" y2="127" stroke="#9ca3af" stroke-width="1.5"/>
+  </g>
+  <text x="200" y="280" text-anchor="middle" fill="#9ca3af" font-family="system-ui" font-size="12">Нет изображения</text>
+</svg>
