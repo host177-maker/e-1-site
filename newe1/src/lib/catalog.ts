@@ -261,54 +261,31 @@ export async function getProductBySlug(slug: string): Promise<{
   );
 
   // Получаем наполнение (для первого варианта) с допуском ±15мм
+  // Ищем только по серии и размерам, без door_count
   let filling = null;
   let fillings: CatalogFilling[] = [];
   const tolerance = 15;
   if (variantsResult.rows.length > 0) {
     const firstVariant = variantsResult.rows[0];
-    const doorCount = product.door_count;
 
-    // Если есть door_count, фильтруем по нему
-    if (doorCount) {
-      const fillingResult = await pool.query(
-        `SELECT * FROM catalog_fillings
-         WHERE series_id = $1 AND door_count = $2
-           AND ABS(height - $3) <= $6 AND ABS(width - $4) <= $6 AND ABS(depth - $5) <= $6
-         ORDER BY ABS(height - $3) + ABS(width - $4) + ABS(depth - $5)
-         LIMIT 1`,
-        [product.series_id, doorCount, firstVariant.height, firstVariant.width, firstVariant.depth, tolerance]
-      );
-      filling = fillingResult.rows[0] || null;
+    const fillingResult = await pool.query(
+      `SELECT * FROM catalog_fillings
+       WHERE series_id = $1
+         AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
+       ORDER BY ABS(height - $2) + ABS(width - $3) + ABS(depth - $4)
+       LIMIT 1`,
+      [product.series_id, firstVariant.height, firstVariant.width, firstVariant.depth, tolerance]
+    );
+    filling = fillingResult.rows[0] || null;
 
-      const fillingsResult = await pool.query(
-        `SELECT * FROM catalog_fillings
-         WHERE series_id = $1 AND door_count = $2
-           AND ABS(height - $3) <= $6 AND ABS(width - $4) <= $6 AND ABS(depth - $5) <= $6
-         ORDER BY short_name NULLS LAST`,
-        [product.series_id, doorCount, firstVariant.height, firstVariant.width, firstVariant.depth, tolerance]
-      );
-      fillings = fillingsResult.rows;
-    } else {
-      // Без door_count - ищем по серии и размерам
-      const fillingResult = await pool.query(
-        `SELECT * FROM catalog_fillings
-         WHERE series_id = $1
-           AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
-         ORDER BY ABS(height - $2) + ABS(width - $3) + ABS(depth - $4)
-         LIMIT 1`,
-        [product.series_id, firstVariant.height, firstVariant.width, firstVariant.depth, tolerance]
-      );
-      filling = fillingResult.rows[0] || null;
-
-      const fillingsResult = await pool.query(
-        `SELECT * FROM catalog_fillings
-         WHERE series_id = $1
-           AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
-         ORDER BY door_count, short_name NULLS LAST`,
-        [product.series_id, firstVariant.height, firstVariant.width, firstVariant.depth, tolerance]
-      );
-      fillings = fillingsResult.rows;
-    }
+    const fillingsResult = await pool.query(
+      `SELECT * FROM catalog_fillings
+       WHERE series_id = $1
+         AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
+       ORDER BY door_count, short_name NULLS LAST`,
+      [product.series_id, firstVariant.height, firstVariant.width, firstVariant.depth, tolerance]
+    );
+    fillings = fillingsResult.rows;
   }
 
   return {
@@ -373,6 +350,7 @@ export async function getVariantByParams(
 const SIZE_TOLERANCE = 15;
 
 // Получить наполнение по параметрам (с допуском размеров ±15мм)
+// Поиск только по серии и размерам, без door_count
 export async function getFilling(
   seriesId: number,
   doorCount: number | null,
@@ -382,28 +360,21 @@ export async function getFilling(
 ): Promise<CatalogFilling | null> {
   const pool = getPool();
 
-  // Используем нечёткое сравнение с допуском
-  const query = doorCount
-    ? `SELECT * FROM catalog_fillings
-       WHERE series_id = $1 AND door_count = $2
-         AND ABS(height - $3) <= $6 AND ABS(width - $4) <= $6 AND ABS(depth - $5) <= $6
-       ORDER BY ABS(height - $3) + ABS(width - $4) + ABS(depth - $5)
-       LIMIT 1`
-    : `SELECT * FROM catalog_fillings
-       WHERE series_id = $1
-         AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
-       ORDER BY ABS(height - $2) + ABS(width - $3) + ABS(depth - $4)
-       LIMIT 1`;
+  // Ищем по серии и размерам с допуском (door_count игнорируем)
+  const query = `SELECT * FROM catalog_fillings
+     WHERE series_id = $1
+       AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
+     ORDER BY ABS(height - $2) + ABS(width - $3) + ABS(depth - $4)
+     LIMIT 1`;
 
-  const params = doorCount
-    ? [seriesId, doorCount, height, width, depth, SIZE_TOLERANCE]
-    : [seriesId, height, width, depth, SIZE_TOLERANCE];
+  const params = [seriesId, height, width, depth, SIZE_TOLERANCE];
 
   const result = await pool.query(query, params);
   return result.rows[0] || null;
 }
 
 // Получить все варианты наполнения для серии и размеров (с допуском ±15мм)
+// Поиск только по серии и размерам, без door_count
 export async function getFillings(
   seriesId: number,
   doorCount: number | null,
@@ -413,20 +384,13 @@ export async function getFillings(
 ): Promise<CatalogFilling[]> {
   const pool = getPool();
 
-  // Используем нечёткое сравнение с допуском
-  const query = doorCount
-    ? `SELECT * FROM catalog_fillings
-       WHERE series_id = $1 AND door_count = $2
-         AND ABS(height - $3) <= $6 AND ABS(width - $4) <= $6 AND ABS(depth - $5) <= $6
-       ORDER BY short_name NULLS LAST`
-    : `SELECT * FROM catalog_fillings
-       WHERE series_id = $1
-         AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
-       ORDER BY door_count, short_name NULLS LAST`;
+  // Ищем по серии и размерам с допуском (door_count игнорируем)
+  const query = `SELECT * FROM catalog_fillings
+     WHERE series_id = $1
+       AND ABS(height - $2) <= $5 AND ABS(width - $3) <= $5 AND ABS(depth - $4) <= $5
+     ORDER BY door_count, short_name NULLS LAST`;
 
-  const params = doorCount
-    ? [seriesId, doorCount, height, width, depth, SIZE_TOLERANCE]
-    : [seriesId, height, width, depth, SIZE_TOLERANCE];
+  const params = [seriesId, height, width, depth, SIZE_TOLERANCE];
 
   const result = await pool.query(query, params);
   return result.rows;
