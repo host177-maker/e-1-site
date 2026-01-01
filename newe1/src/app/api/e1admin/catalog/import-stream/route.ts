@@ -482,6 +482,8 @@ async function importCatalogOptimized(
       const values: string[] = [];
       const params: (string | number | null)[] = [];
       let paramIndex = 1;
+      // Дедупликация артикулов в пределах batch (PostgreSQL не может обновить одну строку дважды)
+      const seenArticles = new Set<string>();
 
       for (const p of batch) {
         const productId = productMap[p.card_name];
@@ -489,6 +491,13 @@ async function importCatalogOptimized(
           console.log(`Skipping variant "${p.article}" - product "${p.card_name}" not found in productMap`);
           continue;
         }
+
+        // Пропускаем дубликаты артикулов в пределах batch
+        if (seenArticles.has(p.article)) {
+          console.log(`Skipping duplicate article "${p.article}" in batch`);
+          continue;
+        }
+        seenArticles.add(p.article);
 
         const bodyColorId = bodyColorMap[`${p.series}:${p.body_color}`] || null;
         const profileColorId = profileColorMap[p.profile_color] || null;
