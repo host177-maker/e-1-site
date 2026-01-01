@@ -395,12 +395,20 @@ export default function ProductPage() {
           })
         });
         const data = await response.json();
-        console.log('loadFilling ответ:', { fillingsCount: data.fillings?.length, filling: data.filling });
+        console.log('loadFilling ответ:', { fillingsCount: data.fillings?.length, filling: data.filling, success: data.success, details: data.details });
+
+        // Если запрос не успешен - не очищаем текущие наполнения
+        if (!data.success) {
+          console.error('loadFilling ошибка сервера:', data.error, data.details);
+          return; // Сохраняем текущее состояние
+        }
+
         // Устанавливаем варианты наполнения для выбранного размера
         if (data.fillings && data.fillings.length > 0) {
           setFillings(data.fillings);
           setFilling(data.fillings[0]); // Первый вариант по умолчанию
         } else {
+          // Если нет наполнений - очищаем только если запрос успешен
           setFillings([]);
           setFilling(null);
         }
