@@ -1,136 +1,129 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 const categories = [
   {
     id: 1,
-    title: 'Шкафы-купе',
-    description: '34 варианта размеров, 15 видов наполнения',
-    href: '/catalog/shkafy_kupe',
-    icon: (
-      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v14a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z" />
-      </svg>
-    ),
-    count: 156,
+    title: 'Шкафы',
+    subtitle: 'В наличии и под заказ • подбор по размерам',
+    badge: 'ХИТ',
+    badgeStyle: 'bg-black text-white',
+    image: '/uploads/frame_shkafi.jpg',
+    buttonText: 'Смотреть витрину',
+    buttonHref: '/catalog/',
+    buttonStyle: 'primary',
+    secondaryLink: { text: 'Быстрый подбор', href: '/catalog/', icon: 'search' },
   },
   {
     id: 2,
     title: 'Гардеробные',
-    description: 'Функциональные системы хранения',
-    href: '/dressing_room',
-    icon: (
-      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-      </svg>
-    ),
-    count: 84,
+    subtitle: 'Проекты хранения • наполнение • стиль',
+    badge: 'НОВОЕ',
+    badgeStyle: 'bg-[#62bb46] text-white',
+    image: '/uploads/frame_gard.jpg',
+    buttonText: 'Популярные решения',
+    buttonHref: '/catalog/garderobnye',
+    buttonStyle: 'primary',
   },
   {
     id: 3,
-    title: 'Встроенные шкафы',
-    description: 'Идеальные решения для ниш и углов',
-    href: '/built-in_wardrobe',
-    icon: (
-      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-    ),
-    count: 67,
+    title: 'На заказ под нишу',
+    subtitle: 'Встроенный • нестандарт • замер и проект',
+    badge: 'ИНДИВИДУАЛЬНО',
+    badgeStyle: 'bg-transparent border border-white text-white',
+    image: '/uploads/frame_zakaz.jpg',
+    buttonText: 'Вызвать замерщика',
+    buttonHref: '/custom',
+    buttonStyle: 'outline',
+    secondaryLink: { text: 'Быстрый расчет', href: '/custom', icon: 'calculator' },
   },
   {
     id: 4,
-    title: 'Шкафы на заказ',
-    description: 'Индивидуальные решения под ваши размеры',
-    href: '/custom_cabinets',
-    icon: (
-      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-    count: 45,
-  },
-  {
-    id: 5,
-    title: 'Покупателю',
-    description: 'Доставка, гарантии, рассрочка',
-    href: '/client',
-    icon: (
-      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-      </svg>
-    ),
-    count: 32,
-  },
-  {
-    id: 6,
-    title: 'Акции',
-    description: 'Скидки до 65% на популярные серии',
-    href: '/sale',
-    icon: (
-      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-      </svg>
-    ),
-    count: 12,
+    title: 'Распродажа',
+    subtitle: 'Самые выгодные позиции тут',
+    badge: 'ВЫГОДНО',
+    badgeStyle: 'bg-[#f5b800] text-black',
+    image: '/uploads/frame_sale.jpg',
+    buttonText: 'Смотреть скидки',
+    buttonHref: '/sales',
+    buttonStyle: 'primary',
   },
 ];
 
 export default function CatalogSection() {
   return (
-    <section className="py-16 md:py-20">
+    <section className="py-8 md:py-12">
       <div className="container-custom">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Каталог продукции</h2>
-          <p className="text-text-medium max-w-2xl mx-auto">
-            Выберите категорию или воспользуйтесь поиском для подбора идеального решения
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {categories.map((category) => (
-            <Link
+            <div
               key={category.id}
-              href={category.href}
-              className="group p-6 bg-white border border-border rounded-xl hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+              className="relative rounded-xl overflow-hidden aspect-[4/5] sm:aspect-[3/4] group"
             >
-              <div className="flex items-start gap-4">
-                <div className="text-primary group-hover:scale-110 transition-transform">
-                  {category.icon}
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold mb-1 group-hover:text-primary transition-colors">
-                    {category.title}
-                  </h3>
-                  <p className="text-text-medium text-sm mb-2">
-                    {category.description}
-                  </p>
-                  <span className="text-text-muted text-sm">
-                    {category.count} товаров
+              {/* Background image */}
+              <Image
+                src={category.image}
+                alt={category.title}
+                fill
+                className="object-cover"
+              />
+
+              {/* Dark overlay for readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20" />
+
+              {/* Content */}
+              <div className="absolute inset-0 p-4 flex flex-col">
+                {/* Badge */}
+                <div className="mb-auto">
+                  <span className={`inline-block px-3 py-1 text-xs font-bold rounded ${category.badgeStyle}`}>
+                    {category.badge}
                   </span>
                 </div>
-                <svg
-                  className="w-5 h-5 text-text-muted group-hover:text-primary group-hover:translate-x-1 transition-all"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </Link>
-          ))}
-        </div>
 
-        <div className="text-center mt-10">
-          <Link
-            href="/catalog"
-            className="inline-flex items-center gap-2 text-primary hover:text-primary-hover font-medium"
-          >
-            Смотреть весь каталог
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </Link>
+                {/* Text content */}
+                <div className="mt-auto">
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-1">
+                    {category.title}
+                  </h3>
+                  <p className="text-white/80 text-xs sm:text-sm mb-4">
+                    {category.subtitle}
+                  </p>
+
+                  {/* Main button */}
+                  <Link
+                    href={category.buttonHref}
+                    className={`block text-center py-2.5 px-4 rounded font-bold text-sm transition-all ${
+                      category.buttonStyle === 'primary'
+                        ? 'bg-[#62bb46] text-white hover:bg-[#55a83d]'
+                        : 'bg-transparent border-2 border-white text-white hover:bg-white hover:text-gray-900'
+                    }`}
+                  >
+                    {category.buttonText}
+                  </Link>
+
+                  {/* Secondary link */}
+                  {category.secondaryLink && (
+                    <Link
+                      href={category.secondaryLink.href}
+                      className="flex items-center justify-center gap-1.5 mt-3 text-white/70 hover:text-white text-xs transition-colors"
+                    >
+                      {category.secondaryLink.icon === 'search' && (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      )}
+                      {category.secondaryLink.icon === 'calculator' && (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                      )}
+                      {category.secondaryLink.text}
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
