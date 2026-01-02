@@ -131,11 +131,11 @@ export default function Header() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsMessengerModalOpen(true)}
-                className="w-7 h-7 rounded overflow-hidden"
+                className="w-7 h-7 rounded-full overflow-hidden cursor-pointer"
                 title="Написать нам"
               >
                 <video
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover scale-125"
                   autoPlay
                   loop
                   muted
@@ -155,8 +155,8 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Full header - always rendered, compact mode overlays on top */}
-      <div>
+      {/* Full header - hides when compact mode is active */}
+      <div className={`transition-opacity duration-200 ${isCompactMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         {/* Top bar - graphite color */}
         <div className="bg-[#3d4543] text-white">
           <div className="container-custom">

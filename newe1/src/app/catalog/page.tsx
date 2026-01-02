@@ -49,12 +49,25 @@ function CatalogPageContent() {
   const [selectedSeries, setSelectedSeries] = useState<string>(initialUrlParams.current?.series || '');
   const [total, setTotal] = useState(0);
 
-  // Responsive limit: 20 for desktop, 12 for mobile
+  // Responsive limit based on grid columns to have full rows
+  // xl: 5 cols -> 20 items (4 rows)
+  // lg: 4 cols -> 20 items (5 rows)
+  // sm: 3 cols -> 18 items (6 rows)
+  // mobile: 2 cols -> 20 items (10 rows)
   const [limit, setLimit] = useState(20);
 
   useEffect(() => {
     const updateLimit = () => {
-      setLimit(window.innerWidth >= 1024 ? 20 : 12);
+      const width = window.innerWidth;
+      if (width >= 1280) {
+        setLimit(20); // xl: 5 cols, 4 rows
+      } else if (width >= 1024) {
+        setLimit(20); // lg: 4 cols, 5 rows
+      } else if (width >= 640) {
+        setLimit(18); // sm: 3 cols, 6 rows
+      } else {
+        setLimit(20); // mobile: 2 cols, 10 rows
+      }
     };
     updateLimit();
     window.addEventListener('resize', updateLimit);
@@ -210,7 +223,7 @@ function CatalogPageContent() {
                       }}
                     />
                   </div>
-                  <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2">
+                  <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2 h-8 font-[var(--font-open-sans)]">
                     {product.name}
                   </h3>
                 </Link>

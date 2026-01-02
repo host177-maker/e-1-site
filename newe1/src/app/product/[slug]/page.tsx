@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useCity } from '@/context/CityContext';
 
 interface CatalogProduct {
   id: number;
@@ -69,6 +70,7 @@ export default function ProductPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { city } = useCity();
   const slug = (params?.slug as string) || '';
   const isInitialLoad = useRef(true);
   const urlParamsApplied = useRef(false);
@@ -556,7 +558,7 @@ export default function ProductPage() {
       <div className="max-w-[1348px] mx-auto px-4 py-8">
         {/* Заголовок - мобильная версия (над изображением) */}
         <div className="lg:hidden mb-4">
-          <h1 className="text-xl font-bold text-gray-900 line-clamp-2">
+          <h1 className="text-xl font-bold text-gray-900 line-clamp-2 font-[var(--font-open-sans)]">
             {product.name}
           </h1>
         </div>
@@ -621,7 +623,7 @@ export default function ProductPage() {
           <div className="space-y-4">
             {/* Заголовок - только десктоп (скрыт на мобильных) */}
             <div className="hidden lg:block">
-              <h1 className="text-2xl font-bold text-gray-900 min-h-[3rem] line-clamp-2">
+              <h1 className="text-2xl font-bold text-gray-900 min-h-[3rem] line-clamp-2 font-[var(--font-open-sans)]">
                 {product.name}
               </h1>
             </div>
@@ -657,7 +659,7 @@ export default function ProductPage() {
 
                 {/* Доставка - компактно рядом с ценой */}
                 <div className="text-sm text-[#62bb46] font-medium mb-4">
-                  Доставим в Москву за 3 дня
+                  Доставим в {city.name} за 3 дня
                 </div>
 
                 {/* В наличии - упрощённый вид */}
@@ -665,7 +667,7 @@ export default function ProductPage() {
                   <svg className="w-4 h-4 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>В наличии: 12 шт.</span>
+                  <span>В наличии: 12 шт. (на Региональный склад Москва)</span>
                 </div>
 
                 {/* Сборка */}
@@ -839,7 +841,17 @@ export default function ProductPage() {
                       <p className="text-gray-600 text-xs mb-2">{filling.short_name}</p>
                     ) : null}
                     {filling.image_plain && (
-                      <div className="relative h-32 rounded-lg overflow-hidden">
+                      <div
+                        className="relative h-32 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => {
+                          if (fillings.length > 1) {
+                            setTempFilling(filling);
+                            setShowFillingSelectModal(true);
+                          } else {
+                            setShowFillingModal(true);
+                          }
+                        }}
+                      >
                         <Image
                           src={filling.image_plain}
                           alt="Наполнение"
