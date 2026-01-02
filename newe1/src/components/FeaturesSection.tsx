@@ -88,10 +88,10 @@ export default function FeaturesSection() {
 
                   {/* Text content */}
                   <div className="mt-auto">
-                    <h3 className="text-base sm:text-xl font-bold text-white mb-0.5 sm:mb-1">
+                    <h3 className="text-base sm:text-xl font-bold mb-0.5 sm:mb-1" style={{ color: '#ffffff' }}>
                       {category.title}
                     </h3>
-                    <p className="text-white text-[10px] sm:text-xs mb-2 sm:mb-3 line-clamp-2">
+                    <p className="text-[10px] sm:text-xs mb-2 sm:mb-3 line-clamp-2" style={{ color: '#ffffff' }}>
                       {category.subtitle}
                     </p>
 
@@ -124,7 +124,8 @@ export default function FeaturesSection() {
                     {category.secondaryLink && (
                       <Link
                         href={category.secondaryLink.href}
-                        className="flex items-center justify-center gap-1 mt-2 text-white hover:text-white/80 text-[10px] sm:text-xs transition-colors"
+                        className="flex items-center justify-center gap-1 mt-2 text-[10px] sm:text-xs transition-colors hover:opacity-80"
+                        style={{ color: '#ffffff' }}
                       >
                         {category.secondaryLink.icon === 'search' && (
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
