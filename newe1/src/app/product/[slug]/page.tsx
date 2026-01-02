@@ -435,10 +435,11 @@ export default function ProductPage() {
         if (data.fillings && data.fillings.length > 0) {
           setFillings(data.fillings);
           // Проверяем, доступно ли текущее наполнение для новых параметров
+          // Сравниваем по short_name, т.к. id разные для разных размеров
           setFilling((currentFilling) => {
-            if (currentFilling) {
+            if (currentFilling && currentFilling.short_name) {
               const sameFillingAvailable = data.fillings.find(
-                (f: CatalogFilling) => f.id === currentFilling.id
+                (f: CatalogFilling) => f.short_name === currentFilling.short_name
               );
               if (sameFillingAvailable) {
                 return sameFillingAvailable; // Сохраняем текущее наполнение
