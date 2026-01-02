@@ -62,7 +62,7 @@ export default function FeaturesSection() {
       <MeasurementModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <section className="py-4 bg-[#f5f5f5]">
         <div className="container-custom">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {categories.map((category) => (
               <div
                 key={category.id}

@@ -7,6 +7,29 @@ import Image from 'next/image';
 
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
+// Phone mask formatter
+const formatPhone = (value: string): string => {
+  const digits = value.replace(/\D/g, '');
+
+  if (digits.length === 0) return '';
+
+  let formatted = '+7';
+  if (digits.length > 1) {
+    formatted += ' (' + digits.substring(1, 4);
+  }
+  if (digits.length >= 4) {
+    formatted += ') ' + digits.substring(4, 7);
+  }
+  if (digits.length >= 7) {
+    formatted += '-' + digits.substring(7, 9);
+  }
+  if (digits.length >= 9) {
+    formatted += '-' + digits.substring(9, 11);
+  }
+
+  return formatted;
+};
+
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, toggleAssembly, clearCart, totalPrice, totalWithAssembly } = useCart();
 
@@ -25,6 +48,14 @@ export default function CartPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
+
+    if (name === 'phone') {
+      // Apply phone mask
+      const formatted = formatPhone(value);
+      setFormData(prev => ({ ...prev, phone: formatted }));
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,

@@ -2,6 +2,29 @@
 
 import { useState } from 'react';
 
+// Phone mask formatter
+const formatPhone = (value: string): string => {
+  const digits = value.replace(/\D/g, '');
+
+  if (digits.length === 0) return '';
+
+  let formatted = '+7';
+  if (digits.length > 1) {
+    formatted += ' (' + digits.substring(1, 4);
+  }
+  if (digits.length >= 4) {
+    formatted += ') ' + digits.substring(4, 7);
+  }
+  if (digits.length >= 7) {
+    formatted += '-' + digits.substring(7, 9);
+  }
+  if (digits.length >= 9) {
+    formatted += '-' + digits.substring(9, 11);
+  }
+
+  return formatted;
+};
+
 interface QuickOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -172,9 +195,9 @@ export default function QuickOrderModal({
                 <input
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#62bb46] transition-colors"
-                  placeholder="+7 (___) ___-__-__"
+                  placeholder="+7 (999) 123-45-67"
                 />
               </div>
 

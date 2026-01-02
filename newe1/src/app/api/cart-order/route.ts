@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { getEmailByKey, EMAIL_KEYS } from '@/lib/email-settings';
+import { getEmailByKey, EMAIL_KEYS } from '@/lib/emailSettings';
 
 interface CartItem {
   name: string;
