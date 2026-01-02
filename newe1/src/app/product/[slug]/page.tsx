@@ -123,18 +123,52 @@ export default function ProductPage() {
   const [mainImage, setMainImage] = useState<string>(PLACEHOLDER_IMAGE);
   const [showInterior, setShowInterior] = useState(false);
 
-  // Toast notification for mobile
+  // Toast notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const showToast = (message: string) => {
+  // Cart button state
+  const [isAddedToCart, setIsAddedToCart] = useState(false);
+  const cartButtonTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const showToast = (message: string, duration = 3000) => {
     if (toastTimeout.current) {
       clearTimeout(toastTimeout.current);
     }
     setToastMessage(message);
     toastTimeout.current = setTimeout(() => {
       setToastMessage(null);
-    }, 2000);
+    }, duration);
+  };
+
+  const handleAddToCart = () => {
+    addToCart({
+      productId: product.id,
+      name: product.name,
+      slug: product.slug,
+      image: mainImage,
+      price: basePrice,
+      oldPrice: oldPrice,
+      width: selectedWidth || undefined,
+      height: selectedHeight || undefined,
+      depth: selectedDepth || undefined,
+      bodyColor: selectedBodyColor?.name,
+      profileColor: selectedProfileColor?.name,
+      filling: filling?.short_name,
+      assemblyPrice: assemblyPrice,
+    });
+
+    // Change button text for 3 seconds
+    if (cartButtonTimeout.current) {
+      clearTimeout(cartButtonTimeout.current);
+    }
+    setIsAddedToCart(true);
+    cartButtonTimeout.current = setTimeout(() => {
+      setIsAddedToCart(false);
+    }, 3000);
+
+    // Show toast
+    showToast('Товар добавлен в корзину', 3000);
   };
 
   // Модальные окна
@@ -962,27 +996,23 @@ export default function ProductPage() {
             {!hasNoVariants && (
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
-                  onClick={() => {
-                    addToCart({
-                      productId: product.id,
-                      name: product.name,
-                      slug: product.slug,
-                      image: mainImage,
-                      price: basePrice,
-                      oldPrice: oldPrice,
-                      width: selectedWidth || undefined,
-                      height: selectedHeight || undefined,
-                      depth: selectedDepth || undefined,
-                      bodyColor: selectedBodyColor?.name,
-                      profileColor: selectedProfileColor?.name,
-                      filling: filling?.short_name,
-                      assemblyPrice: assemblyPrice,
-                    });
-                    showToast('Товар добавлен в корзину');
-                  }}
-                  className="flex-1 py-3 bg-[#62bb46] hover:bg-[#4a9935] text-white font-bold rounded-xl transition-colors"
+                  onClick={handleAddToCart}
+                  className={`flex-1 py-3 font-bold rounded-xl transition-colors ${
+                    isAddedToCart
+                      ? 'bg-[#4a9935] text-white'
+                      : 'bg-[#62bb46] hover:bg-[#4a9935] text-white'
+                  }`}
                 >
-                  Добавить в корзину
+                  {isAddedToCart ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Добавлено в корзину 1 шт
+                    </span>
+                  ) : (
+                    'Добавить в корзину'
+                  )}
                 </button>
                 <button
                   onClick={() => setShowQuickOrderModal(true)}
@@ -1383,10 +1413,13 @@ export default function ProductPage() {
         </div>
       )}
 
-      {/* Toast notification for mobile */}
+      {/* Toast notification */}
       {toastMessage && (
-        <div className="lg:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
-          <div className="bg-gray-900/90 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium">
+        <div className="fixed bottom-20 lg:bottom-8 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+          <div className="bg-gray-900/90 text-white px-6 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2">
+            <svg className="w-5 h-5 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
             {toastMessage}
           </div>
         </div>
