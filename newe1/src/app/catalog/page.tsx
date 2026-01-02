@@ -187,21 +187,13 @@ function CatalogPageContent() {
                     }}
                   />
                 </div>
-                <div className="flex gap-1 mb-1">
-                  {/* Цветовые варианты - заглушка */}
-                  <div className="w-4 h-4 rounded-sm bg-[#f5f5dc] border border-gray-200" />
-                  <div className="w-4 h-4 rounded-sm bg-[#d4a574] border border-gray-200" />
-                  <div className="w-4 h-4 rounded-sm bg-[#8b7355] border border-gray-200" />
-                  <div className="w-4 h-4 rounded-sm bg-[#4a4a4a] border border-gray-200" />
-                  <div className="w-4 h-4 rounded-sm bg-white border border-gray-200" />
-                </div>
-                <div className="flex items-center gap-1 text-xs text-gray-400 mb-1">
-                  <span>★★★★★</span>
-                  <span>5/5</span>
-                </div>
-                <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2">
+                <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2">
                   {product.name}
                 </h3>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-bold text-gray-900">35 990 ₽</span>
+                  <span className="text-xs text-gray-400 line-through">72 000 ₽</span>
+                </div>
               </Link>
             ))}
           </div>
