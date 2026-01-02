@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useCity } from '@/context/CityContext';
 
 interface CatalogSeries {
   id: number;
@@ -28,44 +29,59 @@ const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 function CatalogPageContent() {
   const searchParams = useSearchParams();
   const isInitialLoad = useRef(true);
+  const { city } = useCity();
 
   // Читаем начальные параметры из URL только один раз
   const initialUrlParams = useRef<{
     series: string | null;
-    page: string | null;
   } | null>(null);
 
   if (initialUrlParams.current === null && searchParams) {
     initialUrlParams.current = {
       series: searchParams.get('series'),
-      page: searchParams.get('page'),
     };
   }
 
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [series, setSeries] = useState<CatalogSeries[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedSeries, setSelectedSeries] = useState<string>(initialUrlParams.current?.series || '');
   const [total, setTotal] = useState(0);
-  const limit = 12;
 
-  // Инициализируем offset из URL параметра page
-  const initialPage = initialUrlParams.current?.page ? parseInt(initialUrlParams.current.page) : 1;
-  const [offset, setOffset] = useState((initialPage - 1) * limit);
+  // Responsive limit: 20 for desktop, 12 for mobile
+  const [limit, setLimit] = useState(20);
 
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    const updateLimit = () => {
+      setLimit(window.innerWidth >= 1024 ? 20 : 12);
+    };
+    updateLimit();
+    window.addEventListener('resize', updateLimit);
+    return () => window.removeEventListener('resize', updateLimit);
+  }, []);
+
+  const fetchProducts = useCallback(async (append = false) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
     try {
       const params = new URLSearchParams();
       if (selectedSeries) params.set('series', selectedSeries);
       params.set('limit', limit.toString());
-      params.set('offset', offset.toString());
+      params.set('offset', append ? products.length.toString() : '0');
 
       const response = await fetch(`/api/catalog?${params}`);
       const data = await response.json();
 
       if (data.success) {
-        setProducts(data.products);
+        if (append) {
+          setProducts(prev => [...prev, ...data.products]);
+        } else {
+          setProducts(data.products);
+        }
         setSeries(data.series);
         setTotal(data.total);
       }
@@ -73,13 +89,15 @@ function CatalogPageContent() {
       console.error('Error fetching catalog:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
       isInitialLoad.current = false;
     }
-  }, [selectedSeries, offset]);
+  }, [selectedSeries, limit, products.length]);
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    fetchProducts(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedSeries, limit]);
 
   // Обновляем URL при изменении фильтров (без перезагрузки страницы)
   useEffect(() => {
@@ -89,31 +107,39 @@ function CatalogPageContent() {
     if (selectedSeries) {
       params.set('series', selectedSeries);
     }
-    const currentPage = Math.floor(offset / limit) + 1;
-    if (currentPage > 1) {
-      params.set('page', currentPage.toString());
-    }
 
     const queryString = params.toString();
     const newUrl = queryString ? `/catalog?${queryString}` : '/catalog';
     window.history.replaceState(null, '', newUrl);
-  }, [selectedSeries, offset]);
+  }, [selectedSeries]);
 
   const handleSeriesChange = (slug: string) => {
     setSelectedSeries(slug);
-    setOffset(0);
   };
 
-  const totalPages = Math.ceil(total / limit);
-  const currentPage = Math.floor(offset / limit) + 1;
+  const handleLoadMore = () => {
+    fetchProducts(true);
+  };
+
+  const hasMore = products.length < total;
+
+  // Get title based on selected series
+  const getPageTitle = () => {
+    if (selectedSeries) {
+      const selectedSeriesData = series.find(s => s.slug === selectedSeries);
+      if (selectedSeriesData) {
+        return `${selectedSeriesData.name} в г. ${city.name}`;
+      }
+    }
+    return `Шкафы в г. ${city.name}`;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero section */}
-      <div className="bg-gradient-to-r from-[#62bb46] to-[#4a9935] text-white py-12">
+      {/* Simple header */}
+      <div className="bg-white border-b border-gray-200 py-6">
         <div className="max-w-[1348px] mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Каталог шкафов-купе</h1>
-          <p className="text-white/80 text-lg">Выберите идеальный шкаф для вашего интерьера</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{getPageTitle()}</h1>
         </div>
       </div>
 
@@ -170,85 +196,58 @@ function CatalogPageContent() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {products.map((product) => (
-              <Link
-                key={product.id}
-                href={`/product/${product.slug}`}
-                className="group"
-              >
-                <div className="aspect-square relative mb-2 overflow-hidden">
-                  <Image
-                    src={product.default_image || PLACEHOLDER_IMAGE}
-                    alt={product.name}
-                    fill
-                    className="object-contain group-hover:scale-105 transition-transform"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = PLACEHOLDER_IMAGE;
-                    }}
-                  />
-                </div>
-                <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2">
-                  {product.name}
-                </h3>
-                <div className="flex items-baseline gap-2">
+              <div key={product.id} className="group bg-white rounded-lg p-3 hover:shadow-md transition-shadow">
+                <Link href={`/product/${product.slug}`}>
+                  <div className="aspect-square relative mb-2 overflow-hidden">
+                    <Image
+                      src={product.default_image || PLACEHOLDER_IMAGE}
+                      alt={product.name}
+                      fill
+                      className="object-contain group-hover:scale-105 transition-transform"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = PLACEHOLDER_IMAGE;
+                      }}
+                    />
+                  </div>
+                  <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2">
+                    {product.name}
+                  </h3>
+                </Link>
+                <div className="flex items-baseline gap-2 mb-2">
                   <span className="text-sm font-bold text-gray-900">35 990 ₽</span>
                   <span className="text-xs text-gray-400 line-through">72 000 ₽</span>
                 </div>
-              </Link>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    // TODO: Add to cart logic
+                  }}
+                  className="w-full py-2 bg-[#62bb46] text-white text-sm font-medium rounded hover:bg-[#55a83d] transition-colors"
+                >
+                  Купить
+                </button>
+              </div>
             ))}
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center gap-2 mt-8">
+        {/* Load more button */}
+        {hasMore && !loading && (
+          <div className="flex justify-center mt-8">
             <button
-              onClick={() => setOffset(Math.max(0, offset - limit))}
-              disabled={offset === 0}
-              className="px-4 py-2 rounded-lg bg-white shadow-sm border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="px-8 py-3 bg-white border-2 border-[#62bb46] text-[#62bb46] font-medium rounded-lg hover:bg-[#62bb46] hover:text-white transition-colors disabled:opacity-50"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-
-            <div className="flex items-center gap-2">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-
-                return (
-                  <button
-                    key={i}
-                    onClick={() => setOffset((pageNum - 1) * limit)}
-                    className={`w-10 h-10 rounded-lg font-medium transition-colors ${
-                      currentPage === pageNum
-                        ? 'bg-[#62bb46] text-white'
-                        : 'bg-white shadow-sm border border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={() => setOffset(Math.min((totalPages - 1) * limit, offset + limit))}
-              disabled={currentPage >= totalPages}
-              className="px-4 py-2 rounded-lg bg-white shadow-sm border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              {loadingMore ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Загрузка...
+                </span>
+              ) : (
+                `Показать ещё (${total - products.length})`
+              )}
             </button>
           </div>
         )}
@@ -261,10 +260,9 @@ export default function CatalogPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-gradient-to-r from-[#62bb46] to-[#4a9935] text-white py-12">
+        <div className="bg-white border-b border-gray-200 py-6">
           <div className="max-w-[1348px] mx-auto px-4">
-            <h1 className="text-3xl md:text-4xl font-bold mb-2">Каталог шкафов-купе</h1>
-            <p className="text-white/80 text-lg">Выберите идеальный шкаф для вашего интерьера</p>
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
           </div>
         </div>
         <div className="flex justify-center py-16">

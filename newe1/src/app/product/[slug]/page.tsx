@@ -116,6 +116,20 @@ export default function ProductPage() {
   const [mainImage, setMainImage] = useState<string>(PLACEHOLDER_IMAGE);
   const [showInterior, setShowInterior] = useState(false);
 
+  // Toast notification for mobile
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const showToast = (message: string) => {
+    if (toastTimeout.current) {
+      clearTimeout(toastTimeout.current);
+    }
+    setToastMessage(message);
+    toastTimeout.current = setTimeout(() => {
+      setToastMessage(null);
+    }, 2000);
+  };
+
   // Модальные окна
   const [showFillingModal, setShowFillingModal] = useState(false);
   const [showBodyColorModal, setShowBodyColorModal] = useState(false);
@@ -568,7 +582,13 @@ export default function ProductPage() {
             {currentVariant?.image_interior && (
               <div className="flex gap-2">
                 <button
-                  onClick={() => setShowInterior(false)}
+                  onClick={() => {
+                    setShowInterior(false);
+                    // Show toast on mobile with current variant parameters
+                    if (window.innerWidth < 1024 && currentVariant) {
+                      showToast(`${currentVariant.width}×${currentVariant.height}×${currentVariant.depth} мм`);
+                    }
+                  }}
                   className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
                     !showInterior
                       ? 'bg-[#62bb46] text-white'
@@ -578,7 +598,13 @@ export default function ProductPage() {
                   На белом фоне
                 </button>
                 <button
-                  onClick={() => setShowInterior(true)}
+                  onClick={() => {
+                    setShowInterior(true);
+                    // Show toast on mobile with current variant parameters
+                    if (window.innerWidth < 1024 && currentVariant) {
+                      showToast(`${currentVariant.width}×${currentVariant.height}×${currentVariant.depth} мм`);
+                    }
+                  }}
                   className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
                     showInterior
                       ? 'bg-[#62bb46] text-white'
@@ -620,7 +646,7 @@ export default function ProductPage() {
             {/* Цена - показываем только если есть варианты */}
             {!hasNoVariants && (
               <div className="bg-white rounded-xl shadow-sm p-5">
-                <div className="flex items-baseline gap-3 mb-4">
+                <div className="flex items-baseline gap-3 mb-2">
                   <span className="text-3xl font-bold text-gray-900">
                     {(basePrice + (includeAssembly ? assemblyPrice : 0)).toLocaleString('ru-RU')} ₽
                   </span>
@@ -629,20 +655,17 @@ export default function ProductPage() {
                   </span>
                 </div>
 
-                {/* В наличии на складе */}
-                <div className="mb-4 p-3 bg-[#62bb46]/10 rounded-lg border border-[#62bb46]/20">
-                  <div className="flex items-center gap-2 text-[#62bb46] font-medium mb-1">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    В наличии на складе
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Региональный склад Москва — 12 шт.
-                  </div>
-                  <div className="text-sm text-[#62bb46] font-medium mt-1">
-                    Доставим за 3 дня
-                  </div>
+                {/* Доставка - компактно рядом с ценой */}
+                <div className="text-sm text-[#62bb46] font-medium mb-4">
+                  Доставим в Москву за 3 дня
+                </div>
+
+                {/* В наличии - упрощённый вид */}
+                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                  <svg className="w-4 h-4 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>В наличии: 12 шт.</span>
                 </div>
 
                 {/* Сборка */}
@@ -795,15 +818,7 @@ export default function ProductPage() {
                 {/* Наполнение - второй блок на мобильном, первый на десктопе */}
                 {filling && (
                   <div className="lg:w-1/3 bg-white rounded-xl shadow-sm p-4 order-2 lg:order-first">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-bold text-gray-900 text-sm">Внутреннее наполнение</h3>
-                      <button
-                        onClick={() => setShowFillingModal(true)}
-                        className="text-[#62bb46] text-xs hover:underline"
-                      >
-                        Подробнее
-                      </button>
-                    </div>
+                    <h3 className="font-bold text-gray-900 text-sm mb-3">Наполнение корпуса</h3>
                     {/* Кнопка выбора наполнения */}
                     {fillings.length > 1 ? (
                       <button
@@ -910,7 +925,7 @@ export default function ProductPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Внутреннее наполнение</h2>
+              <h2 className="text-xl font-bold text-gray-900">Наполнение корпуса</h2>
               <button
                 onClick={() => setShowFillingModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -1240,6 +1255,15 @@ export default function ProductPage() {
                 <p>Дополнительные товары скоро появятся</p>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast notification for mobile */}
+      {toastMessage && (
+        <div className="lg:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+          <div className="bg-gray-900/90 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium">
+            {toastMessage}
           </div>
         </div>
       )}

@@ -56,20 +56,33 @@ export default function Header() {
   // Scroll detection for compact header mode
   const [isCompactMode, setIsCompactMode] = useState(false);
   const lastScrollY = useRef(0);
-  const scrollThreshold = 100;
+  const scrollThreshold = 120; // Show compact mode after scrolling this far
+  const scrollDelta = 10; // Minimum scroll distance to trigger change
 
   useEffect(() => {
+    let ticking = false;
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          const scrollDiff = currentScrollY - lastScrollY.current;
 
-      // Switch to compact mode when scrolling down past threshold
-      if (currentScrollY > scrollThreshold && currentScrollY > lastScrollY.current) {
-        setIsCompactMode(true);
-      } else if (currentScrollY < lastScrollY.current || currentScrollY <= scrollThreshold) {
-        setIsCompactMode(false);
+          // Only trigger if scroll distance is significant (prevents micro-movements)
+          if (Math.abs(scrollDiff) > scrollDelta) {
+            // Switch to compact mode when scrolling down past threshold
+            if (currentScrollY > scrollThreshold && scrollDiff > 0) {
+              setIsCompactMode(true);
+            } else if (scrollDiff < 0 || currentScrollY <= scrollThreshold) {
+              setIsCompactMode(false);
+            }
+            lastScrollY.current = currentScrollY;
+          }
+
+          ticking = false;
+        });
+        ticking = true;
       }
-
-      lastScrollY.current = currentScrollY;
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -80,10 +93,9 @@ export default function Header() {
     <header className="sticky top-0 z-50">
       {/* Compact header bar - shows when scrolling down */}
       <div
-        className={`bg-[#3d4543] text-white transition-transform duration-300 ${
+        className={`fixed top-0 left-0 right-0 bg-[#3d4543] text-white z-[60] transition-transform duration-200 ease-out ${
           isCompactMode ? 'translate-y-0' : '-translate-y-full'
-        } ${isCompactMode ? 'block' : 'hidden'}`}
-        style={{ position: isCompactMode ? 'relative' : 'absolute', width: '100%' }}
+        }`}
       >
         <div className="container-custom">
           <div className="flex items-center justify-between py-2">
@@ -143,8 +155,8 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Full header - shows when not in compact mode */}
-      <div className={`transition-opacity duration-300 ${isCompactMode ? 'opacity-0 pointer-events-none h-0 overflow-hidden' : 'opacity-100'}`}>
+      {/* Full header - always rendered, compact mode overlays on top */}
+      <div>
         {/* Top bar - graphite color */}
         <div className="bg-[#3d4543] text-white">
           <div className="container-custom">
@@ -361,68 +373,71 @@ export default function Header() {
         {/* Green Navigation Menu */}
         <nav className="bg-[#62bb46] hidden lg:block">
           <div className="container-custom overflow-x-auto scrollbar-hide">
-            <ul className="flex items-center gap-1 min-w-max">
-              {menuItems.map((item) => (
-                <li key={item.href} className={item.hasSubmenu ? 'relative group' : ''}>
-                  {item.hasSubmenu ? (
-                    <span
-                      className="flex items-center gap-1.5 px-2 xl:px-3 py-3 font-bold hover:bg-[#55a83d] transition-colors text-[12px] xl:text-[13px] whitespace-nowrap cursor-pointer"
-                      style={{ color: 'white' }}
-                    >
-                      {item.label}
-                      <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </span>
-                  ) : (
-                    <Link
-                      href={item.href}
-                      className="flex items-center gap-1.5 px-2 xl:px-3 py-3 font-bold hover:bg-[#55a83d] transition-colors text-[12px] xl:text-[13px] whitespace-nowrap"
-                      style={{ color: 'white' }}
-                    >
-                      {item.hasLightning && (
-                        <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#f5b800">
-                          <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <ul className="flex items-center justify-center gap-1 min-w-max">
+              {menuItems.map((item, index) => {
+                const isLastItem = item.showLastOnMobile; // This is the "..." item
+                return (
+                  <li key={item.href} className={item.hasSubmenu ? 'relative group' : ''}>
+                    {item.hasSubmenu ? (
+                      <span
+                        className="flex items-center gap-1.5 px-2 xl:px-3 py-3 font-bold hover:bg-[#55a83d] transition-colors text-[12px] xl:text-[13px] whitespace-nowrap cursor-pointer"
+                        style={{ color: 'white' }}
+                      >
+                        {item.label}
+                        <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
-                      )}
-                      {item.label}
-                    </Link>
-                  )}
-                  {/* Dropdown for submenus */}
-                  {item.hasSubmenu && (
-                    <div className="absolute left-0 top-full bg-white shadow-xl rounded-b-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[200px]">
-                      <ul className="py-2">
-                        {(item.submenuType === 'business' ? businessSubmenu : serviceSubmenu).map((subItem) => (
-                          <li key={subItem.href}>
-                            {'external' in subItem && subItem.external ? (
-                              <a
-                                href={subItem.href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block px-4 py-2 text-[13px] text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
-                              >
-                                {subItem.label}
-                              </a>
-                            ) : (
-                              <Link
-                                href={subItem.href}
-                                className={`flex items-center gap-1.5 px-4 py-2 text-[13px] hover:text-[#62bb46] hover:bg-gray-50 transition-colors ${'highlighted' in subItem && subItem.highlighted ? 'font-bold text-gray-900' : 'text-gray-600'}`}
-                              >
-                                {'highlighted' in subItem && subItem.highlighted && (
-                                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#f5b800">
-                                    <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                  </svg>
-                                )}
-                                {subItem.label}
-                              </Link>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </li>
-              ))}
+                      </span>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className="flex items-center gap-1.5 px-2 xl:px-3 py-3 font-bold hover:bg-[#55a83d] transition-colors text-[12px] xl:text-[13px] whitespace-nowrap"
+                        style={{ color: 'white' }}
+                      >
+                        {item.hasLightning && (
+                          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#f5b800">
+                            <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                        )}
+                        {item.label}
+                      </Link>
+                    )}
+                    {/* Dropdown for submenus */}
+                    {item.hasSubmenu && (
+                      <div className={`absolute top-full bg-white shadow-xl rounded-b-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 min-w-[200px] ${isLastItem ? 'right-0' : 'left-0'}`}>
+                        <ul className="py-2">
+                          {(item.submenuType === 'business' ? businessSubmenu : serviceSubmenu).map((subItem) => (
+                            <li key={subItem.href}>
+                              {'external' in subItem && subItem.external ? (
+                                <a
+                                  href={subItem.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block px-4 py-2 text-[13px] text-gray-600 hover:text-[#62bb46] hover:bg-gray-50 transition-colors"
+                                >
+                                  {subItem.label}
+                                </a>
+                              ) : (
+                                <Link
+                                  href={subItem.href}
+                                  className={`flex items-center gap-1.5 px-4 py-2 text-[13px] hover:text-[#62bb46] hover:bg-gray-50 transition-colors ${'highlighted' in subItem && subItem.highlighted ? 'font-bold text-gray-900' : 'text-gray-600'}`}
+                                >
+                                  {'highlighted' in subItem && subItem.highlighted && (
+                                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#f5b800">
+                                      <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                  )}
+                                  {subItem.label}
+                                </Link>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </nav>
