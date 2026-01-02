@@ -425,7 +425,9 @@ export default function ProductPage() {
     }
 
     setCurrentVariant(variant);
-    setMainImage(variant.image_white || PLACEHOLDER_IMAGE);
+    // Fallback: если у текущего варианта нет картинки, ищем любую картинку среди вариантов
+    const variantImage = variant.image_white || variants.find(v => v.image_white)?.image_white || PLACEHOLDER_IMAGE;
+    setMainImage(variantImage);
     setShowInterior(false);
   }, [selectedHeight, selectedWidth, selectedDepth, selectedBodyColor, selectedProfileColor, variants]);
 
