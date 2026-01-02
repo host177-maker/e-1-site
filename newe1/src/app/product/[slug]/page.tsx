@@ -5,6 +5,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCity } from '@/context/CityContext';
+import QuickOrderModal from '@/components/QuickOrderModal';
 
 interface CatalogProduct {
   id: number;
@@ -147,6 +148,9 @@ export default function ProductPage() {
   const [showFillingSelectModal, setShowFillingSelectModal] = useState(false);
   const [tempFilling, setTempFilling] = useState<CatalogFilling | null>(null);
   const [showFillingInfoId, setShowFillingInfoId] = useState<number | null>(null);
+
+  // Модальное окно быстрого заказа
+  const [showQuickOrderModal, setShowQuickOrderModal] = useState(false);
 
   // Сборка
   const [includeAssembly, setIncludeAssembly] = useState(false);
@@ -430,7 +434,18 @@ export default function ProductPage() {
         // Устанавливаем варианты наполнения для выбранного размера
         if (data.fillings && data.fillings.length > 0) {
           setFillings(data.fillings);
-          setFilling(data.fillings[0]); // Первый вариант по умолчанию
+          // Проверяем, доступно ли текущее наполнение для новых параметров
+          setFilling((currentFilling) => {
+            if (currentFilling) {
+              const sameFillingAvailable = data.fillings.find(
+                (f: CatalogFilling) => f.id === currentFilling.id
+              );
+              if (sameFillingAvailable) {
+                return sameFillingAvailable; // Сохраняем текущее наполнение
+              }
+            }
+            return data.fillings[0]; // Иначе первый вариант по умолчанию
+          });
         } else {
           // Если нет наполнений - очищаем только если запрос успешен
           setFillings([]);
@@ -875,7 +890,10 @@ export default function ProductPage() {
                 <button className="flex-1 py-3 bg-[#62bb46] hover:bg-[#4a9935] text-white font-bold rounded-xl transition-colors">
                   Добавить в корзину
                 </button>
-                <button className="flex-1 py-3 border-2 border-[#62bb46] text-[#62bb46] hover:bg-[#62bb46] hover:text-white font-bold rounded-xl transition-colors">
+                <button
+                  onClick={() => setShowQuickOrderModal(true)}
+                  className="flex-1 py-3 border-2 border-[#62bb46] text-[#62bb46] hover:bg-[#62bb46] hover:text-white font-bold rounded-xl transition-colors"
+                >
                   Купить в 1 клик
                 </button>
               </div>
@@ -1279,6 +1297,22 @@ export default function ProductPage() {
           </div>
         </div>
       )}
+
+      {/* Модальное окно быстрого заказа */}
+      <QuickOrderModal
+        isOpen={showQuickOrderModal}
+        onClose={() => setShowQuickOrderModal(false)}
+        productName={product.name}
+        productUrl={typeof window !== 'undefined' ? window.location.href : `/product/${slug}`}
+        selectedParams={{
+          width: selectedWidth,
+          height: selectedHeight,
+          depth: selectedDepth,
+          bodyColor: selectedBodyColor?.name || null,
+          profileColor: selectedProfileColor?.name || null,
+          filling: filling?.short_name || null,
+        }}
+      />
     </div>
   );
 }

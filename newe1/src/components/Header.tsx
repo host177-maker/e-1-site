@@ -122,13 +122,9 @@ export default function Header() {
               </Link>
             </div>
 
-            {/* Center: Phone */}
-            <a href="tel:+78001001211" className="font-bold text-sm hover:text-[#62bb46] transition-colors">
-              8-800-100-12-11
-            </a>
-
-            {/* Right: Messenger + Cart */}
-            <div className="flex items-center gap-2">
+            {/* Center: Messenger */}
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="text-xs text-gray-300">Напишите нам:</span>
               <button
                 onClick={() => setIsMessengerModalOpen(true)}
                 className="w-7 h-7 rounded-full overflow-hidden cursor-pointer"
@@ -144,6 +140,36 @@ export default function Header() {
                   <source src="/images/Messenger.mp4" type="video/mp4" />
                 </video>
               </button>
+            </div>
+
+            {/* Right: Phone + Favorites + Cart */}
+            <div className="flex items-center gap-3">
+              <a href="tel:+78001001211" className="font-bold text-sm hover:text-[#62bb46] transition-colors hidden sm:block">
+                8-800-100-12-11
+              </a>
+              {/* Mobile messenger */}
+              <button
+                onClick={() => setIsMessengerModalOpen(true)}
+                className="sm:hidden w-7 h-7 rounded-full overflow-hidden cursor-pointer"
+                title="Написать нам"
+              >
+                <video
+                  className="w-full h-full object-cover scale-125"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                >
+                  <source src="/images/Messenger.mp4" type="video/mp4" />
+                </video>
+              </button>
+              {/* Favorites - desktop only in compact */}
+              <Link href="/wishlist" className="relative p-1 hidden lg:block">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <span className="absolute -top-1 -right-1 bg-[#62bb46] text-white text-[9px] font-bold rounded-full min-w-[14px] h-[14px] flex items-center justify-center">0</span>
+              </Link>
               <Link href="/cart" className="relative p-1">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -350,12 +376,12 @@ export default function Header() {
                   </button>
                 </div>
 
-                {/* Wishlist - desktop/tablet only */}
-                <Link href="/wishlist" className="hidden sm:flex flex-col items-center justify-center w-12 h-12 hover:text-[#62bb46] transition-colors relative group">
+                {/* Wishlist - all sizes */}
+                <Link href="/wishlist" className="flex flex-col items-center justify-center w-10 h-10 sm:w-12 sm:h-12 hover:text-[#62bb46] transition-colors relative group">
                   <svg className="w-6 h-6 text-gray-500 group-hover:text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
-                  <span className="absolute top-1 right-1 bg-[#62bb46] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">0</span>
+                  <span className="absolute top-0 sm:top-1 right-0 sm:right-1 bg-[#62bb46] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">0</span>
                 </Link>
 
                 {/* Cart - all sizes */}
