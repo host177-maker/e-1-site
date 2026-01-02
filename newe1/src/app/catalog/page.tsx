@@ -34,11 +34,13 @@ function CatalogPageContent() {
   // Читаем начальные параметры из URL только один раз
   const initialUrlParams = useRef<{
     series: string | null;
+    page: string | null;
   } | null>(null);
 
   if (initialUrlParams.current === null && searchParams) {
     initialUrlParams.current = {
       series: searchParams.get('series'),
+      page: searchParams.get('page'),
     };
   }
 
@@ -48,12 +50,10 @@ function CatalogPageContent() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedSeries, setSelectedSeries] = useState<string>(initialUrlParams.current?.series || '');
   const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(Number(initialUrlParams.current?.page) || 1);
+  const [viewMode, setViewMode] = useState<'loadmore' | 'pagination'>('loadmore');
 
   // Responsive limit based on grid columns to have full rows
-  // xl: 5 cols -> 20 items (4 rows)
-  // lg: 4 cols -> 20 items (5 rows)
-  // sm: 3 cols -> 18 items (6 rows)
-  // mobile: 2 cols -> 20 items (10 rows)
   const [limit, setLimit] = useState(20);
 
   useEffect(() => {
@@ -74,7 +74,7 @@ function CatalogPageContent() {
     return () => window.removeEventListener('resize', updateLimit);
   }, []);
 
-  const fetchProducts = useCallback(async (append = false) => {
+  const fetchProducts = useCallback(async (append = false, page = 1) => {
     if (append) {
       setLoadingMore(true);
     } else {
@@ -84,13 +84,18 @@ function CatalogPageContent() {
       const params = new URLSearchParams();
       if (selectedSeries) params.set('series', selectedSeries);
       params.set('limit', limit.toString());
-      params.set('offset', append ? products.length.toString() : '0');
+
+      if (viewMode === 'pagination') {
+        params.set('offset', ((page - 1) * limit).toString());
+      } else {
+        params.set('offset', append ? products.length.toString() : '0');
+      }
 
       const response = await fetch(`/api/catalog?${params}`);
       const data = await response.json();
 
       if (data.success) {
-        if (append) {
+        if (append && viewMode === 'loadmore') {
           setProducts(prev => [...prev, ...data.products]);
         } else {
           setProducts(data.products);
@@ -105,14 +110,18 @@ function CatalogPageContent() {
       setLoadingMore(false);
       isInitialLoad.current = false;
     }
-  }, [selectedSeries, limit, products.length]);
+  }, [selectedSeries, limit, products.length, viewMode]);
 
   useEffect(() => {
-    fetchProducts(false);
+    if (viewMode === 'pagination') {
+      fetchProducts(false, currentPage);
+    } else {
+      fetchProducts(false);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedSeries, limit]);
+  }, [selectedSeries, limit, currentPage, viewMode]);
 
-  // Обновляем URL при изменении фильтров (без перезагрузки страницы)
+  // Обновляем URL при изменении фильтров
   useEffect(() => {
     if (isInitialLoad.current) return;
 
@@ -120,21 +129,77 @@ function CatalogPageContent() {
     if (selectedSeries) {
       params.set('series', selectedSeries);
     }
+    if (viewMode === 'pagination' && currentPage > 1) {
+      params.set('page', currentPage.toString());
+    }
 
     const queryString = params.toString();
     const newUrl = queryString ? `/catalog?${queryString}` : '/catalog';
     window.history.replaceState(null, '', newUrl);
-  }, [selectedSeries]);
+  }, [selectedSeries, currentPage, viewMode]);
 
   const handleSeriesChange = (slug: string) => {
     setSelectedSeries(slug);
+    setCurrentPage(1);
+    if (viewMode === 'loadmore') {
+      setProducts([]);
+    }
   };
 
   const handleLoadMore = () => {
     fetchProducts(true);
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleViewMode = () => {
+    if (viewMode === 'loadmore') {
+      setViewMode('pagination');
+      setCurrentPage(1);
+    } else {
+      setViewMode('loadmore');
+      setProducts([]);
+    }
+  };
+
   const hasMore = products.length < total;
+  const totalPages = Math.ceil(total / limit);
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
+
+    if (totalPages <= maxVisiblePages + 2) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      pages.push(1);
+
+      if (currentPage > 3) {
+        pages.push('...');
+      }
+
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (currentPage < totalPages - 2) {
+        pages.push('...');
+      }
+
+      pages.push(totalPages);
+    }
+
+    return pages;
+  };
 
   // Get title based on selected series
   const getPageTitle = () => {
@@ -186,9 +251,17 @@ function CatalogPageContent() {
           </div>
         </div>
 
-        {/* Results count */}
-        <div className="mb-6 text-gray-600">
-          Найдено товаров: <strong>{total}</strong>
+        {/* Results count and view mode toggle */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="text-gray-600">
+            Найдено товаров: <strong>{total}</strong>
+          </div>
+          <button
+            onClick={toggleViewMode}
+            className="text-sm text-[#62bb46] hover:underline"
+          >
+            {viewMode === 'loadmore' ? 'По страницам' : 'Показать ещё'}
+          </button>
         </div>
 
         {/* Products grid */}
@@ -223,7 +296,7 @@ function CatalogPageContent() {
                       }}
                     />
                   </div>
-                  <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2 h-8 font-[var(--font-open-sans)]">
+                  <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2 h-8 font-[var(--font-open-sans)] font-normal">
                     {product.name}
                   </h3>
                 </Link>
@@ -245,23 +318,74 @@ function CatalogPageContent() {
           </div>
         )}
 
-        {/* Load more button */}
-        {hasMore && !loading && (
-          <div className="flex justify-center mt-8">
-            <button
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-              className="px-8 py-3 bg-white border-2 border-[#62bb46] text-[#62bb46] font-medium rounded-lg hover:bg-[#62bb46] hover:text-white transition-colors disabled:opacity-50"
-            >
-              {loadingMore ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Загрузка...
-                </span>
-              ) : (
-                `Показать ещё (${total - products.length})`
-              )}
-            </button>
+        {/* Load more button OR Pagination */}
+        {!loading && total > 0 && (
+          <div className="mt-8">
+            {viewMode === 'loadmore' ? (
+              hasMore && (
+                <div className="flex justify-center">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    className="px-8 py-3 bg-white border-2 border-[#62bb46] text-[#62bb46] font-medium rounded-lg hover:bg-[#62bb46] hover:text-white transition-colors disabled:opacity-50"
+                  >
+                    {loadingMore ? (
+                      <span className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Загрузка...
+                      </span>
+                    ) : (
+                      `Показать ещё (${total - products.length})`
+                    )}
+                  </button>
+                </div>
+              )
+            ) : (
+              totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2">
+                  {/* Previous button */}
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="p-2 rounded-lg border border-gray-300 hover:border-[#62bb46] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Page numbers */}
+                  {getPageNumbers().map((page, index) => (
+                    typeof page === 'number' ? (
+                      <button
+                        key={index}
+                        onClick={() => handlePageChange(page)}
+                        className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                          currentPage === page
+                            ? 'bg-[#62bb46] text-white'
+                            : 'bg-white border border-gray-300 hover:border-[#62bb46] text-gray-700'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ) : (
+                      <span key={index} className="px-2 text-gray-400">...</span>
+                    )
+                  ))}
+
+                  {/* Next button */}
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="p-2 rounded-lg border border-gray-300 hover:border-[#62bb46] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              )
+            )}
           </div>
         )}
       </div>

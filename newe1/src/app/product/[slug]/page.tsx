@@ -5,6 +5,8 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCity } from '@/context/CityContext';
+import { useWishlist } from '@/context/WishlistContext';
+import { useCart } from '@/context/CartContext';
 import QuickOrderModal from '@/components/QuickOrderModal';
 
 interface CatalogProduct {
@@ -72,6 +74,8 @@ export default function ProductPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { city } = useCity();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { addToCart } = useCart();
   const slug = (params?.slug as string) || '';
   const isInitialLoad = useRef(true);
   const urlParamsApplied = useRef(false);
@@ -574,9 +578,45 @@ export default function ProductPage() {
       <div className="max-w-[1348px] mx-auto px-4 py-8">
         {/* Заголовок - мобильная версия (над изображением) */}
         <div className="lg:hidden mb-4">
-          <h1 className="text-xl font-bold text-gray-900 line-clamp-2 font-[var(--font-open-sans)]">
-            {product.name}
-          </h1>
+          <div className="flex items-start gap-2">
+            <h1 className="text-xl font-normal text-gray-900 line-clamp-2 font-[var(--font-open-sans)] flex-1">
+              {product.name}
+            </h1>
+            <button
+              onClick={() => {
+                if (isInWishlist(product.id)) {
+                  const item = { productId: product.id };
+                  removeFromWishlist(product.id);
+                } else {
+                  addToWishlist({
+                    id: Date.now(),
+                    productId: product.id,
+                    name: product.name,
+                    slug: product.slug,
+                    image: mainImage,
+                    price: basePrice,
+                    oldPrice: oldPrice,
+                    width: selectedWidth || undefined,
+                    height: selectedHeight || undefined,
+                    depth: selectedDepth || undefined,
+                    bodyColor: selectedBodyColor?.name,
+                    profileColor: selectedProfileColor?.name,
+                    filling: filling?.short_name,
+                  });
+                }
+              }}
+              className={`p-2 rounded-full transition-colors flex-shrink-0 ${
+                isInWishlist(product.id)
+                  ? 'text-red-500 bg-red-50'
+                  : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+              }`}
+              title={isInWishlist(product.id) ? 'Убрать из избранного' : 'Добавить в избранное'}
+            >
+              <svg className="w-6 h-6" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -638,10 +678,43 @@ export default function ProductPage() {
           {/* Информация о товаре */}
           <div className="space-y-4">
             {/* Заголовок - только десктоп (скрыт на мобильных) */}
-            <div className="hidden lg:block">
-              <h1 className="text-2xl font-bold text-gray-900 min-h-[3rem] line-clamp-2 font-[var(--font-open-sans)]">
+            <div className="hidden lg:flex items-start gap-3">
+              <h1 className="text-2xl font-normal text-gray-900 min-h-[3rem] line-clamp-2 font-[var(--font-open-sans)] flex-1">
                 {product.name}
               </h1>
+              <button
+                onClick={() => {
+                  if (isInWishlist(product.id)) {
+                    removeFromWishlist(product.id);
+                  } else {
+                    addToWishlist({
+                      id: Date.now(),
+                      productId: product.id,
+                      name: product.name,
+                      slug: product.slug,
+                      image: mainImage,
+                      price: basePrice,
+                      oldPrice: oldPrice,
+                      width: selectedWidth || undefined,
+                      height: selectedHeight || undefined,
+                      depth: selectedDepth || undefined,
+                      bodyColor: selectedBodyColor?.name,
+                      profileColor: selectedProfileColor?.name,
+                      filling: filling?.short_name,
+                    });
+                  }
+                }}
+                className={`p-2 rounded-full transition-colors flex-shrink-0 ${
+                  isInWishlist(product.id)
+                    ? 'text-red-500 bg-red-50'
+                    : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                }`}
+                title={isInWishlist(product.id) ? 'Убрать из избранного' : 'Добавить в избранное'}
+              >
+                <svg className="w-7 h-7" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </button>
             </div>
 
             {/* Сообщение о недоступности вариантов */}
@@ -888,7 +961,27 @@ export default function ProductPage() {
             {/* Кнопки действий - показываем только если есть варианты */}
             {!hasNoVariants && (
               <div className="flex flex-col sm:flex-row gap-3">
-                <button className="flex-1 py-3 bg-[#62bb46] hover:bg-[#4a9935] text-white font-bold rounded-xl transition-colors">
+                <button
+                  onClick={() => {
+                    addToCart({
+                      productId: product.id,
+                      name: product.name,
+                      slug: product.slug,
+                      image: mainImage,
+                      price: basePrice,
+                      oldPrice: oldPrice,
+                      width: selectedWidth || undefined,
+                      height: selectedHeight || undefined,
+                      depth: selectedDepth || undefined,
+                      bodyColor: selectedBodyColor?.name,
+                      profileColor: selectedProfileColor?.name,
+                      filling: filling?.short_name,
+                      assemblyPrice: assemblyPrice,
+                    });
+                    showToast('Товар добавлен в корзину');
+                  }}
+                  className="flex-1 py-3 bg-[#62bb46] hover:bg-[#4a9935] text-white font-bold rounded-xl transition-colors"
+                >
                   Добавить в корзину
                 </button>
                 <button
