@@ -271,6 +271,10 @@ export default function ProductPage() {
         if (data.variants.length > 0) {
           const firstVariant = data.variants[0];
 
+          // Сразу установить изображение - ищем любой вариант с картинкой
+          const variantWithImage = data.variants.find((v: CatalogVariant) => v.image_white);
+          setMainImage(variantWithImage?.image_white || PLACEHOLDER_IMAGE);
+
           // Размеры
           const height = urlHeight ? Number(urlHeight) : firstVariant.height;
           const width = urlWidth ? Number(urlWidth) : firstVariant.width;
