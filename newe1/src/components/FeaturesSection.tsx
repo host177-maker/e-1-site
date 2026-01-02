@@ -76,8 +76,6 @@ export default function FeaturesSection() {
                   className="object-cover"
                 />
 
-                {/* Dark overlay for readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20" />
 
                 {/* Content */}
                 <div className="absolute inset-0 p-3 sm:p-4 flex flex-col">
