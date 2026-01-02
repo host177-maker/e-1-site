@@ -142,6 +142,8 @@ export default function ProductPage() {
   };
 
   const handleAddToCart = () => {
+    if (!product) return;
+
     addToCart({
       productId: product.id,
       name: product.name,
