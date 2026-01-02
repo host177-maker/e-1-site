@@ -136,3 +136,13 @@ footer h1, footer h2, footer h3, footer h4, footer h5, footer h6 {
 .menu-green {
   background-color: var(--color-primary);
 }
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

@@ -22,13 +22,22 @@ export default function Footer() {
     { href: 'https://booking.e-1.ru/service/', label: 'Чат с отделом доставки', external: true },
   ];
 
+  // B2B menu items
+  const b2bLinks = [
+    { href: '/business/designers', label: 'Дизайнерам и архитекторам' },
+    { href: '/business/wholesale', label: 'Оптовые продажи' },
+    { href: '/business/marketplace', label: 'Продавцам на маркетплейсах' },
+    { href: '/business/franchise', label: 'Франшиза' },
+    { href: '/business/suppliers', label: 'Поставщикам' },
+  ];
+
   return (
     <>
       <DirectorContactModal isOpen={isDirectorModalOpen} onClose={() => setIsDirectorModalOpen(false)} />
       <footer className="bg-[#3d3d3d] text-white mt-8 pt-10 pb-6">
         <div className="container-custom">
           {/* Links grid */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2 mb-8 text-center md:text-left">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2 mb-6 text-center md:text-left">
             {links.map((link) => (
               link.external ? (
                 <a
@@ -50,6 +59,22 @@ export default function Footer() {
                 </Link>
               )
             ))}
+          </div>
+
+          {/* B2B Section */}
+          <div className="mb-8 pb-6 border-b border-[#555555]">
+            <h3 className="text-white font-bold text-sm mb-3 text-center md:text-left">Сотрудничество</h3>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2 text-center md:text-left">
+              {b2bLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-[#d1d5db] hover:text-[#62bb46] text-sm transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* Contacts row */}

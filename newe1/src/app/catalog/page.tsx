@@ -175,7 +175,7 @@ function CatalogPageContent() {
                 href={`/product/${product.slug}`}
                 className="group"
               >
-                <div className="aspect-square relative mb-2">
+                <div className="aspect-square relative mb-2 overflow-hidden">
                   <Image
                     src={product.default_image || PLACEHOLDER_IMAGE}
                     alt={product.name}

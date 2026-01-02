@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -68,6 +68,7 @@ const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 export default function ProductPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const slug = (params?.slug as string) || '';
   const isInitialLoad = useRef(true);
   const urlParamsApplied = useRef(false);
@@ -523,25 +524,24 @@ export default function ProductPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Breadcrumbs */}
+      {/* Back to catalog button */}
       <div className="bg-white border-b">
         <div className="max-w-[1348px] mx-auto px-4 py-3">
-          <nav className="flex items-center gap-2 text-sm text-gray-500">
-            <Link href="/" className="hover:text-[#62bb46]">Главная</Link>
-            <span>/</span>
-            <Link href="/catalog" className="hover:text-[#62bb46]">Каталог</Link>
-            <span>/</span>
-            <span className="text-gray-900">{product.name}</span>
-          </nav>
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#62bb46] transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Назад в каталог
+          </button>
         </div>
       </div>
 
       <div className="max-w-[1348px] mx-auto px-4 py-8">
         {/* Заголовок - мобильная версия (над изображением) */}
         <div className="lg:hidden mb-4">
-          <div className="text-sm text-gray-500 mb-1">
-            {product.series_name}
-          </div>
           <h1 className="text-xl font-bold text-gray-900 line-clamp-2">
             {product.name}
           </h1>
@@ -551,12 +551,12 @@ export default function ProductPage() {
           {/* Галерея */}
           <div className="space-y-4">
             {/* Главное изображение */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden aspect-square relative">
+            <div className="aspect-square relative">
               <Image
                 src={showInterior && currentVariant?.image_interior ? currentVariant.image_interior : mainImage}
                 alt={product.name}
                 fill
-                className="object-contain p-8"
+                className="object-contain"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = PLACEHOLDER_IMAGE;
@@ -595,9 +595,6 @@ export default function ProductPage() {
           <div className="space-y-4">
             {/* Заголовок - только десктоп (скрыт на мобильных) */}
             <div className="hidden lg:block">
-              <div className="text-sm text-gray-500 mb-1">
-                {product.series_name}
-              </div>
               <h1 className="text-2xl font-bold text-gray-900 min-h-[3rem] line-clamp-2">
                 {product.name}
               </h1>
@@ -632,6 +629,22 @@ export default function ProductPage() {
                   </span>
                 </div>
 
+                {/* В наличии на складе */}
+                <div className="mb-4 p-3 bg-[#62bb46]/10 rounded-lg border border-[#62bb46]/20">
+                  <div className="flex items-center gap-2 text-[#62bb46] font-medium mb-1">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    В наличии на складе
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Региональный склад Москва — 12 шт.
+                  </div>
+                  <div className="text-sm text-[#62bb46] font-medium mt-1">
+                    Доставим за 3 дня
+                  </div>
+                </div>
+
                 {/* Сборка */}
                 <label className="flex items-center gap-3 cursor-pointer p-3 rounded-lg border border-gray-200 hover:border-[#62bb46] transition-colors">
                   <input
@@ -652,59 +665,11 @@ export default function ProductPage() {
               </div>
             )}
 
-            {/* Наполнение и размер/цвет в одном ряду */}
+            {/* Размер и цвет + Наполнение */}
             {!hasNoVariants && (
-              <div className="flex gap-4">
-                {/* Наполнение - левый блок 1/3 */}
-                {filling && (
-                  <div className="w-1/3 bg-white rounded-xl shadow-sm p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-bold text-gray-900 text-sm">Внутреннее наполнение</h3>
-                      <button
-                        onClick={() => setShowFillingModal(true)}
-                        className="text-[#62bb46] text-xs hover:underline"
-                      >
-                        Подробнее
-                      </button>
-                    </div>
-                    {/* Кнопка выбора наполнения */}
-                    {fillings.length > 1 ? (
-                      <button
-                        onClick={() => {
-                          setTempFilling(filling);
-                          setShowFillingSelectModal(true);
-                        }}
-                        className="w-full flex items-center gap-2 px-2 py-1.5 border border-gray-200 rounded text-xs hover:border-[#62bb46] transition-colors text-left mb-2"
-                      >
-                        <span className="text-gray-700 truncate flex-1">
-                          {filling.short_name || `${filling.width}×${filling.height}×${filling.depth}`}
-                        </span>
-                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                    ) : filling.short_name ? (
-                      <p className="text-gray-600 text-xs mb-2">{filling.short_name}</p>
-                    ) : null}
-                    {filling.image_plain && (
-                      <div className="relative h-32 bg-gray-50 rounded-lg overflow-hidden">
-                        <Image
-                          src={filling.image_plain}
-                          alt="Наполнение"
-                          fill
-                          className="object-contain"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Выбрать размер и цвет - правый блок 2/3 */}
-                <div className={`${filling ? 'w-2/3' : 'w-full'} bg-white rounded-xl shadow-sm p-4`}>
+              <div className="flex flex-col lg:flex-row gap-4">
+                {/* Выбрать размер и цвет - первый блок на мобильном, второй на десктопе */}
+                <div className={`${filling ? 'lg:w-2/3' : 'w-full'} bg-white rounded-xl shadow-sm p-4 order-1`}>
                   <h3 className="text-sm font-medium text-gray-900 mb-3">Выбрать размер и цвет</h3>
 
                   {/* Размеры в ряд */}
@@ -826,6 +791,54 @@ export default function ProductPage() {
                     Доп. комплектация
                   </button>
                 </div>
+
+                {/* Наполнение - второй блок на мобильном, первый на десктопе */}
+                {filling && (
+                  <div className="lg:w-1/3 bg-white rounded-xl shadow-sm p-4 order-2 lg:order-first">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-bold text-gray-900 text-sm">Внутреннее наполнение</h3>
+                      <button
+                        onClick={() => setShowFillingModal(true)}
+                        className="text-[#62bb46] text-xs hover:underline"
+                      >
+                        Подробнее
+                      </button>
+                    </div>
+                    {/* Кнопка выбора наполнения */}
+                    {fillings.length > 1 ? (
+                      <button
+                        onClick={() => {
+                          setTempFilling(filling);
+                          setShowFillingSelectModal(true);
+                        }}
+                        className="w-full flex items-center gap-2 px-2 py-1.5 border border-gray-200 rounded text-xs hover:border-[#62bb46] transition-colors text-left mb-2"
+                      >
+                        <span className="text-gray-700 truncate flex-1">
+                          {filling.short_name || `${filling.width}×${filling.height}×${filling.depth}`}
+                        </span>
+                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    ) : filling.short_name ? (
+                      <p className="text-gray-600 text-xs mb-2">{filling.short_name}</p>
+                    ) : null}
+                    {filling.image_plain && (
+                      <div className="relative h-32 rounded-lg overflow-hidden">
+                        <Image
+                          src={filling.image_plain}
+                          alt="Наполнение"
+                          fill
+                          className="object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

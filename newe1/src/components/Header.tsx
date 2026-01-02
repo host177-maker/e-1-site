@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCity } from '@/context/CityContext';
 import CitySelector from './CitySelector';
 import MobileCitySelector from './MobileCitySelector';
@@ -53,10 +53,32 @@ export default function Header() {
   const [isMessengerModalOpen, setIsMessengerModalOpen] = useState(false);
   const { city, isLoading } = useCity();
 
+  // Scroll detection for hiding/showing top bar
+  const [isTopBarHidden, setIsTopBarHidden] = useState(false);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Hide top bar when scrolling down, show when scrolling up
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        setIsTopBarHidden(true);
+      } else if (currentScrollY < lastScrollY.current) {
+        setIsTopBarHidden(false);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <header className="sticky top-0 z-50">
-      {/* Top bar - graphite color */}
-      <div className="bg-[#3d4543] text-white">
+      {/* Top bar - graphite color (hides on scroll down) */}
+      <div className={`bg-[#3d4543] text-white transition-all duration-300 overflow-hidden ${isTopBarHidden ? 'max-h-0' : 'max-h-20'}`}>
         <div className="container-custom">
           <div className="flex items-center justify-between py-2 text-xs">
             {/* Left side badges */}
@@ -270,8 +292,8 @@ export default function Header() {
 
       {/* Green Navigation Menu */}
       <nav className="bg-[#62bb46] hidden lg:block">
-        <div className="container-custom">
-          <ul className="flex items-center justify-between">
+        <div className="container-custom overflow-x-auto scrollbar-hide">
+          <ul className="flex items-center gap-1 min-w-max">
             {menuItems.map((item) => (
               <li key={item.href} className={item.hasSubmenu ? 'relative group' : ''}>
                 {item.hasSubmenu ? (
