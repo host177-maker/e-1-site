@@ -105,7 +105,7 @@ export default function QuickOrderModal({
         setSubmitStatus('error');
         setErrorMessage(data.error || 'Произошла ошибка при отправке заявки');
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus('error');
       setErrorMessage('Произошла ошибка при отправке заявки');
     } finally {

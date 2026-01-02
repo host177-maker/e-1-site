@@ -619,7 +619,6 @@ export default function ProductPage() {
             <button
               onClick={() => {
                 if (isInWishlist(product.id)) {
-                  const item = { productId: product.id };
                   removeFromWishlist(product.id);
                 } else {
                   addToWishlist({

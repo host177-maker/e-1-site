@@ -412,7 +412,7 @@ export default function Header() {
         <nav className="bg-[#62bb46] hidden lg:block">
           <div className="container-custom">
             <ul className="flex items-center justify-between">
-              {menuItems.map((item, index) => {
+              {menuItems.map((item) => {
                 const isLastItem = item.showLastOnMobile; // This is the "..." item
                 return (
                   <li key={item.href} className={item.hasSubmenu ? 'relative group' : ''}>
