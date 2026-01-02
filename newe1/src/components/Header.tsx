@@ -398,8 +398,8 @@ export default function Header() {
 
         {/* Green Navigation Menu */}
         <nav className="bg-[#62bb46] hidden lg:block">
-          <div className="container-custom overflow-x-auto scrollbar-hide">
-            <ul className="flex items-center justify-center gap-1 min-w-max">
+          <div className="container-custom">
+            <ul className="flex items-center justify-center gap-1">
               {menuItems.map((item, index) => {
                 const isLastItem = item.showLastOnMobile; // This is the "..." item
                 return (
