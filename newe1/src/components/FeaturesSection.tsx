@@ -46,7 +46,7 @@ const categories = [
     title: 'Распродажа',
     subtitle: 'Самые выгодные позиции тут',
     badge: 'ВЫГОДНО',
-    badgeStyle: 'bg-[#f5b800] text-black',
+    badgeStyle: 'bg-[#62bb46] text-white',
     image: '/uploads/frame_sale.jpg',
     buttonText: 'Смотреть скидки',
     buttonHref: '/sales',
@@ -66,7 +66,7 @@ export default function FeaturesSection() {
             {categories.map((category) => (
               <div
                 key={category.id}
-                className="relative rounded-xl overflow-hidden h-[200px] sm:h-[220px] group"
+                className="relative overflow-hidden h-[200px] sm:h-[220px] group"
               >
                 {/* Background image */}
                 <Image
@@ -81,7 +81,7 @@ export default function FeaturesSection() {
                 <div className="absolute inset-0 p-3 sm:p-4 flex flex-col">
                   {/* Badge */}
                   <div className="mb-auto">
-                    <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold rounded ${category.badgeStyle}`}>
+                    <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold ${category.badgeStyle}`}>
                       {category.badge}
                     </span>
                   </div>
@@ -99,7 +99,7 @@ export default function FeaturesSection() {
                     {category.buttonAction === 'modal' ? (
                       <button
                         onClick={() => setIsModalOpen(true)}
-                        className={`block w-full text-center py-2 px-3 rounded font-bold text-xs sm:text-sm transition-all ${
+                        className={`block w-full text-center py-2 px-3 font-bold text-xs sm:text-sm transition-all ${
                           category.buttonStyle === 'primary'
                             ? 'bg-[#62bb46] text-white hover:bg-[#55a83d]'
                             : 'bg-transparent border-2 border-white text-white hover:bg-white hover:text-gray-900'
@@ -110,7 +110,7 @@ export default function FeaturesSection() {
                     ) : (
                       <Link
                         href={category.buttonHref || '#'}
-                        className={`block text-center py-2 px-3 rounded font-bold text-xs sm:text-sm transition-all ${
+                        className={`block text-center py-2 px-3 font-bold text-xs sm:text-sm transition-all ${
                           category.buttonStyle === 'primary'
                             ? 'bg-[#62bb46] text-white hover:bg-[#55a83d]'
                             : 'bg-transparent border-2 border-white text-white hover:bg-white hover:text-gray-900'
