@@ -109,7 +109,7 @@ export default function CartPage() {
         setSubmitStatus('error');
         setErrorMessage(data.error || 'Произошла ошибка');
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus('error');
       setErrorMessage('Ошибка соединения');
     } finally {
