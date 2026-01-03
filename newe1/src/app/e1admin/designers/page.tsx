@@ -11,6 +11,7 @@ interface Designer {
   email: string;
   portfolio_link: string | null;
   promo_code: string | null;
+  discount_percent: number;
   is_active: boolean;
   step_completed: number;
   created_at: string;
@@ -39,6 +40,7 @@ export default function DesignersPage() {
     email: '',
     portfolio_link: '',
     promo_code: '',
+    discount_percent: 0,
     is_active: false,
   });
   const [formError, setFormError] = useState('');
@@ -79,6 +81,7 @@ export default function DesignersPage() {
         email: designer.email,
         portfolio_link: designer.portfolio_link || '',
         promo_code: designer.promo_code || '',
+        discount_percent: designer.discount_percent || 0,
         is_active: designer.is_active,
       });
     } else {
@@ -90,6 +93,7 @@ export default function DesignersPage() {
         email: '',
         portfolio_link: '',
         promo_code: '',
+        discount_percent: 0,
         is_active: false,
       });
     }
@@ -273,6 +277,7 @@ export default function DesignersPage() {
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Контакты</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Тип</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Промокод</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-700">Скидка</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Статус</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Дата</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700"></th>
@@ -308,6 +313,15 @@ export default function DesignersPage() {
                           </span>
                         ) : (
                           <span className="text-xs text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        {designer.discount_percent > 0 ? (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {designer.discount_percent}%
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">0%</span>
                         )}
                       </td>
                       <td className="px-3 py-2">
@@ -453,6 +467,20 @@ export default function DesignersPage() {
                       onChange={(e) => setFormData({ ...formData, promo_code: e.target.value.toUpperCase() })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#7cb342] text-sm uppercase"
                       placeholder="DESIGNER2024"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Скидка клиенту %</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      value={formData.discount_percent}
+                      onChange={(e) => setFormData({ ...formData, discount_percent: parseFloat(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#7cb342] text-sm"
+                      placeholder="0"
                     />
                   </div>
 
