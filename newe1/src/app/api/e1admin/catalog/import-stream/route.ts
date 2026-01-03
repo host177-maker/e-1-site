@@ -352,6 +352,32 @@ async function importCatalogOptimized(
   // Трекер дубликатов наполнений (ключ: series_id:door_count:height:width:depth)
   const seenFillings = new Set<string>();
 
+  // Применяем необходимые миграции автоматически
+  await onProgress({ current: 1, total: 100, stage: 'Проверка структуры БД', item: 'Применение миграций' });
+
+  try {
+    // Миграция 009: Добавление поля name_prepositional для городов
+    await pool.query('ALTER TABLE cities ADD COLUMN IF NOT EXISTS name_prepositional VARCHAR(255)');
+
+    // Миграция 010: Создание таблицы услуг
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS catalog_services (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        icon VARCHAR(500),
+        sort_order INTEGER DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_catalog_services_active_sort ON catalog_services(is_active, sort_order)');
+  } catch (migrationError) {
+    console.log('Migration check:', migrationError instanceof Error ? migrationError.message : migrationError);
+    // Продолжаем импорт даже если миграции уже применены
+  }
+
   // Создаём запись в истории импорта
   const historyResult = await pool.query(
     `INSERT INTO catalog_import_history (status, imported_by) VALUES ('in_progress', $1) RETURNING id`,
