@@ -195,7 +195,6 @@ export default function DeliveryMapPage() {
       });
 
       mapRef.current = map;
-      setMapReady(true);
 
       // Add search control with custom behavior
       const searchControl = new ymaps.control.SearchControl({
