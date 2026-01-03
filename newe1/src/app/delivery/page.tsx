@@ -3,11 +3,65 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Script from 'next/script';
+import { useCity } from '@/context/CityContext';
 
 interface DeliveryPoint {
   id: number;
   name: string;
   coordinates: [number, number];
+}
+
+// Simple function to convert city name to dative case (for common Russian cities)
+function toDativeCase(city: string): string {
+  const dativeMap: Record<string, string> = {
+    'Москва': 'Москве',
+    'Санкт-Петербург': 'Санкт-Петербурге',
+    'Краснодар': 'Краснодаре',
+    'Ростов-на-Дону': 'Ростове-на-Дону',
+    'Екатеринбург': 'Екатеринбурге',
+    'Новосибирск': 'Новосибирске',
+    'Казань': 'Казани',
+    'Нижний Новгород': 'Нижнем Новгороде',
+    'Самара': 'Самаре',
+    'Воронеж': 'Воронеже',
+    'Волгоград': 'Волгограде',
+    'Уфа': 'Уфе',
+    'Челябинск': 'Челябинске',
+    'Пермь': 'Перми',
+    'Саратов': 'Саратове',
+    'Тюмень': 'Тюмени',
+    'Омск': 'Омске',
+    'Красноярск': 'Красноярске',
+    'Ставрополь': 'Ставрополе',
+    'Сочи': 'Сочи',
+    'Тольятти': 'Тольятти',
+    'Барнаул': 'Барнауле',
+    'Иркутск': 'Иркутске',
+    'Хабаровск': 'Хабаровске',
+    'Владивосток': 'Владивостоке',
+    'Ярославль': 'Ярославле',
+    'Махачкала': 'Махачкале',
+    'Томск': 'Томске',
+    'Оренбург': 'Оренбурге',
+    'Кемерово': 'Кемерово',
+    'Новокузнецк': 'Новокузнецке',
+    'Рязань': 'Рязани',
+    'Астрахань': 'Астрахани',
+    'Набережные Челны': 'Набережных Челнах',
+    'Пенза': 'Пензе',
+    'Липецк': 'Липецке',
+    'Киров': 'Кирове',
+    'Тула': 'Туле',
+    'Калуга': 'Калуге',
+    'Курск': 'Курске',
+    'Ульяновск': 'Ульяновске',
+    'Брянск': 'Брянске',
+    'Иваново': 'Иваново',
+    'Калининград': 'Калининграде',
+    'Белгород': 'Белгороде',
+  };
+
+  return dativeMap[city] || city;
 }
 
 interface Prices {
@@ -69,6 +123,7 @@ function findNearestPoint(
 }
 
 export default function DeliveryMapPage() {
+  const { city } = useCity();
   const [deliveryPoints, setDeliveryPoints] = useState<DeliveryPoint[]>([]);
   const [prices, setPrices] = useState<Prices | null>(null);
   const [deliveryResult, setDeliveryResult] = useState<DeliveryResult | null>(null);
@@ -439,12 +494,6 @@ export default function DeliveryMapPage() {
                   >
                     ПРОДОЛЖИТЬ ПОКУПКИ
                   </a>
-                  <a
-                    href="/cart"
-                    className="px-4 py-2 bg-[#f7a600] text-white rounded-lg hover:bg-[#e09500] transition-colors text-sm font-medium"
-                  >
-                    В КОРЗИНУ
-                  </a>
                 </div>
               </div>
             )}
@@ -480,23 +529,29 @@ export default function DeliveryMapPage() {
             {/* Price info */}
             {prices && (
               <div className="bg-[#f9f9fa] rounded-lg p-6">
-                <h3 className="text-lg font-bold text-[#3d4543] mb-4">Тарифы на доставку</h3>
+                <h3 className="text-lg font-bold text-[#3d4543] mb-4">
+                  Тарифы на доставку в {toDativeCase(city.name)}
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Базовая стоимость:</span>
-                    <span className="font-medium">{prices.delivery_base_price.toLocaleString('ru-RU')} ₽</span>
+                    <span className="font-medium">{Math.round(prices.delivery_base_price).toLocaleString('ru-RU')} ₽</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">За каждый км:</span>
-                    <span className="font-medium">{prices.delivery_per_km.toLocaleString('ru-RU')} ₽</span>
+                    <span className="font-medium">{Math.round(prices.delivery_per_km).toLocaleString('ru-RU')} ₽</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Подъём без лифта (за этаж):</span>
-                    <span className="font-medium">{prices.floor_lift_price.toLocaleString('ru-RU')} ₽</span>
+                    <span className="font-medium">{Math.round(prices.floor_lift_price).toLocaleString('ru-RU')} ₽</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Подъём с грузовым лифтом:</span>
-                    <span className="font-medium">{prices.elevator_lift_price.toLocaleString('ru-RU')} ₽</span>
+                    <span className="font-medium">{Math.round(prices.elevator_lift_price).toLocaleString('ru-RU')} ₽</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Выезд сборщика (за км):</span>
+                    <span className="font-medium">{Math.round(prices.assembly_per_km).toLocaleString('ru-RU')} ₽</span>
                   </div>
                 </div>
               </div>

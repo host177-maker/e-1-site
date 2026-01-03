@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useCity } from '@/context/CityContext';
 import Link from 'next/link';
@@ -39,6 +39,7 @@ interface DeliveryData {
   floor?: number;
   deliveryCost: number;
   liftCost: number;
+  assemblyCost: number;
 }
 
 export default function CartPage() {
@@ -54,7 +55,23 @@ export default function CartPage() {
     liftType: 'none',
     deliveryCost: 0,
     liftCost: 0,
+    assemblyCost: 0,
   });
+
+  // Check if any item has assembly selected
+  const hasAssembly = items.some(item => item.includeAssembly);
+
+  // Ref for order summary section
+  const orderSummaryRef = useRef<HTMLDivElement>(null);
+
+  // Change step with scroll
+  const changeStep = useCallback((step: 'cart' | 'delivery' | 'checkout') => {
+    setOrderStep(step);
+    // Scroll to order summary section
+    setTimeout(() => {
+      orderSummaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }, []);
 
   // Checkout form state
   const [formData, setFormData] = useState({
@@ -91,7 +108,7 @@ export default function CartPage() {
   }, []);
 
   // Calculate total with delivery
-  const totalWithDelivery = totalWithAssembly + deliveryData.deliveryCost + deliveryData.liftCost;
+  const totalWithDelivery = totalWithAssembly + deliveryData.deliveryCost + deliveryData.liftCost + deliveryData.assemblyCost;
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,6 +139,7 @@ export default function CartPage() {
             floor: deliveryData.floor,
             deliveryCost: deliveryData.deliveryCost,
             liftCost: deliveryData.liftCost,
+            assemblyCost: deliveryData.assemblyCost,
           },
           items: items.map(item => ({
             name: item.name,
@@ -326,7 +344,7 @@ export default function CartPage() {
             </div>
 
             {/* Order summary */}
-            <div className="lg:col-span-1">
+            <div ref={orderSummaryRef} className="lg:col-span-1">
               <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4">
                 {/* Step indicator */}
                 <div className="flex items-center justify-between mb-6">
@@ -378,7 +396,7 @@ export default function CartPage() {
                     </div>
 
                     <button
-                      onClick={() => setOrderStep('delivery')}
+                      onClick={() => changeStep('delivery')}
                       className="w-full py-3 bg-[#62bb46] text-white font-bold rounded-xl hover:bg-[#55a83d] transition-colors"
                     >
                       Оформить заказ
@@ -398,6 +416,7 @@ export default function CartPage() {
 
                     <DeliveryOptions
                       cityName={city.name}
+                      hasAssembly={hasAssembly}
                       onDeliveryChange={handleDeliveryChange}
                     />
 
@@ -406,10 +425,10 @@ export default function CartPage() {
                         <span>Товары и сборка</span>
                         <span>{totalWithAssembly.toLocaleString('ru-RU')} ₽</span>
                       </div>
-                      {(deliveryData.deliveryCost > 0 || deliveryData.liftCost > 0) && (
+                      {(deliveryData.deliveryCost > 0 || deliveryData.liftCost > 0 || deliveryData.assemblyCost > 0) && (
                         <div className="flex justify-between text-gray-600">
-                          <span>Доставка и подъём</span>
-                          <span>{(deliveryData.deliveryCost + deliveryData.liftCost).toLocaleString('ru-RU')} ₽</span>
+                          <span>Доставка{deliveryData.assemblyCost > 0 ? ', подъём и сборщик' : ' и подъём'}</span>
+                          <span>{(deliveryData.deliveryCost + deliveryData.liftCost + deliveryData.assemblyCost).toLocaleString('ru-RU')} ₽</span>
                         </div>
                       )}
                       <div className="flex justify-between text-xl font-bold text-gray-900 pt-2">
@@ -421,14 +440,14 @@ export default function CartPage() {
                     <div className="flex gap-2 mt-6">
                       <button
                         type="button"
-                        onClick={() => setOrderStep('cart')}
+                        onClick={() => changeStep('cart')}
                         className="flex-1 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
                       >
                         Назад
                       </button>
                       <button
                         type="button"
-                        onClick={() => setOrderStep('checkout')}
+                        onClick={() => changeStep('checkout')}
                         className="flex-1 py-3 bg-[#62bb46] text-white font-bold rounded-xl hover:bg-[#55a83d] transition-colors"
                       >
                         Далее
@@ -570,7 +589,7 @@ export default function CartPage() {
                     <div className="flex gap-2 mt-4">
                       <button
                         type="button"
-                        onClick={() => setOrderStep('delivery')}
+                        onClick={() => changeStep('delivery')}
                         className="flex-1 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
                       >
                         Назад

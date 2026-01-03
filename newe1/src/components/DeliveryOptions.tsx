@@ -20,6 +20,7 @@ interface Prices {
 
 interface DeliveryOptionsProps {
   cityName: string;
+  hasAssembly?: boolean;
   onDeliveryChange: (data: {
     type: 'delivery' | 'pickup';
     address?: string;
@@ -27,6 +28,7 @@ interface DeliveryOptionsProps {
     floor?: number;
     deliveryCost: number;
     liftCost: number;
+    assemblyCost: number;
   }) => void;
 }
 
@@ -74,7 +76,7 @@ function findNearestPoint(
   return nearest;
 }
 
-export default function DeliveryOptions({ cityName, onDeliveryChange }: DeliveryOptionsProps) {
+export default function DeliveryOptions({ cityName, hasAssembly = false, onDeliveryChange }: DeliveryOptionsProps) {
   const [deliveryPoints, setDeliveryPoints] = useState<DeliveryPoint[]>([]);
   const [nearestPoint, setNearestPoint] = useState<DeliveryPoint | null>(null);
   const [prices, setPrices] = useState<Prices | null>(null);
@@ -221,6 +223,16 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
     return 0;
   }, [deliveryType, prices, liftType, floor]);
 
+  // Calculate assembly travel cost (when assembly is selected)
+  const assemblyCost = useCallback(() => {
+    if (deliveryType === 'pickup') return 0;
+    if (!hasAssembly) return 0;
+    if (!prices) return 0;
+    if (!distance) return 0;
+
+    return Math.round(distance * prices.assembly_per_km);
+  }, [deliveryType, hasAssembly, prices, distance]);
+
   // Notify parent of changes
   useEffect(() => {
     onDeliveryChange({
@@ -230,8 +242,9 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
       floor: liftType === 'stairs' ? floor : undefined,
       deliveryCost: deliveryCost(),
       liftCost: liftCost(),
+      assemblyCost: assemblyCost(),
     });
-  }, [deliveryType, address, liftType, floor, deliveryCost, liftCost, onDeliveryChange]);
+  }, [deliveryType, address, liftType, floor, deliveryCost, liftCost, assemblyCost, onDeliveryChange]);
 
   // Initialize map for pickup
   const initPickupMap = useCallback(() => {
@@ -603,7 +616,7 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
                     <span className="font-medium">Подъём без грузового лифта</span>
                     {prices && (
                       <span className="text-sm text-gray-500 ml-2">
-                        ({prices.floor_lift_price.toLocaleString('ru-RU')} ₽ за этаж)
+                        ({Math.round(prices.floor_lift_price).toLocaleString('ru-RU')} ₽ за этаж)
                       </span>
                     )}
                   </div>
@@ -622,7 +635,7 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
                       ))}
                     </select>
                     <span className="font-medium text-gray-900">
-                      = {liftCost().toLocaleString('ru-RU')} ₽
+                      = {Math.round(liftCost()).toLocaleString('ru-RU')} ₽
                     </span>
                   </div>
                 )}
@@ -641,7 +654,7 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
                   </div>
                   {prices && (
                     <span className="text-gray-500">
-                      {prices.elevator_lift_price.toLocaleString('ru-RU')} ₽
+                      {Math.round(prices.elevator_lift_price).toLocaleString('ru-RU')} ₽
                     </span>
                   )}
                 </label>
@@ -649,11 +662,17 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
             </div>
 
             {/* Total delivery cost */}
-            <div className="bg-[#62bb46]/10 rounded-lg p-4">
+            <div className="bg-[#62bb46]/10 rounded-lg p-4 space-y-2">
+              {assemblyCost() > 0 && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">Выезд сборщика:</span>
+                  <span className="font-medium">{assemblyCost().toLocaleString('ru-RU')} ₽</span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span className="font-medium text-gray-900">Итого за доставку:</span>
                 <span className="text-xl font-bold text-[#62bb46]">
-                  {(deliveryCost() + liftCost()).toLocaleString('ru-RU')} ₽
+                  {Math.round(deliveryCost() + liftCost() + assemblyCost()).toLocaleString('ru-RU')} ₽
                 </span>
               </div>
             </div>
