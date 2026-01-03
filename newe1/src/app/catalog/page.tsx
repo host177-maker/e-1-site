@@ -77,6 +77,8 @@ const DEFAULT_FILTERS: FilterValues = {
 function CatalogPageContent() {
   const searchParams = useSearchParams();
   const isInitialLoad = useRef(true);
+  const filterRef = useRef<HTMLDivElement>(null);
+  const savedScrollPosition = useRef<number | null>(null);
   const { city } = useCity();
 
   // Читаем параметры из URL при инициализации
@@ -108,6 +110,11 @@ function CatalogPageContent() {
     if (append) {
       setLoadingMore(true);
     } else {
+      // Сохраняем позицию скролла относительно фильтра перед загрузкой
+      if (filterRef.current) {
+        const filterRect = filterRef.current.getBoundingClientRect();
+        savedScrollPosition.current = filterRect.top;
+      }
       setLoading(true);
     }
     try {
@@ -163,6 +170,20 @@ function CatalogPageContent() {
       setLoading(false);
       setLoadingMore(false);
       isInitialLoad.current = false;
+
+      // Восстанавливаем позицию скролла относительно фильтра после загрузки
+      if (savedScrollPosition.current !== null && filterRef.current && !append) {
+        requestAnimationFrame(() => {
+          if (filterRef.current && savedScrollPosition.current !== null) {
+            const filterRect = filterRef.current.getBoundingClientRect();
+            const scrollDelta = filterRect.top - savedScrollPosition.current;
+            if (Math.abs(scrollDelta) > 10) { // Только если есть значительный прыжок
+              window.scrollBy({ top: scrollDelta, behavior: 'instant' });
+            }
+            savedScrollPosition.current = null;
+          }
+        });
+      }
     }
   }, [filters]);
 
@@ -273,7 +294,7 @@ function CatalogPageContent() {
       <div className="max-w-[1440px] mx-auto px-4 py-8">
         <div className="flex gap-6">
           {/* Sidebar filter - desktop only */}
-          <div className="hidden lg:block w-64 flex-shrink-0">
+          <div ref={filterRef} className="hidden lg:block w-64 flex-shrink-0">
             <CatalogFilter
               filterOptions={filterOptions}
               filters={filters}

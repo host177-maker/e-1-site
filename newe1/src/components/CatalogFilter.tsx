@@ -29,13 +29,17 @@ interface CatalogFilterProps {
   isMobileOnly?: boolean;
 }
 
-// Маппинг типов шкафов для отображения
+// Маппинг типов шкафов для красивого отображения
 const doorTypeLabels: Record<string, string> = {
   'kupe': 'Шкаф-купе',
   'raspashnoy': 'Шкаф распашной',
   'garmoshka': 'Шкаф гармошка',
   'tolkatel': 'Гардероб',
   'bez-dverey': 'Без дверей',
+};
+// Функция для получения отображаемого имени типа шкафа
+const getDoorTypeLabel = (dt: { slug: string; name: string }): string => {
+  return doorTypeLabels[dt.slug] || dt.name;
 };
 
 // Градации цены
@@ -163,20 +167,18 @@ export default function CatalogFilter({
       <div>
         <h3 className="font-medium text-gray-900 mb-2 text-sm">Тип шкафа</h3>
         <div className="space-y-1.5">
-          {filterOptions.doorTypes
-            .filter(dt => doorTypeLabels[dt.slug])
-            .map(dt => (
-              <label key={dt.id} className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={localFilters.doorTypes.includes(dt.slug)}
-                  onChange={() => handleDoorTypeToggle(dt.slug)}
-                  className="w-4 h-4 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
-                />
-                <span className="text-sm text-gray-700 flex-1">{doorTypeLabels[dt.slug]}</span>
-                <span className="text-xs text-gray-400">({dt.count})</span>
-              </label>
-            ))}
+          {filterOptions.doorTypes.map(dt => (
+            <label key={dt.id} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={localFilters.doorTypes.includes(dt.slug)}
+                onChange={() => handleDoorTypeToggle(dt.slug)}
+                className="w-4 h-4 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
+              />
+              <span className="text-sm text-gray-700 flex-1">{getDoorTypeLabel(dt)}</span>
+              <span className="text-xs text-gray-400">({dt.count})</span>
+            </label>
+          ))}
         </div>
       </div>
 

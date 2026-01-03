@@ -489,6 +489,37 @@ async function importCatalogOptimized(
     for (const row of doorTypes.rows) {
       doorTypeMap[row.name] = row.id;
     }
+    // Маппинг альтернативных названий типов шкафов из XLS
+    const doorTypeAliases: { [alias: string]: string } = {
+      'Шкаф-купе': 'Купе',
+      'шкаф-купе': 'Купе',
+      'Шкаф купе': 'Купе',
+      'шкаф купе': 'Купе',
+      'Купе': 'Купе',
+      'Шкаф распашной': 'Распашной',
+      'шкаф распашной': 'Распашной',
+      'Распашной': 'Распашной',
+      'распашной': 'Распашной',
+      'Шкаф-гармошка': 'Гармошка',
+      'Шкаф гармошка': 'Гармошка',
+      'Гармошка': 'Гармошка',
+      'гармошка': 'Гармошка',
+      'Толкатель': 'Толкатель',
+      'Гардероб': 'Толкатель',
+      'гардероб': 'Толкатель',
+      'Без дверей': 'Без дверей',
+      'без дверей': 'Без дверей',
+    };
+    // Функция для получения ID типа шкафа по названию из XLS
+    const getDoorTypeId = (xlsDoorType: string): number | null => {
+      if (!xlsDoorType) return null;
+      const normalizedName = doorTypeAliases[xlsDoorType] || doorTypeAliases[xlsDoorType.trim()];
+      if (normalizedName) {
+        return doorTypeMap[normalizedName] || null;
+      }
+      // Попробуем прямое совпадение
+      return doorTypeMap[xlsDoorType] || null;
+    };
 
     const profileColorMap: { [name: string]: number } = {};
     const profileColors = await pool.query('SELECT id, name FROM catalog_profile_colors');
@@ -532,7 +563,7 @@ async function importCatalogOptimized(
 
         try {
           const slug = createSlug(cardName);
-          const doorTypeId = doorTypeMap[prod.doorType] || null;
+          const doorTypeId = getDoorTypeId(prod.doorType);
 
           const result = await pool.query(
             `INSERT INTO catalog_products (name, slug, series_id, door_type_id, door_count)
