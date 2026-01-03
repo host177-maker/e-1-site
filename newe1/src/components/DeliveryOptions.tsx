@@ -124,11 +124,11 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
         if (pricesData.success && pricesData.data.length > 0) {
           const priceData = pricesData.data[0];
           setPrices({
-            delivery_base_price: priceData.delivery_base_price || 0,
-            delivery_per_km: priceData.delivery_per_km || 0,
-            floor_lift_price: priceData.floor_lift_price || 0,
-            elevator_lift_price: priceData.elevator_lift_price || 0,
-            assembly_per_km: priceData.assembly_per_km || 0,
+            delivery_base_price: parseFloat(priceData.delivery_base_price) || 0,
+            delivery_per_km: parseFloat(priceData.delivery_per_km) || 0,
+            floor_lift_price: parseFloat(priceData.floor_lift_price) || 0,
+            elevator_lift_price: parseFloat(priceData.elevator_lift_price) || 0,
+            assembly_per_km: parseFloat(priceData.assembly_per_km) || 0,
           });
         }
       } catch (err) {
@@ -461,7 +461,6 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
                 </svg>
                 <div>
                   <div className="font-medium">Доставка Е1</div>
-                  <div className="text-sm text-gray-500">Курьером до двери</div>
                 </div>
               </div>
             </button>
