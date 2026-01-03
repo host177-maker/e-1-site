@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCity } from '@/context/CityContext';
+import { useWishlist } from '@/context/WishlistContext';
 import CatalogFilter from '@/components/CatalogFilter';
 
 interface CatalogSeries {
@@ -39,7 +40,7 @@ interface FilterValues {
   series: string[];
   widthRange: string;
   heights: number[];
-  depths: number[];
+  depthRange: string;
   priceRange: string;
 }
 
@@ -53,14 +54,21 @@ const priceRanges = [
   { key: '110000-999999', label: 'от 110 000', min: 110000, max: 999999 },
 ];
 
-// Градации ширины
+// Градации ширины (в мм для поиска в БД)
 const widthRanges = [
-  { key: '0-109', label: 'до 109', min: 0, max: 109 },
-  { key: '110-139', label: '110-139', min: 110, max: 139 },
-  { key: '140-161', label: '140-161', min: 140, max: 161 },
-  { key: '162-200', label: '162-200', min: 162, max: 200 },
-  { key: '201-239', label: '201-239', min: 201, max: 239 },
-  { key: '240-999', label: 'от 240', min: 240, max: 999 },
+  { key: '0-1090', label: 'до 109', min: 0, max: 1090 },
+  { key: '1100-1390', label: '110-139', min: 1100, max: 1390 },
+  { key: '1400-1610', label: '140-161', min: 1400, max: 1610 },
+  { key: '1620-2000', label: '162-200', min: 1620, max: 2000 },
+  { key: '2010-2390', label: '201-239', min: 2010, max: 2390 },
+  { key: '2400-9990', label: 'от 240', min: 2400, max: 9990 },
+];
+
+// Градации глубины (в мм для поиска в БД)
+const depthRanges = [
+  { key: '0-450', label: 'до 45', min: 0, max: 450 },
+  { key: '450-530', label: '45-53', min: 450, max: 530 },
+  { key: '530-9990', label: 'свыше 53', min: 530, max: 9990 },
 ];
 
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
@@ -70,7 +78,7 @@ const DEFAULT_FILTERS: FilterValues = {
   series: [],
   widthRange: '',
   heights: [],
-  depths: [],
+  depthRange: '',
   priceRange: '',
 };
 
@@ -80,6 +88,7 @@ function CatalogPageContent() {
   const filterRef = useRef<HTMLDivElement>(null);
   const savedScrollPosition = useRef<number | null>(null);
   const { city } = useCity();
+  const { isInWishlist, addToWishlist, removeByProductId } = useWishlist();
 
   // Читаем параметры из URL при инициализации
   const getInitialFilters = useCallback((): FilterValues => {
@@ -89,7 +98,7 @@ function CatalogPageContent() {
       series: searchParams.get('series')?.split(',').filter(Boolean) || [],
       widthRange: searchParams.get('widthRange') || '',
       heights: searchParams.get('heights')?.split(',').map(h => parseInt(h)).filter(h => !isNaN(h)) || [],
-      depths: searchParams.get('depths')?.split(',').map(d => parseInt(d)).filter(d => !isNaN(d)) || [],
+      depthRange: searchParams.get('depthRange') || '',
       priceRange: searchParams.get('priceRange') || '',
     };
   }, [searchParams]);
@@ -122,7 +131,7 @@ function CatalogPageContent() {
       if (filters.series.length > 0) params.set('series', filters.series.join(','));
       if (filters.doorTypes.length > 0) params.set('doorTypes', filters.doorTypes.join(','));
 
-      // Парсим диапазон ширины
+      // Парсим диапазон ширины (уже в мм)
       if (filters.widthRange) {
         const widthRange = widthRanges.find(r => r.key === filters.widthRange);
         if (widthRange) {
@@ -132,9 +141,17 @@ function CatalogPageContent() {
       }
 
       if (filters.heights.length > 0) params.set('heights', filters.heights.join(','));
-      if (filters.depths.length > 0) params.set('depths', filters.depths.join(','));
 
-      // Парсим диапазон цены (пока не используется в API, но подготовлено)
+      // Парсим диапазон глубины (в мм)
+      if (filters.depthRange) {
+        const depthRange = depthRanges.find(r => r.key === filters.depthRange);
+        if (depthRange) {
+          params.set('depthMin', depthRange.min.toString());
+          params.set('depthMax', depthRange.max.toString());
+        }
+      }
+
+      // Парсим диапазон цены
       if (filters.priceRange) {
         const priceRange = priceRanges.find(r => r.key === filters.priceRange);
         if (priceRange) {
@@ -201,7 +218,7 @@ function CatalogPageContent() {
     if (filters.series.length > 0) params.set('series', filters.series.join(','));
     if (filters.widthRange) params.set('widthRange', filters.widthRange);
     if (filters.heights.length > 0) params.set('heights', filters.heights.join(','));
-    if (filters.depths.length > 0) params.set('depths', filters.depths.join(','));
+    if (filters.depthRange) params.set('depthRange', filters.depthRange);
     if (filters.priceRange) params.set('priceRange', filters.priceRange);
     if (currentPage > 1) params.set('page', currentPage.toString());
 
@@ -277,7 +294,7 @@ function CatalogPageContent() {
     filters.doorTypes.length > 0,
     filters.series.length > 0,
     filters.heights.length > 0,
-    filters.depths.length > 0,
+    filters.depthRange !== '',
     filters.widthRange !== '',
     filters.priceRange !== '',
   ].filter(Boolean).length;
@@ -301,19 +318,17 @@ function CatalogPageContent() {
               onFiltersChange={handleFiltersChange}
               isOpen={false}
               onClose={() => {}}
+              totalProducts={total}
             />
           </div>
 
           {/* Main content */}
           <div className="flex-1 min-w-0 min-h-[600px]">
-            {/* Mobile filter button and results count */}
-            <div className="mb-6 flex items-center justify-between gap-4">
-              <div className="text-gray-600">
-                Найдено товаров: <strong>{total}</strong>
-              </div>
+            {/* Mobile filter button */}
+            <div className="mb-6 flex items-center justify-end lg:hidden">
               <button
                 onClick={() => setMobileFilterOpen(true)}
-                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium"
+                className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
@@ -344,40 +359,79 @@ function CatalogPageContent() {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {products.map((product) => (
-                  <div key={product.id} className="group bg-white rounded-lg p-3 hover:shadow-md transition-shadow">
-                    <Link href={`/product/${product.slug}`}>
-                      <div className="aspect-square relative mb-2 overflow-hidden">
-                        <Image
-                          src={product.default_image || PLACEHOLDER_IMAGE}
-                          alt={product.name}
-                          fill
-                          className="object-contain group-hover:scale-105 transition-transform"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = PLACEHOLDER_IMAGE;
-                          }}
-                        />
+                {products.map((product) => {
+                  const inWishlist = isInWishlist(product.id);
+                  return (
+                    <div key={product.id} className="group bg-white rounded-lg p-3 hover:shadow-md transition-shadow relative">
+                      {/* Сердечко избранного */}
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (inWishlist) {
+                            removeByProductId(product.id);
+                          } else {
+                            addToWishlist({
+                              id: Date.now(),
+                              productId: product.id,
+                              name: product.name,
+                              slug: product.slug,
+                              image: product.default_image || PLACEHOLDER_IMAGE,
+                              price: 35990,
+                            });
+                          }
+                        }}
+                        className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors"
+                        title={inWishlist ? 'Убрать из избранного' : 'Добавить в избранное'}
+                      >
+                        <svg
+                          className={`w-5 h-5 transition-colors ${inWishlist ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-400'}`}
+                          fill={inWishlist ? 'currentColor' : 'none'}
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                          />
+                        </svg>
+                      </button>
+
+                      <Link href={`/product/${product.slug}`}>
+                        <div className="aspect-square relative mb-2 overflow-hidden">
+                          <Image
+                            src={product.default_image || PLACEHOLDER_IMAGE}
+                            alt={product.name}
+                            fill
+                            className="object-contain group-hover:scale-105 transition-transform"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = PLACEHOLDER_IMAGE;
+                            }}
+                          />
+                        </div>
+                        <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2 h-8 font-[var(--font-open-sans)] font-normal">
+                          {product.name}
+                        </h3>
+                      </Link>
+                      <div className="flex items-baseline gap-2 mb-2">
+                        <span className="text-sm font-bold text-gray-900">35 990 ₽</span>
+                        <span className="text-xs text-gray-400 line-through">72 000 ₽</span>
                       </div>
-                      <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2 h-8 font-[var(--font-open-sans)] font-normal">
-                        {product.name}
-                      </h3>
-                    </Link>
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-sm font-bold text-gray-900">35 990 ₽</span>
-                      <span className="text-xs text-gray-400 line-through">72 000 ₽</span>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          // TODO: Add to cart logic
+                        }}
+                        className="w-full py-2 bg-[#62bb46] text-white text-sm font-medium rounded hover:bg-[#55a83d] transition-colors"
+                      >
+                        Купить
+                      </button>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        // TODO: Add to cart logic
-                      }}
-                      className="w-full py-2 bg-[#62bb46] text-white text-sm font-medium rounded hover:bg-[#55a83d] transition-colors"
-                    >
-                      Купить
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -449,6 +503,7 @@ function CatalogPageContent() {
         isOpen={mobileFilterOpen}
         onClose={() => setMobileFilterOpen(false)}
         isMobileOnly={true}
+        totalProducts={total}
       />
     </div>
   );

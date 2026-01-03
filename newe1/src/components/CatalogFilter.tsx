@@ -16,7 +16,7 @@ interface FilterValues {
   series: string[];
   widthRange: string;
   heights: number[];
-  depths: number[];
+  depthRange: string;
   priceRange: string;
 }
 
@@ -27,6 +27,7 @@ interface CatalogFilterProps {
   isOpen: boolean;
   onClose: () => void;
   isMobileOnly?: boolean;
+  totalProducts?: number;
 }
 
 // Маппинг типов шкафов для красивого отображения
@@ -35,7 +36,6 @@ const doorTypeLabels: Record<string, string> = {
   'raspashnoy': 'Шкаф распашной',
   'garmoshka': 'Шкаф гармошка',
   'tolkatel': 'Гардероб',
-  'bez-dverey': 'Без дверей',
 };
 // Функция для получения отображаемого имени типа шкафа
 const getDoorTypeLabel = (dt: { slug: string; name: string }): string => {
@@ -52,14 +52,21 @@ const priceRanges = [
   { key: '110000-999999', label: 'от 110 000', min: 110000, max: 999999 },
 ];
 
-// Градации ширины
+// Градации ширины (в см для отображения, в мм для поиска в БД)
 const widthRanges = [
-  { key: '0-109', label: 'до 109', min: 0, max: 109 },
-  { key: '110-139', label: '110-139', min: 110, max: 139 },
-  { key: '140-161', label: '140-161', min: 140, max: 161 },
-  { key: '162-200', label: '162-200', min: 162, max: 200 },
-  { key: '201-239', label: '201-239', min: 201, max: 239 },
-  { key: '240-999', label: 'от 240', min: 240, max: 999 },
+  { key: '0-1090', label: 'до 109', min: 0, max: 1090 },
+  { key: '1100-1390', label: '110-139', min: 1100, max: 1390 },
+  { key: '1400-1610', label: '140-161', min: 1400, max: 1610 },
+  { key: '1620-2000', label: '162-200', min: 1620, max: 2000 },
+  { key: '2010-2390', label: '201-239', min: 2010, max: 2390 },
+  { key: '2400-9990', label: 'от 240', min: 2400, max: 9990 },
+];
+
+// Градации глубины (в см для отображения, в мм для поиска в БД)
+const depthRanges = [
+  { key: '0-450', label: 'до 45', min: 0, max: 450 },
+  { key: '450-530', label: '45-53', min: 450, max: 530 },
+  { key: '530-9990', label: 'свыше 53', min: 530, max: 9990 },
 ];
 
 export default function CatalogFilter({
@@ -69,6 +76,7 @@ export default function CatalogFilter({
   isOpen,
   onClose,
   isMobileOnly = false,
+  totalProducts = 0,
 }: CatalogFilterProps) {
   const [localFilters, setLocalFilters] = useState<FilterValues>(filters);
 
@@ -104,17 +112,14 @@ export default function CatalogFilter({
     onFiltersChange(newFilters);
   };
 
-  const handleDepthToggle = (depth: number) => {
-    const newDepths = localFilters.depths.includes(depth)
-      ? localFilters.depths.filter(d => d !== depth)
-      : [...localFilters.depths, depth];
-    const newFilters = { ...localFilters, depths: newDepths };
+  const handleWidthRangeChange = (key: string) => {
+    const newFilters = { ...localFilters, widthRange: localFilters.widthRange === key ? '' : key };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   };
 
-  const handleWidthRangeChange = (key: string) => {
-    const newFilters = { ...localFilters, widthRange: localFilters.widthRange === key ? '' : key };
+  const handleDepthRangeChange = (key: string) => {
+    const newFilters = { ...localFilters, depthRange: localFilters.depthRange === key ? '' : key };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   };
@@ -131,7 +136,7 @@ export default function CatalogFilter({
       series: [],
       widthRange: '',
       heights: [],
-      depths: [],
+      depthRange: '',
       priceRange: '',
     };
     setLocalFilters(defaultFilters);
@@ -142,7 +147,7 @@ export default function CatalogFilter({
     localFilters.doorTypes.length > 0 ||
     localFilters.series.length > 0 ||
     localFilters.heights.length > 0 ||
-    localFilters.depths.length > 0 ||
+    localFilters.depthRange !== '' ||
     localFilters.widthRange !== '' ||
     localFilters.priceRange !== '';
 
@@ -161,41 +166,66 @@ export default function CatalogFilter({
     );
   }
 
+  // Фильтруем высоты: убираем 390, показываем в см (делим на 10)
+  const filteredHeights = filterOptions.heights
+    .filter(h => h.value !== 390 && h.value > 100) // убираем 390 и слишком маленькие
+    .map(h => ({ ...h, displayValue: Math.round(h.value / 10) })); // конвертируем мм в см
+
   const filterContent = (
-    <div className="space-y-5">
-      {/* Тип шкафа */}
+    <div className="space-y-4">
+      {/* Тип шкафа (без "Без дверей") */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-2 text-sm">Тип шкафа</h3>
-        <div className="space-y-1.5">
-          {filterOptions.doorTypes.map(dt => (
-            <label key={dt.id} className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={localFilters.doorTypes.includes(dt.slug)}
-                onChange={() => handleDoorTypeToggle(dt.slug)}
-                className="w-4 h-4 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
-              />
-              <span className="text-sm text-gray-700 flex-1">{getDoorTypeLabel(dt)}</span>
-              <span className="text-xs text-gray-400">({dt.count})</span>
-            </label>
-          ))}
+        <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Тип шкафа</h3>
+        <div className="space-y-1">
+          {filterOptions.doorTypes
+            .filter(dt => dt.slug !== 'bez-dverey')
+            .map(dt => (
+              <label key={dt.id} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={localFilters.doorTypes.includes(dt.slug)}
+                  onChange={() => handleDoorTypeToggle(dt.slug)}
+                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
+                />
+                <span className="text-xs text-gray-700 flex-1">{getDoorTypeLabel(dt)}</span>
+                <span className="text-[10px] text-gray-400">({dt.count})</span>
+              </label>
+            ))}
         </div>
       </div>
 
       {/* Серия */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-2 text-sm">Серия</h3>
-        <div className="space-y-1.5">
+        <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Серия</h3>
+        <div className="space-y-1">
           {filterOptions.series.map(s => (
             <label key={s.id} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={localFilters.series.includes(s.slug)}
                 onChange={() => handleSeriesToggle(s.slug)}
-                className="w-4 h-4 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
+                className="w-3.5 h-3.5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
               />
-              <span className="text-sm text-gray-700 flex-1">{s.name}</span>
-              <span className="text-xs text-gray-400">({s.count})</span>
+              <span className="text-xs text-gray-700 flex-1">{s.name}</span>
+              <span className="text-[10px] text-gray-400">({s.count})</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Цена (перенесена после серий) */}
+      <div>
+        <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Цена, ₽</h3>
+        <div className="grid grid-cols-2 gap-1">
+          {priceRanges.map(range => (
+            <label key={range.key} className="flex items-center gap-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={localFilters.priceRange === range.key}
+                onChange={() => handlePriceRangeChange(range.key)}
+                className="w-3 h-3 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
+              />
+              <span className="text-[11px] text-gray-700">{range.label}</span>
             </label>
           ))}
         </div>
@@ -203,89 +233,67 @@ export default function CatalogFilter({
 
       {/* Ширина */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-2 text-sm">Ширина, см</h3>
-        <div className="grid grid-cols-2 gap-1.5">
+        <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Ширина, см</h3>
+        <div className="grid grid-cols-2 gap-1">
           {widthRanges.map(range => (
-            <label key={range.key} className="flex items-center gap-1.5 cursor-pointer">
+            <label key={range.key} className="flex items-center gap-1 cursor-pointer">
               <input
                 type="checkbox"
                 checked={localFilters.widthRange === range.key}
                 onChange={() => handleWidthRangeChange(range.key)}
-                className="w-3.5 h-3.5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
+                className="w-3 h-3 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
               />
-              <span className="text-xs text-gray-700">{range.label}</span>
+              <span className="text-[11px] text-gray-700">{range.label}</span>
             </label>
           ))}
         </div>
       </div>
 
-      {/* Высота */}
-      {filterOptions.heights.length > 0 && (
+      {/* Высота (в см, без 390) */}
+      {filteredHeights.length > 0 && (
         <div>
-          <h3 className="font-medium text-gray-900 mb-2 text-sm">Высота, см</h3>
-          <div className="flex flex-wrap gap-1.5">
-            {filterOptions.heights.slice(0, 8).map(h => (
+          <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Высота, см</h3>
+          <div className="flex flex-wrap gap-1">
+            {filteredHeights.slice(0, 8).map(h => (
               <button
                 key={h.value}
                 onClick={() => handleHeightToggle(h.value)}
-                className={`px-2 py-1 text-xs rounded border transition-colors ${
+                className={`px-1.5 py-0.5 text-[11px] rounded border transition-colors ${
                   localFilters.heights.includes(h.value)
                     ? 'bg-[#62bb46] text-white border-[#62bb46]'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-[#62bb46]'
                 }`}
               >
-                {h.value} <span className="opacity-70">({h.count})</span>
+                {h.displayValue} <span className="opacity-70">({h.count})</span>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* Глубина */}
-      {filterOptions.depths.length > 0 && (
-        <div>
-          <h3 className="font-medium text-gray-900 mb-2 text-sm">Глубина, см</h3>
-          <div className="flex flex-wrap gap-1.5">
-            {filterOptions.depths.slice(0, 8).map(d => (
-              <button
-                key={d.value}
-                onClick={() => handleDepthToggle(d.value)}
-                className={`px-2 py-1 text-xs rounded border transition-colors ${
-                  localFilters.depths.includes(d.value)
-                    ? 'bg-[#62bb46] text-white border-[#62bb46]'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-[#62bb46]'
-                }`}
-              >
-                {d.value} <span className="opacity-70">({d.count})</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Цена */}
+      {/* Глубина (градации в см) */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-2 text-sm">Цена, ₽</h3>
-        <div className="grid grid-cols-2 gap-1.5">
-          {priceRanges.map(range => (
-            <label key={range.key} className="flex items-center gap-1.5 cursor-pointer">
+        <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Глубина, см</h3>
+        <div className="grid grid-cols-2 gap-1">
+          {depthRanges.map(range => (
+            <label key={range.key} className="flex items-center gap-1 cursor-pointer">
               <input
                 type="checkbox"
-                checked={localFilters.priceRange === range.key}
-                onChange={() => handlePriceRangeChange(range.key)}
-                className="w-3.5 h-3.5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
+                checked={localFilters.depthRange === range.key}
+                onChange={() => handleDepthRangeChange(range.key)}
+                className="w-3 h-3 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
               />
-              <span className="text-xs text-gray-700">{range.label}</span>
+              <span className="text-[11px] text-gray-700">{range.label}</span>
             </label>
           ))}
         </div>
       </div>
 
-      {/* Кнопка сброса */}
+      {/* Кнопка сброса внизу */}
       {hasActiveFilters && (
         <button
           onClick={resetFilters}
-          className="w-full py-2 text-sm text-[#62bb46] border border-[#62bb46] rounded-lg hover:bg-[#62bb46] hover:text-white transition-colors"
+          className="w-full py-1.5 text-xs text-[#62bb46] border border-[#62bb46] rounded-lg hover:bg-[#62bb46] hover:text-white transition-colors"
         >
           Сбросить фильтры
         </button>
@@ -300,12 +308,25 @@ export default function CatalogFilter({
         <div className="absolute inset-0 bg-black/50" onClick={onClose} />
         <div className="absolute inset-y-0 left-0 w-full max-w-sm bg-white overflow-y-auto">
           <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-            <h2 className="font-bold text-lg text-gray-900">Фильтры</h2>
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <div>
+              <h2 className="font-bold text-base text-gray-900">Фильтры</h2>
+              <p className="text-[11px] text-gray-500">Найдено: {totalProducts}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {hasActiveFilters && (
+                <button
+                  onClick={resetFilters}
+                  className="text-[11px] text-[#62bb46] hover:underline"
+                >
+                  Сбросить
+                </button>
+              )}
+              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
           <div className="p-4">
             {filterContent}
@@ -316,8 +337,19 @@ export default function CatalogFilter({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 sticky top-4">
-      <h2 className="font-bold text-lg text-gray-900 mb-4">Фильтры</h2>
+    <div className="bg-white rounded-xl shadow-sm p-3 sticky top-4">
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="font-bold text-base text-gray-900">Фильтры</h2>
+        {hasActiveFilters && (
+          <button
+            onClick={resetFilters}
+            className="text-[11px] text-[#62bb46] hover:underline"
+          >
+            Сбросить
+          </button>
+        )}
+      </div>
+      <p className="text-[11px] text-gray-500 mb-3">Найдено: {totalProducts}</p>
       {filterContent}
     </div>
   );
