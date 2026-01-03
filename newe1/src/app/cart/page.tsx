@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useCart } from '@/context/CartContext';
+import { useCity } from '@/context/CityContext';
 import Link from 'next/link';
 import Image from 'next/image';
+import DeliveryOptions from '@/components/DeliveryOptions';
 
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
@@ -30,11 +32,31 @@ const formatPhone = (value: string): string => {
   return formatted;
 };
 
+interface DeliveryData {
+  type: 'delivery' | 'pickup';
+  address?: string;
+  liftType: 'none' | 'stairs' | 'elevator';
+  floor?: number;
+  deliveryCost: number;
+  liftCost: number;
+}
+
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, toggleAssembly, clearCart, totalPrice, totalWithAssembly } = useCart();
+  const { city } = useCity();
+
+  // Order step: 'cart' -> 'delivery' -> 'checkout'
+  const [orderStep, setOrderStep] = useState<'cart' | 'delivery' | 'checkout'>('cart');
+
+  // Delivery data
+  const [deliveryData, setDeliveryData] = useState<DeliveryData>({
+    type: 'delivery',
+    liftType: 'none',
+    deliveryCost: 0,
+    liftCost: 0,
+  });
 
   // Checkout form state
-  const [showCheckout, setShowCheckout] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -63,6 +85,14 @@ export default function CartPage() {
     }));
   };
 
+  // Handle delivery options change
+  const handleDeliveryChange = useCallback((data: DeliveryData) => {
+    setDeliveryData(data);
+  }, []);
+
+  // Calculate total with delivery
+  const totalWithDelivery = totalWithAssembly + deliveryData.deliveryCost + deliveryData.liftCost;
+
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -84,6 +114,15 @@ export default function CartPage() {
           customerEmail: formData.email,
           promoCode: formData.promoCode,
           comment: formData.comment,
+          city: city.name,
+          delivery: {
+            type: deliveryData.type,
+            address: deliveryData.address,
+            liftType: deliveryData.liftType,
+            floor: deliveryData.floor,
+            deliveryCost: deliveryData.deliveryCost,
+            liftCost: deliveryData.liftCost,
+          },
           items: items.map(item => ({
             name: item.name,
             slug: item.slug,
@@ -98,7 +137,7 @@ export default function CartPage() {
             includeAssembly: item.includeAssembly,
             assemblyPrice: item.assemblyPrice,
           })),
-          totalPrice: totalWithAssembly,
+          totalPrice: totalWithDelivery,
         }),
       });
 
@@ -289,7 +328,32 @@ export default function CartPage() {
             {/* Order summary */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4">
-                {!showCheckout ? (
+                {/* Step indicator */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${orderStep === 'cart' ? 'bg-[#62bb46] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      1
+                    </div>
+                    <span className={`text-sm ${orderStep === 'cart' ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>Корзина</span>
+                  </div>
+                  <div className="flex-1 h-px bg-gray-200 mx-2" />
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${orderStep === 'delivery' ? 'bg-[#62bb46] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      2
+                    </div>
+                    <span className={`text-sm ${orderStep === 'delivery' ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>Доставка</span>
+                  </div>
+                  <div className="flex-1 h-px bg-gray-200 mx-2" />
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${orderStep === 'checkout' ? 'bg-[#62bb46] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      3
+                    </div>
+                    <span className={`text-sm ${orderStep === 'checkout' ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>Данные</span>
+                  </div>
+                </div>
+
+                {/* Step 1: Cart summary */}
+                {orderStep === 'cart' && (
                   <>
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Итого</h3>
 
@@ -314,15 +378,69 @@ export default function CartPage() {
                     </div>
 
                     <button
-                      onClick={() => setShowCheckout(true)}
+                      onClick={() => setOrderStep('delivery')}
                       className="w-full py-3 bg-[#62bb46] text-white font-bold rounded-xl hover:bg-[#55a83d] transition-colors"
                     >
                       Оформить заказ
                     </button>
                   </>
-                ) : (
+                )}
+
+                {/* Step 2: Delivery options */}
+                {orderStep === 'delivery' && (
+                  <>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Доставка</h3>
+
+                    <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="text-sm text-gray-500">Ваш город:</div>
+                      <div className="font-medium text-gray-900">{city.name}</div>
+                    </div>
+
+                    <DeliveryOptions
+                      cityName={city.name}
+                      onDeliveryChange={handleDeliveryChange}
+                    />
+
+                    <div className="border-t border-gray-200 mt-6 pt-4 space-y-2">
+                      <div className="flex justify-between text-gray-600">
+                        <span>Товары и сборка</span>
+                        <span>{totalWithAssembly.toLocaleString('ru-RU')} ₽</span>
+                      </div>
+                      {(deliveryData.deliveryCost > 0 || deliveryData.liftCost > 0) && (
+                        <div className="flex justify-between text-gray-600">
+                          <span>Доставка и подъём</span>
+                          <span>{(deliveryData.deliveryCost + deliveryData.liftCost).toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xl font-bold text-gray-900 pt-2">
+                        <span>Итого</span>
+                        <span>{totalWithDelivery.toLocaleString('ru-RU')} ₽</span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mt-6">
+                      <button
+                        type="button"
+                        onClick={() => setOrderStep('cart')}
+                        className="flex-1 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                      >
+                        Назад
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setOrderStep('checkout')}
+                        className="flex-1 py-3 bg-[#62bb46] text-white font-bold rounded-xl hover:bg-[#55a83d] transition-colors"
+                      >
+                        Далее
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* Step 3: Checkout form */}
+                {orderStep === 'checkout' && (
                   <form onSubmit={handleSubmitOrder}>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Оформление заказа</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Контактные данные</h3>
 
                     <div className="space-y-4">
                       <div>
@@ -421,17 +539,38 @@ export default function CartPage() {
                       </div>
                     )}
 
-                    <div className="border-t border-gray-200 mt-4 pt-4 mb-4">
-                      <div className="flex justify-between text-xl font-bold text-gray-900">
+                    {/* Order summary */}
+                    <div className="border-t border-gray-200 mt-4 pt-4 space-y-2">
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Товары</span>
+                        <span>{totalPrice.toLocaleString('ru-RU')} ₽</span>
+                      </div>
+                      {totalWithAssembly > totalPrice && (
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Сборка</span>
+                          <span>{(totalWithAssembly - totalPrice).toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>{deliveryData.type === 'pickup' ? 'Самовывоз' : 'Доставка'}</span>
+                        <span>{deliveryData.deliveryCost.toLocaleString('ru-RU')} ₽</span>
+                      </div>
+                      {deliveryData.liftCost > 0 && (
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Подъём на этаж</span>
+                          <span>{deliveryData.liftCost.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xl font-bold text-gray-900 pt-2">
                         <span>К оплате</span>
-                        <span>{totalWithAssembly.toLocaleString('ru-RU')} ₽</span>
+                        <span>{totalWithDelivery.toLocaleString('ru-RU')} ₽</span>
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mt-4">
                       <button
                         type="button"
-                        onClick={() => setShowCheckout(false)}
+                        onClick={() => setOrderStep('delivery')}
                         className="flex-1 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
                       >
                         Назад
