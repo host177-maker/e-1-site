@@ -74,7 +74,7 @@ export default function ProductPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { city } = useCity();
-  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { addToWishlist, removeByProductId, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
   const slug = (params?.slug as string) || '';
   const isInitialLoad = useRef(true);
@@ -627,7 +627,7 @@ export default function ProductPage() {
             <button
               onClick={() => {
                 if (isInWishlist(product.id)) {
-                  removeFromWishlist(product.id);
+                  removeByProductId(product.id);
                 } else {
                   addToWishlist({
                     id: Date.now(),

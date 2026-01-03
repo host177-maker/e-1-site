@@ -38,37 +38,37 @@ interface FilterOptions {
 interface FilterValues {
   doorTypes: string[];
   series: string[];
-  widthRange: string;
+  widthRanges: string[];
   heights: number[];
-  depthRange: string;
-  priceRange: string;
+  depthRanges: string[];
+  priceRanges: string[];
 }
 
 // Градации цены
-const priceRanges = [
-  { key: '0-19999', label: 'до 19 999', min: 0, max: 19999 },
-  { key: '20000-34999', label: '20 000 - 34 999', min: 20000, max: 34999 },
-  { key: '35000-49999', label: '35 000 - 49 999', min: 35000, max: 49999 },
-  { key: '50000-79999', label: '50 000 - 79 999', min: 50000, max: 79999 },
-  { key: '80000-109999', label: '80 000 - 109 999', min: 80000, max: 109999 },
-  { key: '110000-999999', label: 'от 110 000', min: 110000, max: 999999 },
+const priceRangesList = [
+  { key: '0-19999', label: 'до 19 999 ₽', min: 0, max: 19999 },
+  { key: '20000-34999', label: '20 000 - 34 999 ₽', min: 20000, max: 34999 },
+  { key: '35000-49999', label: '35 000 - 49 999 ₽', min: 35000, max: 49999 },
+  { key: '50000-79999', label: '50 000 - 79 999 ₽', min: 50000, max: 79999 },
+  { key: '80000-109999', label: '80 000 - 109 999 ₽', min: 80000, max: 109999 },
+  { key: '110000-999999', label: 'от 110 000 ₽', min: 110000, max: 999999 },
 ];
 
 // Градации ширины (в мм для поиска в БД)
-const widthRanges = [
-  { key: '0-1090', label: 'до 109', min: 0, max: 1090 },
-  { key: '1100-1390', label: '110-139', min: 1100, max: 1390 },
-  { key: '1400-1610', label: '140-161', min: 1400, max: 1610 },
-  { key: '1620-2000', label: '162-200', min: 1620, max: 2000 },
-  { key: '2010-2390', label: '201-239', min: 2010, max: 2390 },
-  { key: '2400-9990', label: 'от 240', min: 2400, max: 9990 },
+const widthRangesList = [
+  { key: '0-1090', label: 'до 109 см', min: 0, max: 1090 },
+  { key: '1100-1390', label: '110-139 см', min: 1100, max: 1390 },
+  { key: '1400-1610', label: '140-161 см', min: 1400, max: 1610 },
+  { key: '1620-2000', label: '162-200 см', min: 1620, max: 2000 },
+  { key: '2010-2390', label: '201-239 см', min: 2010, max: 2390 },
+  { key: '2400-9990', label: 'от 240 см', min: 2400, max: 9990 },
 ];
 
 // Градации глубины (в мм для поиска в БД)
-const depthRanges = [
-  { key: '0-450', label: 'до 45', min: 0, max: 450 },
-  { key: '450-530', label: '45-53', min: 450, max: 530 },
-  { key: '530-9990', label: 'свыше 53', min: 530, max: 9990 },
+const depthRangesList = [
+  { key: '0-450', label: 'до 45 см', min: 0, max: 450 },
+  { key: '450-530', label: '45-53 см', min: 450, max: 530 },
+  { key: '530-9990', label: 'свыше 53 см', min: 530, max: 9990 },
 ];
 
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
@@ -76,10 +76,10 @@ const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 const DEFAULT_FILTERS: FilterValues = {
   doorTypes: [],
   series: [],
-  widthRange: '',
+  widthRanges: [],
   heights: [],
-  depthRange: '',
-  priceRange: '',
+  depthRanges: [],
+  priceRanges: [],
 };
 
 function CatalogPageContent() {
@@ -96,10 +96,10 @@ function CatalogPageContent() {
     return {
       doorTypes: searchParams.get('doorTypes')?.split(',').filter(Boolean) || [],
       series: searchParams.get('series')?.split(',').filter(Boolean) || [],
-      widthRange: searchParams.get('widthRange') || '',
+      widthRanges: searchParams.get('widthRanges')?.split(',').filter(Boolean) || [],
       heights: searchParams.get('heights')?.split(',').map(h => parseInt(h)).filter(h => !isNaN(h)) || [],
-      depthRange: searchParams.get('depthRange') || '',
-      priceRange: searchParams.get('priceRange') || '',
+      depthRanges: searchParams.get('depthRanges')?.split(',').filter(Boolean) || [],
+      priceRanges: searchParams.get('priceRanges')?.split(',').filter(Boolean) || [],
     };
   }, [searchParams]);
 
@@ -131,33 +131,51 @@ function CatalogPageContent() {
       if (filters.series.length > 0) params.set('series', filters.series.join(','));
       if (filters.doorTypes.length > 0) params.set('doorTypes', filters.doorTypes.join(','));
 
-      // Парсим диапазон ширины (уже в мм)
-      if (filters.widthRange) {
-        const widthRange = widthRanges.find(r => r.key === filters.widthRange);
-        if (widthRange) {
-          params.set('widthMin', widthRange.min.toString());
-          params.set('widthMax', widthRange.max.toString());
-        }
+      // Парсим диапазоны ширины (мультивыбор)
+      if (filters.widthRanges.length > 0) {
+        let minWidth = Infinity;
+        let maxWidth = 0;
+        filters.widthRanges.forEach(key => {
+          const range = widthRangesList.find(r => r.key === key);
+          if (range) {
+            minWidth = Math.min(minWidth, range.min);
+            maxWidth = Math.max(maxWidth, range.max);
+          }
+        });
+        if (minWidth !== Infinity) params.set('widthMin', minWidth.toString());
+        if (maxWidth > 0) params.set('widthMax', maxWidth.toString());
       }
 
       if (filters.heights.length > 0) params.set('heights', filters.heights.join(','));
 
-      // Парсим диапазон глубины (в мм)
-      if (filters.depthRange) {
-        const depthRange = depthRanges.find(r => r.key === filters.depthRange);
-        if (depthRange) {
-          params.set('depthMin', depthRange.min.toString());
-          params.set('depthMax', depthRange.max.toString());
-        }
+      // Парсим диапазоны глубины (мультивыбор)
+      if (filters.depthRanges.length > 0) {
+        let minDepth = Infinity;
+        let maxDepth = 0;
+        filters.depthRanges.forEach(key => {
+          const range = depthRangesList.find(r => r.key === key);
+          if (range) {
+            minDepth = Math.min(minDepth, range.min);
+            maxDepth = Math.max(maxDepth, range.max);
+          }
+        });
+        if (minDepth !== Infinity) params.set('depthMin', minDepth.toString());
+        if (maxDepth > 0) params.set('depthMax', maxDepth.toString());
       }
 
-      // Парсим диапазон цены
-      if (filters.priceRange) {
-        const priceRange = priceRanges.find(r => r.key === filters.priceRange);
-        if (priceRange) {
-          params.set('priceMin', priceRange.min.toString());
-          params.set('priceMax', priceRange.max.toString());
-        }
+      // Парсим диапазоны цены (мультивыбор)
+      if (filters.priceRanges.length > 0) {
+        let minPrice = Infinity;
+        let maxPrice = 0;
+        filters.priceRanges.forEach(key => {
+          const range = priceRangesList.find(r => r.key === key);
+          if (range) {
+            minPrice = Math.min(minPrice, range.min);
+            maxPrice = Math.max(maxPrice, range.max);
+          }
+        });
+        if (minPrice !== Infinity) params.set('priceMin', minPrice.toString());
+        if (maxPrice > 0) params.set('priceMax', maxPrice.toString());
       }
 
       params.set('limit', limit.toString());
@@ -216,10 +234,10 @@ function CatalogPageContent() {
     const params = new URLSearchParams();
     if (filters.doorTypes.length > 0) params.set('doorTypes', filters.doorTypes.join(','));
     if (filters.series.length > 0) params.set('series', filters.series.join(','));
-    if (filters.widthRange) params.set('widthRange', filters.widthRange);
+    if (filters.widthRanges.length > 0) params.set('widthRanges', filters.widthRanges.join(','));
     if (filters.heights.length > 0) params.set('heights', filters.heights.join(','));
-    if (filters.depthRange) params.set('depthRange', filters.depthRange);
-    if (filters.priceRange) params.set('priceRange', filters.priceRange);
+    if (filters.depthRanges.length > 0) params.set('depthRanges', filters.depthRanges.join(','));
+    if (filters.priceRanges.length > 0) params.set('priceRanges', filters.priceRanges.join(','));
     if (currentPage > 1) params.set('page', currentPage.toString());
 
     const queryString = params.toString();
@@ -294,9 +312,9 @@ function CatalogPageContent() {
     filters.doorTypes.length > 0,
     filters.series.length > 0,
     filters.heights.length > 0,
-    filters.depthRange !== '',
-    filters.widthRange !== '',
-    filters.priceRange !== '',
+    filters.depthRanges.length > 0,
+    filters.widthRanges.length > 0,
+    filters.priceRanges.length > 0,
   ].filter(Boolean).length;
 
   return (

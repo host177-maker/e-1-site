@@ -14,10 +14,10 @@ interface FilterOptions {
 interface FilterValues {
   doorTypes: string[];
   series: string[];
-  widthRange: string;
+  widthRanges: string[];
   heights: number[];
-  depthRange: string;
-  priceRange: string;
+  depthRanges: string[];
+  priceRanges: string[];
 }
 
 interface CatalogFilterProps {
@@ -42,31 +42,31 @@ const getDoorTypeLabel = (dt: { slug: string; name: string }): string => {
   return doorTypeLabels[dt.slug] || dt.name;
 };
 
-// Градации цены
-const priceRanges = [
-  { key: '0-19999', label: 'до 19 999', min: 0, max: 19999 },
-  { key: '20000-34999', label: '20 000 - 34 999', min: 20000, max: 34999 },
-  { key: '35000-49999', label: '35 000 - 49 999', min: 35000, max: 49999 },
-  { key: '50000-79999', label: '50 000 - 79 999', min: 50000, max: 79999 },
-  { key: '80000-109999', label: '80 000 - 109 999', min: 80000, max: 109999 },
-  { key: '110000-999999', label: 'от 110 000', min: 110000, max: 999999 },
+// Градации цены (с ₽ в конце)
+const priceRangesList = [
+  { key: '0-19999', label: 'до 19 999 ₽', min: 0, max: 19999 },
+  { key: '20000-34999', label: '20 000 - 34 999 ₽', min: 20000, max: 34999 },
+  { key: '35000-49999', label: '35 000 - 49 999 ₽', min: 35000, max: 49999 },
+  { key: '50000-79999', label: '50 000 - 79 999 ₽', min: 50000, max: 79999 },
+  { key: '80000-109999', label: '80 000 - 109 999 ₽', min: 80000, max: 109999 },
+  { key: '110000-999999', label: 'от 110 000 ₽', min: 110000, max: 999999 },
 ];
 
-// Градации ширины (в см для отображения, в мм для поиска в БД)
-const widthRanges = [
-  { key: '0-1090', label: 'до 109', min: 0, max: 1090 },
-  { key: '1100-1390', label: '110-139', min: 1100, max: 1390 },
-  { key: '1400-1610', label: '140-161', min: 1400, max: 1610 },
-  { key: '1620-2000', label: '162-200', min: 1620, max: 2000 },
-  { key: '2010-2390', label: '201-239', min: 2010, max: 2390 },
-  { key: '2400-9990', label: 'от 240', min: 2400, max: 9990 },
+// Градации ширины (в мм для поиска в БД, с см в значении)
+const widthRangesList = [
+  { key: '0-1090', label: 'до 109 см', min: 0, max: 1090 },
+  { key: '1100-1390', label: '110-139 см', min: 1100, max: 1390 },
+  { key: '1400-1610', label: '140-161 см', min: 1400, max: 1610 },
+  { key: '1620-2000', label: '162-200 см', min: 1620, max: 2000 },
+  { key: '2010-2390', label: '201-239 см', min: 2010, max: 2390 },
+  { key: '2400-9990', label: 'от 240 см', min: 2400, max: 9990 },
 ];
 
-// Градации глубины (в см для отображения, в мм для поиска в БД)
-const depthRanges = [
-  { key: '0-450', label: 'до 45', min: 0, max: 450 },
-  { key: '450-530', label: '45-53', min: 450, max: 530 },
-  { key: '530-9990', label: 'свыше 53', min: 530, max: 9990 },
+// Градации глубины (в мм для поиска в БД, с см в значении)
+const depthRangesList = [
+  { key: '0-450', label: 'до 45 см', min: 0, max: 450 },
+  { key: '450-530', label: '45-53 см', min: 450, max: 530 },
+  { key: '530-9990', label: 'свыше 53 см', min: 530, max: 9990 },
 ];
 
 export default function CatalogFilter({
@@ -112,20 +112,29 @@ export default function CatalogFilter({
     onFiltersChange(newFilters);
   };
 
-  const handleWidthRangeChange = (key: string) => {
-    const newFilters = { ...localFilters, widthRange: localFilters.widthRange === key ? '' : key };
+  const handleWidthRangeToggle = (key: string) => {
+    const newWidthRanges = localFilters.widthRanges.includes(key)
+      ? localFilters.widthRanges.filter(w => w !== key)
+      : [...localFilters.widthRanges, key];
+    const newFilters = { ...localFilters, widthRanges: newWidthRanges };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   };
 
-  const handleDepthRangeChange = (key: string) => {
-    const newFilters = { ...localFilters, depthRange: localFilters.depthRange === key ? '' : key };
+  const handleDepthRangeToggle = (key: string) => {
+    const newDepthRanges = localFilters.depthRanges.includes(key)
+      ? localFilters.depthRanges.filter(d => d !== key)
+      : [...localFilters.depthRanges, key];
+    const newFilters = { ...localFilters, depthRanges: newDepthRanges };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   };
 
-  const handlePriceRangeChange = (key: string) => {
-    const newFilters = { ...localFilters, priceRange: localFilters.priceRange === key ? '' : key };
+  const handlePriceRangeToggle = (key: string) => {
+    const newPriceRanges = localFilters.priceRanges.includes(key)
+      ? localFilters.priceRanges.filter(p => p !== key)
+      : [...localFilters.priceRanges, key];
+    const newFilters = { ...localFilters, priceRanges: newPriceRanges };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   };
@@ -134,10 +143,10 @@ export default function CatalogFilter({
     const defaultFilters: FilterValues = {
       doorTypes: [],
       series: [],
-      widthRange: '',
+      widthRanges: [],
       heights: [],
-      depthRange: '',
-      priceRange: '',
+      depthRanges: [],
+      priceRanges: [],
     };
     setLocalFilters(defaultFilters);
     onFiltersChange(defaultFilters);
@@ -147,9 +156,9 @@ export default function CatalogFilter({
     localFilters.doorTypes.length > 0 ||
     localFilters.series.length > 0 ||
     localFilters.heights.length > 0 ||
-    localFilters.depthRange !== '' ||
-    localFilters.widthRange !== '' ||
-    localFilters.priceRange !== '';
+    localFilters.depthRanges.length > 0 ||
+    localFilters.widthRanges.length > 0 ||
+    localFilters.priceRanges.length > 0;
 
   if (!filterOptions) {
     return (
@@ -213,16 +222,16 @@ export default function CatalogFilter({
         </div>
       </div>
 
-      {/* Цена (перенесена после серий) */}
+      {/* Цена (мультивыбор, ₽ в значениях) */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Цена, ₽</h3>
+        <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Цена</h3>
         <div className="grid grid-cols-2 gap-1">
-          {priceRanges.map(range => (
+          {priceRangesList.map(range => (
             <label key={range.key} className="flex items-center gap-1 cursor-pointer">
               <input
                 type="checkbox"
-                checked={localFilters.priceRange === range.key}
-                onChange={() => handlePriceRangeChange(range.key)}
+                checked={localFilters.priceRanges.includes(range.key)}
+                onChange={() => handlePriceRangeToggle(range.key)}
                 className="w-3 h-3 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
               />
               <span className="text-[11px] text-gray-700">{range.label}</span>
@@ -231,16 +240,16 @@ export default function CatalogFilter({
         </div>
       </div>
 
-      {/* Ширина */}
+      {/* Ширина (мультивыбор, см в значениях) */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Ширина, см</h3>
+        <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Ширина</h3>
         <div className="grid grid-cols-2 gap-1">
-          {widthRanges.map(range => (
+          {widthRangesList.map(range => (
             <label key={range.key} className="flex items-center gap-1 cursor-pointer">
               <input
                 type="checkbox"
-                checked={localFilters.widthRange === range.key}
-                onChange={() => handleWidthRangeChange(range.key)}
+                checked={localFilters.widthRanges.includes(range.key)}
+                onChange={() => handleWidthRangeToggle(range.key)}
                 className="w-3 h-3 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
               />
               <span className="text-[11px] text-gray-700">{range.label}</span>
@@ -249,10 +258,10 @@ export default function CatalogFilter({
         </div>
       </div>
 
-      {/* Высота (в см, без 390) */}
+      {/* Высота (см в значениях) */}
       {filteredHeights.length > 0 && (
         <div>
-          <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Высота, см</h3>
+          <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Высота</h3>
           <div className="flex flex-wrap gap-1">
             {filteredHeights.slice(0, 8).map(h => (
               <button
@@ -264,23 +273,23 @@ export default function CatalogFilter({
                     : 'bg-white text-gray-700 border-gray-300 hover:border-[#62bb46]'
                 }`}
               >
-                {h.displayValue} <span className="opacity-70">({h.count})</span>
+                {h.displayValue} см <span className="opacity-70">({h.count})</span>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* Глубина (градации в см) */}
+      {/* Глубина (мультивыбор, см в значениях) */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Глубина, см</h3>
+        <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Глубина</h3>
         <div className="grid grid-cols-2 gap-1">
-          {depthRanges.map(range => (
+          {depthRangesList.map(range => (
             <label key={range.key} className="flex items-center gap-1 cursor-pointer">
               <input
                 type="checkbox"
-                checked={localFilters.depthRange === range.key}
-                onChange={() => handleDepthRangeChange(range.key)}
+                checked={localFilters.depthRanges.includes(range.key)}
+                onChange={() => handleDepthRangeToggle(range.key)}
                 className="w-3 h-3 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
               />
               <span className="text-[11px] text-gray-700">{range.label}</span>
