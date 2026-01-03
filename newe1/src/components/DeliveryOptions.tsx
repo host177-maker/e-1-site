@@ -4,14 +4,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Script from 'next/script';
 
-interface Warehouse {
+interface DeliveryPoint {
   id: number;
   name: string;
-  address: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  phone: string | null;
-  working_hours: string | null;
+  coordinates: [number, number]; // [longitude, latitude]
 }
 
 interface Prices {
@@ -20,16 +16,6 @@ interface Prices {
   floor_lift_price: number;
   elevator_lift_price: number;
   assembly_per_km: number;
-}
-
-interface DeliveryInfo {
-  city: {
-    id: number;
-    name: string;
-    price_group: string | null;
-  };
-  warehouse: Warehouse | null;
-  prices: Prices | null;
 }
 
 interface DeliveryOptionsProps {
@@ -44,8 +30,54 @@ interface DeliveryOptionsProps {
   }) => void;
 }
 
+// Calculate distance between two points using Haversine formula
+function haversineDistance(
+  coord1: [number, number],
+  coord2: [number, number]
+): number {
+  const toRad = (x: number) => (x * Math.PI) / 180;
+  const R = 6371; // Earth's radius in km
+
+  const [lon1, lat1] = coord1;
+  const [lon2, lat2] = coord2;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// Find nearest delivery point to given coordinates
+function findNearestPoint(
+  targetCoords: [number, number],
+  points: DeliveryPoint[]
+): DeliveryPoint | null {
+  if (!points.length) return null;
+
+  let nearest = points[0];
+  let minDist = haversineDistance(targetCoords, points[0].coordinates);
+
+  for (const point of points) {
+    const dist = haversineDistance(targetCoords, point.coordinates);
+    if (dist < minDist) {
+      minDist = dist;
+      nearest = point;
+    }
+  }
+
+  return nearest;
+}
+
 export default function DeliveryOptions({ cityName, onDeliveryChange }: DeliveryOptionsProps) {
-  const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
+  const [deliveryPoints, setDeliveryPoints] = useState<DeliveryPoint[]>([]);
+  const [nearestPoint, setNearestPoint] = useState<DeliveryPoint | null>(null);
+  const [prices, setPrices] = useState<Prices | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,58 +102,124 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
   const markerRef = useRef<any>(null);
   const routeRef = useRef<any>(null);
 
-  // Yandex Maps API Key (same as delivery page)
+  // Yandex Maps API Key
   const YANDEX_API_KEY = '51e35aa4-fa5e-432e-a7c6-e5e71105ec3a';
 
-  // Fetch delivery info for the city
+  // Load delivery points and prices
   useEffect(() => {
-    const fetchDeliveryInfo = async () => {
-      if (!cityName) {
-        setLoading(false);
-        return;
-      }
-
+    const loadData = async () => {
       try {
-        const response = await fetch(`/api/delivery-info?city_name=${encodeURIComponent(cityName)}`);
-        const data = await response.json();
+        // Load delivery points from GeoJSON
+        const pointsRes = await fetch('/api/delivery-points');
+        const pointsData = await pointsRes.json();
 
-        if (data.success) {
-          setDeliveryInfo(data.data);
-        } else {
-          setError(data.error || 'Не удалось получить информацию о доставке');
+        if (pointsData.success) {
+          setDeliveryPoints(pointsData.points);
         }
-      } catch {
-        setError('Ошибка при загрузке информации о доставке');
+
+        // Load prices from service prices (get default or first active)
+        const pricesRes = await fetch('/api/e1admin/service-prices');
+        const pricesData = await pricesRes.json();
+
+        if (pricesData.success && pricesData.data.length > 0) {
+          const priceData = pricesData.data[0];
+          setPrices({
+            delivery_base_price: priceData.delivery_base_price || 0,
+            delivery_per_km: priceData.delivery_per_km || 0,
+            floor_lift_price: priceData.floor_lift_price || 0,
+            elevator_lift_price: priceData.elevator_lift_price || 0,
+            assembly_per_km: priceData.assembly_per_km || 0,
+          });
+        }
+      } catch (err) {
+        console.error('Error loading delivery data:', err);
+        setError('Ошибка загрузки данных доставки');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDeliveryInfo();
-  }, [cityName]);
+    loadData();
+  }, []);
+
+  // Find nearest point when city changes and we have points
+  useEffect(() => {
+    const findNearestByCity = async () => {
+      if (!cityName || deliveryPoints.length === 0) return;
+
+      // First, try to find exact match by name
+      const exactMatch = deliveryPoints.find(
+        p => p.name.toLowerCase() === cityName.toLowerCase()
+      );
+
+      if (exactMatch) {
+        setNearestPoint(exactMatch);
+        return;
+      }
+
+      // Otherwise, geocode the city and find nearest point
+      if (typeof window !== 'undefined' && (window as any).ymaps) {
+        const ymaps = (window as any).ymaps;
+
+        try {
+          await ymaps.ready();
+          const result = await ymaps.geocode(cityName);
+          const firstGeo = result.geoObjects.get(0);
+
+          if (firstGeo) {
+            const cityCoords = firstGeo.geometry.getCoordinates();
+            // Yandex returns [lat, lon] when coordorder is not set
+            // But we set coordorder=longlat, so it returns [lon, lat]
+            const nearest = findNearestPoint(cityCoords as [number, number], deliveryPoints);
+            setNearestPoint(nearest);
+          }
+        } catch {
+          // If geocoding fails, just use first point
+          if (deliveryPoints.length > 0) {
+            setNearestPoint(deliveryPoints[0]);
+          }
+        }
+      } else {
+        // If ymaps not available yet, try to find by partial name match
+        const partialMatch = deliveryPoints.find(
+          p => p.name.toLowerCase().includes(cityName.toLowerCase()) ||
+               cityName.toLowerCase().includes(p.name.toLowerCase())
+        );
+        if (partialMatch) {
+          setNearestPoint(partialMatch);
+        } else if (deliveryPoints.length > 0) {
+          // Default to Moscow or first point
+          const moscow = deliveryPoints.find(p => p.name.toLowerCase() === 'москва');
+          setNearestPoint(moscow || deliveryPoints[0]);
+        }
+      }
+    };
+
+    findNearestByCity();
+  }, [cityName, deliveryPoints]);
 
   // Calculate delivery cost
   const deliveryCost = useCallback(() => {
     if (deliveryType === 'pickup') return 0;
-    if (!deliveryInfo?.prices) return 0;
+    if (!prices) return 0;
 
-    const baseCost = deliveryInfo.prices.delivery_base_price;
-    const kmCost = distance ? distance * deliveryInfo.prices.delivery_per_km : 0;
+    const baseCost = prices.delivery_base_price;
+    const kmCost = distance ? distance * prices.delivery_per_km : 0;
 
     return Math.round(baseCost + kmCost);
-  }, [deliveryType, deliveryInfo, distance]);
+  }, [deliveryType, prices, distance]);
 
   // Calculate lift cost
   const liftCost = useCallback(() => {
     if (deliveryType === 'pickup') return 0;
-    if (!deliveryInfo?.prices) return 0;
+    if (!prices) return 0;
 
     if (liftType === 'none') return 0;
-    if (liftType === 'elevator') return deliveryInfo.prices.elevator_lift_price;
-    if (liftType === 'stairs') return deliveryInfo.prices.floor_lift_price * floor;
+    if (liftType === 'elevator') return prices.elevator_lift_price;
+    if (liftType === 'stairs') return prices.floor_lift_price * floor;
 
     return 0;
-  }, [deliveryType, deliveryInfo, liftType, floor]);
+  }, [deliveryType, prices, liftType, floor]);
 
   // Notify parent of changes
   useEffect(() => {
@@ -137,7 +235,7 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
 
   // Initialize map for pickup
   const initPickupMap = useCallback(() => {
-    if (!deliveryInfo?.warehouse?.latitude || !deliveryInfo?.warehouse?.longitude) return;
+    if (!nearestPoint) return;
     if (!mapRef.current) return;
     if (typeof window === 'undefined' || !(window as any).ymaps) return;
 
@@ -149,23 +247,20 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
         mapInstanceRef.current.destroy();
       }
 
-      const warehouseCoords = [deliveryInfo.warehouse!.longitude, deliveryInfo.warehouse!.latitude];
-
       mapInstanceRef.current = new ymaps.Map(mapRef.current, {
-        center: warehouseCoords,
-        zoom: 15,
+        center: nearestPoint.coordinates,
+        zoom: 12,
         controls: ['zoomControl'],
       });
 
-      // Add warehouse marker
-      const placemark = new ymaps.Placemark(warehouseCoords, {
-        hintContent: deliveryInfo.warehouse!.name,
-        balloonContentHeader: deliveryInfo.warehouse!.name,
+      // Add pickup point marker
+      const placemark = new ymaps.Placemark(nearestPoint.coordinates, {
+        hintContent: nearestPoint.name,
+        balloonContentHeader: `Склад ${nearestPoint.name}`,
         balloonContentBody: `
           <div style="font-size: 14px;">
-            <p><strong>Адрес:</strong> ${deliveryInfo.warehouse!.address || 'Не указан'}</p>
-            <p><strong>Телефон:</strong> ${deliveryInfo.warehouse!.phone || 'Не указан'}</p>
-            <p><strong>Время работы:</strong> ${deliveryInfo.warehouse!.working_hours || 'Не указано'}</p>
+            <p><strong>Пункт выдачи</strong></p>
+            <p>Самовывоз - бесплатно</p>
           </div>
         `,
       }, {
@@ -175,11 +270,11 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
       mapInstanceRef.current.geoObjects.add(placemark);
       placemark.balloon.open();
     });
-  }, [deliveryInfo?.warehouse]);
+  }, [nearestPoint]);
 
   // Initialize map for delivery
   const initDeliveryMap = useCallback(() => {
-    if (!deliveryInfo?.warehouse?.latitude || !deliveryInfo?.warehouse?.longitude) return;
+    if (!nearestPoint) return;
     if (!mapRef.current) return;
     if (typeof window === 'undefined' || !(window as any).ymaps) return;
 
@@ -191,24 +286,22 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
         mapInstanceRef.current.destroy();
       }
 
-      const warehouseCoords = [deliveryInfo.warehouse!.longitude, deliveryInfo.warehouse!.latitude];
-
       mapInstanceRef.current = new ymaps.Map(mapRef.current, {
-        center: warehouseCoords,
-        zoom: 10,
+        center: nearestPoint.coordinates,
+        zoom: 9,
         controls: ['zoomControl', 'searchControl'],
       });
 
       // Add warehouse marker
-      const warehousePlacemark = new ymaps.Placemark(warehouseCoords, {
-        hintContent: 'Склад',
+      const warehousePlacemark = new ymaps.Placemark(nearestPoint.coordinates, {
+        hintContent: `Склад: ${nearestPoint.name}`,
       }, {
         preset: 'islands#blueWarehouseIcon',
       });
 
       mapInstanceRef.current.geoObjects.add(warehousePlacemark);
     });
-  }, [deliveryInfo?.warehouse]);
+  }, [nearestPoint]);
 
   // Calculate route to address
   const calculateRoute = useCallback(async () => {
@@ -217,8 +310,8 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
       return;
     }
 
-    if (!deliveryInfo?.warehouse?.latitude || !deliveryInfo?.warehouse?.longitude) {
-      setAddressError('Склад не настроен для этого города');
+    if (!nearestPoint) {
+      setAddressError('Точка отправки не определена');
       return;
     }
 
@@ -230,6 +323,8 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
     const ymaps = (window as any).ymaps;
 
     try {
+      await ymaps.ready();
+
       // Geocode address
       const geocodeResult = await ymaps.geocode(address);
       const firstResult = geocodeResult.geoObjects.get(0);
@@ -241,13 +336,19 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
       }
 
       const addressCoords = firstResult.geometry.getCoordinates();
-      const warehouseCoords = [deliveryInfo.warehouse!.longitude, deliveryInfo.warehouse!.latitude];
+
+      // Find nearest delivery point to the destination address
+      const nearestToAddress = findNearestPoint(addressCoords as [number, number], deliveryPoints);
+      if (nearestToAddress && nearestToAddress.id !== nearestPoint.id) {
+        setNearestPoint(nearestToAddress);
+      }
+      const startPoint = nearestToAddress || nearestPoint;
 
       // Clear previous route and marker
-      if (routeRef.current) {
+      if (routeRef.current && mapInstanceRef.current) {
         mapInstanceRef.current.geoObjects.remove(routeRef.current);
       }
-      if (markerRef.current) {
+      if (markerRef.current && mapInstanceRef.current) {
         mapInstanceRef.current.geoObjects.remove(markerRef.current);
       }
 
@@ -260,34 +361,50 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
 
       mapInstanceRef.current.geoObjects.add(markerRef.current);
 
-      // Build route
-      const route = await ymaps.route([warehouseCoords, addressCoords], {
-        routingMode: 'auto',
+      // Build route using multiRouter for better routing
+      const multiRoute = new ymaps.multiRouter.MultiRoute({
+        referencePoints: [
+          startPoint.coordinates,
+          addressCoords
+        ],
+        params: {
+          routingMode: 'auto'
+        }
+      }, {
+        boundsAutoApply: true,
+        routeActiveStrokeWidth: 4,
+        routeActiveStrokeColor: '#1bad03',
       });
 
-      routeRef.current = route;
-      mapInstanceRef.current.geoObjects.add(route);
+      mapInstanceRef.current.geoObjects.add(multiRoute);
+      routeRef.current = multiRoute;
 
-      // Get distance
-      const routeLength = route.getLength();
-      const distanceKm = Math.round(routeLength / 1000);
-      setDistance(distanceKm);
-
-      // Fit map to route
-      mapInstanceRef.current.setBounds(route.getBounds(), {
-        checkZoomRange: true,
-        zoomMargin: 30,
+      // Wait for route to be built and get distance
+      multiRoute.model.events.add('requestsuccess', () => {
+        const activeRoute = multiRoute.getActiveRoute();
+        if (activeRoute) {
+          const routeLength = activeRoute.properties.get('distance').value;
+          const distanceKm = Math.round(routeLength / 1000);
+          setDistance(distanceKm);
+        }
       });
-    } catch {
+
+      multiRoute.model.events.add('requestfail', () => {
+        setAddressError('Не удалось построить маршрут');
+        setCalculating(false);
+      });
+
+    } catch (err) {
+      console.error('Route calculation error:', err);
       setAddressError('Ошибка при расчёте маршрута');
     } finally {
       setCalculating(false);
     }
-  }, [address, deliveryInfo?.warehouse]);
+  }, [address, nearestPoint, deliveryPoints]);
 
   // Initialize appropriate map when delivery type changes
   useEffect(() => {
-    if (loading || !deliveryInfo) return;
+    if (loading || !nearestPoint) return;
 
     // Small delay to ensure DOM is ready
     const timer = setTimeout(() => {
@@ -299,7 +416,7 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [deliveryType, loading, deliveryInfo, initPickupMap, initDeliveryMap]);
+  }, [deliveryType, loading, nearestPoint, initPickupMap, initDeliveryMap]);
 
   if (loading) {
     return (
@@ -352,12 +469,12 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
             <button
               type="button"
               onClick={() => setDeliveryType('pickup')}
-              disabled={!deliveryInfo?.warehouse}
+              disabled={!nearestPoint}
               className={`p-4 rounded-lg border-2 text-left transition-colors ${
                 deliveryType === 'pickup'
                   ? 'border-[#62bb46] bg-[#62bb46]/5'
                   : 'border-gray-200 hover:border-gray-300'
-              } ${!deliveryInfo?.warehouse ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${!nearestPoint ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <div className="flex items-center gap-3">
                 <svg className={`w-6 h-6 ${deliveryType === 'pickup' ? 'text-[#62bb46]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -373,39 +490,22 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
         </div>
 
         {/* Pickup info */}
-        {deliveryType === 'pickup' && deliveryInfo?.warehouse && (
+        {deliveryType === 'pickup' && nearestPoint && (
           <div className="bg-gray-50 rounded-lg p-4 space-y-4">
             <div>
-              <h4 className="font-medium text-gray-900 mb-2">Склад самовывоза</h4>
+              <h4 className="font-medium text-gray-900 mb-2">Пункт самовывоза</h4>
               <div className="space-y-2 text-sm">
-                <p className="font-medium">{deliveryInfo.warehouse.name}</p>
-                {deliveryInfo.warehouse.address && (
-                  <p className="text-gray-600">
-                    <span className="text-gray-500">Адрес:</span> {deliveryInfo.warehouse.address}
-                  </p>
-                )}
-                {deliveryInfo.warehouse.phone && (
-                  <p className="text-gray-600">
-                    <span className="text-gray-500">Телефон:</span>{' '}
-                    <a href={`tel:${deliveryInfo.warehouse.phone}`} className="text-[#62bb46]">
-                      {deliveryInfo.warehouse.phone}
-                    </a>
-                  </p>
-                )}
-                {deliveryInfo.warehouse.working_hours && (
-                  <p className="text-gray-600">
-                    <span className="text-gray-500">Время работы:</span> {deliveryInfo.warehouse.working_hours}
-                  </p>
-                )}
+                <p className="font-medium">{nearestPoint.name}</p>
+                <p className="text-gray-600">
+                  Ближайший пункт выдачи к вашему городу
+                </p>
               </div>
             </div>
 
-            {deliveryInfo.warehouse.latitude && deliveryInfo.warehouse.longitude && (
-              <div
-                ref={mapRef}
-                className="w-full h-[250px] rounded-lg border border-gray-200"
-              />
-            )}
+            <div
+              ref={mapRef}
+              className="w-full h-[250px] rounded-lg border border-gray-200"
+            />
 
             <div className="text-lg font-bold text-[#62bb46]">
               Стоимость: 0 ₽
@@ -416,6 +516,14 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
         {/* Delivery options */}
         {deliveryType === 'delivery' && (
           <div className="space-y-4">
+            {/* Nearest warehouse info */}
+            {nearestPoint && (
+              <div className="p-3 bg-blue-50 rounded-lg text-sm">
+                <span className="text-blue-600">Ближайший склад: </span>
+                <span className="font-medium text-blue-800">{nearestPoint.name}</span>
+              </div>
+            )}
+
             {/* Address input */}
             <div>
               <h4 className="font-medium text-gray-900 mb-3">Адрес доставки</h4>
@@ -424,6 +532,7 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && calculateRoute()}
                   placeholder="Введите адрес доставки"
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent outline-none"
                 />
@@ -433,7 +542,7 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
                   disabled={calculating || !address.trim()}
                   className="px-4 py-3 bg-[#62bb46] text-white rounded-lg hover:bg-[#55a83d] transition-colors disabled:opacity-50"
                 >
-                  {calculating ? 'Расчёт...' : 'Рассчитать'}
+                  {calculating ? 'Расчёт...' : 'Найти'}
                 </button>
               </div>
               {addressError && (
@@ -442,7 +551,7 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
             </div>
 
             {/* Map */}
-            {deliveryInfo?.warehouse?.latitude && deliveryInfo?.warehouse?.longitude && (
+            {nearestPoint && (
               <div
                 ref={mapRef}
                 className="w-full h-[300px] rounded-lg border border-gray-200"
@@ -493,9 +602,9 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
                   />
                   <div className="flex-1">
                     <span className="font-medium">Подъём без грузового лифта</span>
-                    {deliveryInfo?.prices && (
+                    {prices && (
                       <span className="text-sm text-gray-500 ml-2">
-                        ({deliveryInfo.prices.floor_lift_price.toLocaleString('ru-RU')} ₽ за этаж)
+                        ({prices.floor_lift_price.toLocaleString('ru-RU')} ₽ за этаж)
                       </span>
                     )}
                   </div>
@@ -531,9 +640,9 @@ export default function DeliveryOptions({ cityName, onDeliveryChange }: Delivery
                   <div className="flex-1">
                     <span className="font-medium">Подъём с грузовым лифтом</span>
                   </div>
-                  {deliveryInfo?.prices && (
+                  {prices && (
                     <span className="text-gray-500">
-                      {deliveryInfo.prices.elevator_lift_price.toLocaleString('ru-RU')} ₽
+                      {prices.elevator_lift_price.toLocaleString('ru-RU')} ₽
                     </span>
                   )}
                 </label>

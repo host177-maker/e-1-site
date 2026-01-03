@@ -1,90 +1,351 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import Script from 'next/script';
 
+interface DeliveryPoint {
+  id: number;
+  name: string;
+  coordinates: [number, number];
+}
+
+interface Prices {
+  delivery_base_price: number;
+  delivery_per_km: number;
+  floor_lift_price: number;
+  elevator_lift_price: number;
+  assembly_per_km: number;
+}
+
+interface DeliveryResult {
+  nearestPoint: DeliveryPoint;
+  distance: number;
+  cost: number;
+  regionName: string;
+}
+
+// Calculate distance between two points using Haversine formula
+function haversineDistance(
+  coord1: [number, number],
+  coord2: [number, number]
+): number {
+  const toRad = (x: number) => (x * Math.PI) / 180;
+  const R = 6371;
+
+  const [lon1, lat1] = coord1;
+  const [lon2, lat2] = coord2;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+function findNearestPoint(
+  targetCoords: [number, number],
+  points: DeliveryPoint[]
+): DeliveryPoint | null {
+  if (!points.length) return null;
+
+  let nearest = points[0];
+  let minDist = haversineDistance(targetCoords, points[0].coordinates);
+
+  for (const point of points) {
+    const dist = haversineDistance(targetCoords, point.coordinates);
+    if (dist < minDist) {
+      minDist = dist;
+      nearest = point;
+    }
+  }
+
+  return nearest;
+}
+
 export default function DeliveryMapPage() {
+  const [deliveryPoints, setDeliveryPoints] = useState<DeliveryPoint[]>([]);
+  const [prices, setPrices] = useState<Prices | null>(null);
+  const [deliveryResult, setDeliveryResult] = useState<DeliveryResult | null>(null);
+  const [searchAddress, setSearchAddress] = useState('');
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+
+  const mapRef = useRef<any>(null);
+  const routeRef = useRef<any>(null);
+  const destinationMarkerRef = useRef<any>(null);
+  const resultPopupRef = useRef<HTMLDivElement>(null);
+
+  // Load delivery points and prices
   useEffect(() => {
-    // Инициализация карты после загрузки API
-    const initMap = () => {
-      if (typeof window !== 'undefined' && (window as any).ymaps) {
-        const ymaps = (window as any).ymaps;
-        ymaps.ready(() => {
-          const map = new ymaps.Map('map', {
-            center: [37.617644, 55.755819],
-            zoom: 4,
-            controls: ['zoomControl', 'geolocationControl', 'searchControl', 'fullscreenControl'],
-          }, {
-            searchControlProvider: 'yandex#search',
+    const loadData = async () => {
+      try {
+        const [pointsRes, pricesRes] = await Promise.all([
+          fetch('/api/delivery-points'),
+          fetch('/api/e1admin/service-prices')
+        ]);
+
+        const pointsData = await pointsRes.json();
+        const pricesData = await pricesRes.json();
+
+        if (pointsData.success) {
+          setDeliveryPoints(pointsData.points);
+        }
+
+        if (pricesData.success && pricesData.data.length > 0) {
+          const priceData = pricesData.data[0];
+          setPrices({
+            delivery_base_price: priceData.delivery_base_price || 0,
+            delivery_per_km: priceData.delivery_per_km || 0,
+            floor_lift_price: priceData.floor_lift_price || 0,
+            elevator_lift_price: priceData.elevator_lift_price || 0,
+            assembly_per_km: priceData.assembly_per_km || 0,
           });
-
-          map.controls.get('zoomControl').options.set({ size: 'small' });
-          map.controls.get('searchControl').options.set({
-            noPlacemark: true,
-            placeholderContent: 'Введите ваш город и адрес'
-          });
-
-          // Загружаем GeoJSON с зонами доставки
-          fetch('/upload/delivery-locations.geojson')
-            .then(res => res.json())
-            .then(geoJson => {
-              ymaps.geoQuery(geoJson).addToMap(map).each((obj: any) => {
-                obj.options.set({
-                  fillColor: obj.properties.get('fill'),
-                  fillOpacity: obj.properties.get('fill-opacity'),
-                  strokeColor: obj.properties.get('stroke'),
-                  strokeWidth: obj.properties.get('stroke-width'),
-                  strokeOpacity: obj.properties.get('stroke-opacity'),
-                });
-              });
-            })
-            .catch(() => {
-              // Если файл не найден, добавляем базовые метки городов
-              const cities = [
-                { name: 'Москва', coords: [37.617644, 55.755819] },
-                { name: 'Санкт-Петербург', coords: [30.315868, 59.939095] },
-                { name: 'Краснодар', coords: [38.975313, 45.035470] },
-                { name: 'Ростов-на-Дону', coords: [39.701505, 47.235713] },
-                { name: 'Екатеринбург', coords: [60.597474, 56.838011] },
-                { name: 'Новосибирск', coords: [82.920430, 55.030199] },
-                { name: 'Казань', coords: [49.108891, 55.796127] },
-                { name: 'Нижний Новгород', coords: [43.936059, 56.326887] },
-                { name: 'Самара', coords: [50.221243, 53.195878] },
-                { name: 'Воронеж', coords: [39.200269, 51.660781] },
-                { name: 'Волгоград', coords: [44.516939, 48.707067] },
-                { name: 'Уфа', coords: [55.958736, 54.735152] },
-                { name: 'Челябинск', coords: [61.402554, 55.160026] },
-                { name: 'Пермь', coords: [56.229398, 58.010455] },
-                { name: 'Саратов', coords: [46.034158, 51.533557] },
-                { name: 'Тюмень', coords: [68.970682, 57.153033] },
-                { name: 'Омск', coords: [73.368212, 54.989347] },
-                { name: 'Красноярск', coords: [92.852572, 56.010563] },
-                { name: 'Ставрополь', coords: [41.977418, 45.044820] },
-                { name: 'Сочи', coords: [39.730099, 43.585525] },
-              ];
-
-              cities.forEach(city => {
-                const placemark = new ymaps.Placemark(city.coords, {
-                  hintContent: city.name,
-                  balloonContent: `<strong>${city.name}</strong><br/>Фирменный салон Е1`,
-                }, {
-                  preset: 'islands#greenDotIcon',
-                });
-                map.geoObjects.add(placemark);
-              });
-            });
-        });
+        }
+      } catch (error) {
+        console.error('Error loading delivery data:', error);
       }
     };
 
-    // Проверяем, загружен ли уже API
-    if ((window as any).ymaps) {
-      initMap();
-    } else {
-      (window as any).initYandexMap = initMap;
+    loadData();
+  }, []);
+
+  // Initialize map
+  const initMap = useCallback(() => {
+    if (typeof window === 'undefined' || !(window as any).ymaps) return;
+    if (mapRef.current) return; // Already initialized
+
+    const ymaps = (window as any).ymaps;
+
+    ymaps.ready(() => {
+      const map = new ymaps.Map('map', {
+        center: [37.617644, 55.755819],
+        zoom: 4,
+        controls: ['zoomControl', 'geolocationControl', 'fullscreenControl'],
+      });
+
+      mapRef.current = map;
+      setMapReady(true);
+
+      // Add search control with custom behavior
+      const searchControl = new ymaps.control.SearchControl({
+        options: {
+          noPlacemark: true,
+          placeholderContent: 'Введите адрес доставки',
+          size: 'large',
+        }
+      });
+
+      map.controls.add(searchControl);
+
+      // Handle search results
+      searchControl.events.add('resultselect', async (e: any) => {
+        const index = e.get('index');
+        const results = searchControl.getResultsArray();
+        if (results && results[index]) {
+          const coords = results[index].geometry.getCoordinates();
+          const address = results[index].properties.get('text');
+          setSearchAddress(address);
+          calculateDelivery(coords, address);
+        }
+      });
+
+      // Handle map click
+      map.events.add('click', async (e: any) => {
+        const coords = e.get('coords');
+        // Reverse geocode to get address
+        try {
+          const result = await ymaps.geocode(coords);
+          const firstGeo = result.geoObjects.get(0);
+          if (firstGeo) {
+            const address = firstGeo.getAddressLine();
+            setSearchAddress(address);
+            calculateDelivery(coords, address);
+          }
+        } catch (err) {
+          console.error('Reverse geocode error:', err);
+        }
+      });
+
+      // Load GeoJSON zones
+      fetch('/upload/delivery-locations.geojson')
+        .then(res => res.json())
+        .then(geoJson => {
+          ymaps.geoQuery(geoJson).addToMap(map).each((obj: any) => {
+            if (obj.geometry.getType() === 'Polygon') {
+              obj.options.set({
+                fillColor: obj.properties.get('fill') || '#56db40',
+                fillOpacity: obj.properties.get('fill-opacity') || 0.2,
+                strokeColor: obj.properties.get('stroke') || '#1bad03',
+                strokeWidth: obj.properties.get('stroke-width') || 2,
+                strokeOpacity: obj.properties.get('stroke-opacity') || 1,
+              });
+            }
+          });
+
+          // Add delivery point markers
+          geoJson.features
+            .filter((f: any) => f.geometry.type === 'Point')
+            .forEach((f: any) => {
+              const placemark = new ymaps.Placemark(f.geometry.coordinates, {
+                hintContent: f.properties.description,
+              }, {
+                preset: 'islands#greenDotIcon',
+              });
+              map.geoObjects.add(placemark);
+            });
+        })
+        .catch(console.error);
+    });
+  }, []);
+
+  // Calculate delivery from nearest point to destination
+  const calculateDelivery = useCallback(async (destCoords: [number, number], address: string) => {
+    if (!deliveryPoints.length || !prices || !mapRef.current) return;
+    if (typeof window === 'undefined' || !(window as any).ymaps) return;
+
+    setIsCalculating(true);
+    setDeliveryResult(null);
+
+    const ymaps = (window as any).ymaps;
+
+    try {
+      // Find nearest delivery point
+      const nearestPoint = findNearestPoint(destCoords, deliveryPoints);
+      if (!nearestPoint) {
+        setIsCalculating(false);
+        return;
+      }
+
+      // Clear previous route and marker
+      if (routeRef.current) {
+        mapRef.current.geoObjects.remove(routeRef.current);
+        routeRef.current = null;
+      }
+      if (destinationMarkerRef.current) {
+        mapRef.current.geoObjects.remove(destinationMarkerRef.current);
+        destinationMarkerRef.current = null;
+      }
+
+      // Add destination marker
+      destinationMarkerRef.current = new ymaps.Placemark(destCoords, {
+        hintContent: 'Адрес доставки',
+        balloonContent: address,
+      }, {
+        preset: 'islands#redDotIcon',
+      });
+      mapRef.current.geoObjects.add(destinationMarkerRef.current);
+
+      // Build route
+      const multiRoute = new ymaps.multiRouter.MultiRoute({
+        referencePoints: [
+          nearestPoint.coordinates,
+          destCoords
+        ],
+        params: {
+          routingMode: 'auto'
+        }
+      }, {
+        boundsAutoApply: true,
+        routeActiveStrokeWidth: 4,
+        routeActiveStrokeColor: '#1bad03',
+      });
+
+      mapRef.current.geoObjects.add(multiRoute);
+      routeRef.current = multiRoute;
+
+      // Wait for route calculation
+      multiRoute.model.events.add('requestsuccess', () => {
+        const activeRoute = multiRoute.getActiveRoute();
+        if (activeRoute) {
+          const routeLength = activeRoute.properties.get('distance').value;
+          const distanceKm = Math.round(routeLength / 1000);
+          const cost = Math.round(prices.delivery_base_price + distanceKm * prices.delivery_per_km);
+
+          // Get region name from reverse geocode
+          ymaps.geocode(destCoords).then((result: any) => {
+            const firstGeo = result.geoObjects.get(0);
+            let regionName = '';
+            if (firstGeo) {
+              const addressDetails = firstGeo.properties.get('metaDataProperty.GeocoderMetaData.AddressDetails');
+              if (addressDetails?.Country?.AdministrativeArea) {
+                regionName = addressDetails.Country.AdministrativeArea.AdministrativeAreaName || '';
+              }
+            }
+
+            setDeliveryResult({
+              nearestPoint,
+              distance: distanceKm,
+              cost,
+              regionName: regionName || nearestPoint.name,
+            });
+            setIsCalculating(false);
+          }).catch(() => {
+            setDeliveryResult({
+              nearestPoint,
+              distance: distanceKm,
+              cost,
+              regionName: nearestPoint.name,
+            });
+            setIsCalculating(false);
+          });
+        }
+      });
+
+      multiRoute.model.events.add('requestfail', () => {
+        console.error('Route calculation failed');
+        setIsCalculating(false);
+      });
+
+    } catch (error) {
+      console.error('Delivery calculation error:', error);
+      setIsCalculating(false);
+    }
+  }, [deliveryPoints, prices]);
+
+  // Search by address
+  const handleSearch = useCallback(async () => {
+    if (!searchAddress.trim() || !mapRef.current) return;
+    if (typeof window === 'undefined' || !(window as any).ymaps) return;
+
+    const ymaps = (window as any).ymaps;
+
+    try {
+      const result = await ymaps.geocode(searchAddress);
+      const firstGeo = result.geoObjects.get(0);
+      if (firstGeo) {
+        const coords = firstGeo.geometry.getCoordinates();
+        calculateDelivery(coords, searchAddress);
+      }
+    } catch (error) {
+      console.error('Geocode error:', error);
+    }
+  }, [searchAddress, calculateDelivery]);
+
+  // Close result popup
+  const closeResult = useCallback(() => {
+    setDeliveryResult(null);
+    if (routeRef.current && mapRef.current) {
+      mapRef.current.geoObjects.remove(routeRef.current);
+      routeRef.current = null;
+    }
+    if (destinationMarkerRef.current && mapRef.current) {
+      mapRef.current.geoObjects.remove(destinationMarkerRef.current);
+      destinationMarkerRef.current = null;
     }
   }, []);
+
+  // Initialize map when ymaps is loaded
+  useEffect(() => {
+    if ((window as any).ymaps && deliveryPoints.length > 0) {
+      initMap();
+    }
+  }, [deliveryPoints, initMap]);
 
   return (
     <>
@@ -92,8 +353,8 @@ export default function DeliveryMapPage() {
         src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&coordorder=longlat&apikey=51e35aa4-fa5e-432e-a7c6-e5e71105ec3a"
         strategy="afterInteractive"
         onLoad={() => {
-          if ((window as any).initYandexMap) {
-            (window as any).initYandexMap();
+          if (deliveryPoints.length > 0) {
+            initMap();
           }
         }}
       />
@@ -110,17 +371,93 @@ export default function DeliveryMapPage() {
 
         {/* Main content */}
         <div className="container-custom py-8">
-          {/* Intro text */}
-          <p className="text-gray-600 leading-relaxed mb-6 text-lg">
-            Введите в поисковой строке карты ваш город и адрес — калькулятор рассчитает стоимость доставки
-          </p>
+          {/* Search bar */}
+          <div className="mb-6">
+            <div className="flex gap-2 max-w-2xl">
+              <input
+                type="text"
+                value={searchAddress}
+                onChange={(e) => setSearchAddress(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                placeholder="Введите адрес доставки"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent outline-none"
+              />
+              <button
+                onClick={handleSearch}
+                disabled={isCalculating || !searchAddress.trim()}
+                className="px-6 py-3 bg-[#62bb46] text-white font-medium rounded-lg hover:bg-[#55a83d] transition-colors disabled:opacity-50"
+              >
+                {isCalculating ? 'Расчёт...' : 'Найти'}
+              </button>
+            </div>
+            <p className="text-gray-500 text-sm mt-2">
+              Или кликните на карте, чтобы выбрать точку доставки
+            </p>
+          </div>
 
           {/* Map section */}
-          <div className="mb-10">
+          <div className="mb-10 relative">
             <div
               id="map"
-              className="map w-full h-[400px] md:h-[500px] rounded-lg border border-gray-200"
+              className="map w-full h-[500px] md:h-[600px] rounded-lg border border-gray-200"
             />
+
+            {/* Delivery result popup */}
+            {deliveryResult && (
+              <div
+                ref={resultPopupRef}
+                className="absolute top-4 right-4 bg-white rounded-lg shadow-xl p-6 max-w-sm z-10"
+              >
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                  Расчетная стоимость доставки
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  {deliveryResult.regionName}
+                </p>
+
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Расстояние:</span>
+                    <span className="font-medium">{deliveryResult.distance} км</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Стоимость доставки:</span>
+                    <span className="font-bold text-lg">{deliveryResult.cost.toLocaleString('ru-RU')} рублей</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 flex-wrap">
+                  <button
+                    onClick={closeResult}
+                    className="px-4 py-2 border border-[#f7a600] text-[#f7a600] rounded-lg hover:bg-[#f7a600] hover:text-white transition-colors text-sm font-medium"
+                  >
+                    ЗАКРЫТЬ
+                  </button>
+                  <a
+                    href="/catalog"
+                    className="px-4 py-2 bg-[#62bb46] text-white rounded-lg hover:bg-[#55a83d] transition-colors text-sm font-medium"
+                  >
+                    ПРОДОЛЖИТЬ ПОКУПКИ
+                  </a>
+                  <a
+                    href="/cart"
+                    className="px-4 py-2 bg-[#f7a600] text-white rounded-lg hover:bg-[#e09500] transition-colors text-sm font-medium"
+                  >
+                    В КОРЗИНУ
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Loading overlay */}
+            {isCalculating && (
+              <div className="absolute inset-0 bg-white/50 flex items-center justify-center rounded-lg">
+                <div className="bg-white rounded-lg shadow-lg p-4 flex items-center gap-3">
+                  <div className="w-6 h-6 border-3 border-[#62bb46] border-t-transparent rounded-full animate-spin" />
+                  <span className="text-gray-600">Расчёт маршрута...</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Content sections */}
@@ -140,6 +477,30 @@ export default function DeliveryMapPage() {
               </p>
             </div>
 
+            {/* Price info */}
+            {prices && (
+              <div className="bg-[#f9f9fa] rounded-lg p-6">
+                <h3 className="text-lg font-bold text-[#3d4543] mb-4">Тарифы на доставку</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Базовая стоимость:</span>
+                    <span className="font-medium">{prices.delivery_base_price.toLocaleString('ru-RU')} ₽</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">За каждый км:</span>
+                    <span className="font-medium">{prices.delivery_per_km.toLocaleString('ru-RU')} ₽</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Подъём без лифта (за этаж):</span>
+                    <span className="font-medium">{prices.floor_lift_price.toLocaleString('ru-RU')} ₽</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Подъём с грузовым лифтом:</span>
+                    <span className="font-medium">{prices.elevator_lift_price.toLocaleString('ru-RU')} ₽</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
