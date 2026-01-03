@@ -135,6 +135,7 @@ export default function DeliveryMapPage() {
   const routeRef = useRef<any>(null);
   const destinationMarkerRef = useRef<any>(null);
   const resultPopupRef = useRef<HTMLDivElement>(null);
+  const calculateDeliveryRef = useRef<((coords: [number, number], address: string) => void) | null>(null);
 
   // Load delivery points and prices
   useEffect(() => {
@@ -206,7 +207,10 @@ export default function DeliveryMapPage() {
           const coords = results[index].geometry.getCoordinates();
           const address = results[index].properties.get('text');
           setSearchAddress(address);
-          calculateDelivery(coords, address);
+          // Use ref to get latest function
+          if (calculateDeliveryRef.current) {
+            calculateDeliveryRef.current(coords, address);
+          }
         }
       });
 
@@ -220,7 +224,10 @@ export default function DeliveryMapPage() {
           if (firstGeo) {
             const address = firstGeo.getAddressLine();
             setSearchAddress(address);
-            calculateDelivery(coords, address);
+            // Use ref to get latest function
+            if (calculateDeliveryRef.current) {
+              calculateDeliveryRef.current(coords, address);
+            }
           }
         } catch (err) {
           console.error('Reverse geocode error:', err);
@@ -362,6 +369,11 @@ export default function DeliveryMapPage() {
       setIsCalculating(false);
     }
   }, [deliveryPoints, prices]);
+
+  // Keep ref updated with latest calculateDelivery function
+  useEffect(() => {
+    calculateDeliveryRef.current = calculateDelivery;
+  }, [calculateDelivery]);
 
   // Search by address
   const handleSearch = useCallback(async () => {
