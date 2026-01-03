@@ -144,7 +144,7 @@ export default function Header() {
                   muted
                   playsInline
                 >
-                  <source src="/images/Messenger.mp4" type="video/mp4" />
+                  <source src="/images/messenger.mp4" type="video/mp4" />
                 </video>
               </button>
             </div>
@@ -170,7 +170,7 @@ export default function Header() {
                   muted
                   playsInline
                 >
-                  <source src="/images/Messenger.mp4" type="video/mp4" />
+                  <source src="/images/messenger.mp4" type="video/mp4" />
                 </video>
               </button>
               {/* Favorites - desktop only in compact */}
@@ -379,7 +379,7 @@ export default function Header() {
                     muted
                     playsInline
                   >
-                    <source src="/images/Messenger.mp4" type="video/mp4" />
+                    <source src="/images/messenger.mp4" type="video/mp4" />
                   </video>
                 </button>
 
