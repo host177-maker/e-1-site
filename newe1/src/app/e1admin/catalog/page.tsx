@@ -43,6 +43,7 @@ interface ImportResult {
     fillings: number;
     products: number;
     variants: number;
+    services?: number;
     skipped?: number;
     skippedFillings?: number;
   };
@@ -543,6 +544,12 @@ export default function CatalogPage() {
                         <span className="text-gray-500">Вариантов:</span>
                         <span className="font-medium ml-1">{importResult.stats.variants}</span>
                       </div>
+                      {importResult.stats.services !== undefined && importResult.stats.services > 0 && (
+                        <div>
+                          <span className="text-gray-500">Услуг:</span>
+                          <span className="font-medium ml-1">{importResult.stats.services}</span>
+                        </div>
+                      )}
                       {importResult.stats.skipped !== undefined && importResult.stats.skipped > 0 && (
                         <div>
                           <span className="text-red-500">Пропущено товаров:</span>

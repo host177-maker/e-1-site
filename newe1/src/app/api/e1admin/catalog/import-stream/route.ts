@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
           fillings: result.fillingsCount,
           products: result.productsCount,
           variants: result.variantsCount,
+          services: result.servicesCount,
           skipped: result.skippedRows.length,
           skippedFillings: result.skippedFillings.length
         },
@@ -119,6 +120,8 @@ function parseExcelData(workbook: XLSX.WorkBook) {
   const fillings: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bodyColors: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const services: any[] = [];
   // Пропущенные строки с причинами
   const skippedRows: { row: number; article: string; cardName: string; reason: string }[] = [];
 
@@ -290,7 +293,23 @@ function parseExcelData(workbook: XLSX.WorkBook) {
     }
   }
 
-  return { products, series, fillings, bodyColors, skippedRows };
+  // 5. Парсинг листа "Описание услуг"
+  const servicesSheet = workbook.Sheets['Описание услуг'];
+  if (servicesSheet) {
+    const rows = XLSX.utils.sheet_to_json<string[]>(servicesSheet, { header: 1 });
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || !row[0]) continue;
+
+      services.push({
+        name: String(row[0] || '').trim(),
+        description: String(row[1] || '').trim() || null,
+        sort_order: i
+      });
+    }
+  }
+
+  return { products, series, fillings, bodyColors, services, skippedRows };
 }
 
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
@@ -326,11 +345,38 @@ async function importCatalogOptimized(
   let fillingsCount = 0;
   let productsCount = 0;
   let variantsCount = 0;
+  let servicesCount = 0;
 
   // Глобальный трекер дубликатов артикулов
   const globalSeenArticles = new Set<string>();
   // Трекер дубликатов наполнений (ключ: series_id:door_count:height:width:depth)
   const seenFillings = new Set<string>();
+
+  // Применяем необходимые миграции автоматически
+  await onProgress({ current: 1, total: 100, stage: 'Проверка структуры БД', item: 'Применение миграций' });
+
+  try {
+    // Миграция 009: Добавление поля name_prepositional для городов
+    await pool.query('ALTER TABLE cities ADD COLUMN IF NOT EXISTS name_prepositional VARCHAR(255)');
+
+    // Миграция 010: Создание таблицы услуг
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS catalog_services (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        icon VARCHAR(500),
+        sort_order INTEGER DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await pool.query('CREATE INDEX IF NOT EXISTS idx_catalog_services_active_sort ON catalog_services(is_active, sort_order)');
+  } catch (migrationError) {
+    console.log('Migration check:', migrationError instanceof Error ? migrationError.message : migrationError);
+    // Продолжаем импорт даже если миграции уже применены
+  }
 
   // Создаём запись в истории импорта
   const historyResult = await pool.query(
@@ -680,6 +726,27 @@ async function importCatalogOptimized(
       });
     }
 
+    await onProgress({ current: 96, total: 100, stage: 'Импорт услуг', item: `${data.services?.length || 0} услуг` });
+
+    // 7. Импорт услуг
+    if (data.services && data.services.length > 0) {
+      // Очищаем старые услуги перед импортом
+      await pool.query('DELETE FROM catalog_services');
+
+      for (const service of data.services) {
+        try {
+          await pool.query(
+            `INSERT INTO catalog_services (name, description, sort_order, is_active)
+             VALUES ($1, $2, $3, true)`,
+            [service.name, service.description || null, service.sort_order || 0]
+          );
+          servicesCount++;
+        } catch (e) {
+          errors.push(`Ошибка услуги "${service.name}": ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
+    }
+
     await onProgress({ current: 98, total: 100, stage: 'Завершение', item: 'Сохранение результатов' });
 
     // Обновляем историю импорта
@@ -697,6 +764,7 @@ async function importCatalogOptimized(
       fillingsCount,
       productsCount,
       variantsCount,
+      servicesCount,
       errors,
       skippedRows,
       skippedFillings

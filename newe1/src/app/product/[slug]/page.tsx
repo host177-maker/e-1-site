@@ -1078,27 +1078,14 @@ export default function ProductPage() {
         {/* Услуги */}
         {services.length > 0 && (
           <div className="mt-8 bg-white rounded-xl shadow-sm p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Наши услуги</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Условия покупки</h2>
+            <div className="space-y-6">
               {services.map((service) => (
-                <div key={service.id} className="flex gap-4">
-                  {service.icon && (
-                    <div className="flex-shrink-0 w-12 h-12 bg-[#62bb46]/10 rounded-lg flex items-center justify-center">
-                      <Image
-                        src={service.icon}
-                        alt={service.name}
-                        width={24}
-                        height={24}
-                        className="text-[#62bb46]"
-                      />
-                    </div>
+                <div key={service.id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                  <h3 className="font-bold text-lg text-gray-900 mb-3">{service.name}</h3>
+                  {service.description && (
+                    <p className="text-gray-600 whitespace-pre-line leading-relaxed">{service.description}</p>
                   )}
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{service.name}</h3>
-                    {service.description && (
-                      <p className="text-sm text-gray-600 mt-1">{service.description}</p>
-                    )}
-                  </div>
                 </div>
               ))}
             </div>
