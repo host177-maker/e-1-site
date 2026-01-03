@@ -1,12 +1,13 @@
 'use client';
 
-import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
+import { Suspense, useEffect, useState, useCallback, useRef, Fragment } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCity } from '@/context/CityContext';
 import { useWishlist } from '@/context/WishlistContext';
 import CatalogFilter from '@/components/CatalogFilter';
+import MeasurementModal from '@/components/MeasurementModal';
 
 interface CatalogSeries {
   id: number;
@@ -114,6 +115,7 @@ function CatalogPageContent() {
   const [filters, setFilters] = useState<FilterValues>(getInitialFilters);
   const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [measurementModalOpen, setMeasurementModalOpen] = useState(false);
 
   const limit = 20;
 
@@ -379,74 +381,114 @@ function CatalogPageContent() {
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {products.map((product) => {
+                {products.map((product, index) => {
                   const inWishlist = isInWishlist(product.id);
-                  return (
-                    <div key={product.id} className="group bg-white rounded-lg p-3 hover:shadow-md transition-shadow relative">
-                      {/* Сердечко избранного */}
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (inWishlist) {
-                            removeByProductId(product.id);
-                          } else {
-                            addToWishlist({
-                              id: Date.now(),
-                              productId: product.id,
-                              name: product.name,
-                              slug: product.slug,
-                              image: product.default_image || PLACEHOLDER_IMAGE,
-                              price: 35990,
-                            });
-                          }
-                        }}
-                        className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors"
-                        title={inWishlist ? 'Убрать из избранного' : 'Добавить в избранное'}
-                      >
-                        <svg
-                          className={`w-5 h-5 transition-colors ${inWishlist ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-400'}`}
-                          fill={inWishlist ? 'currentColor' : 'none'}
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                          />
-                        </svg>
-                      </button>
 
-                      <Link href={`/product/${product.slug}`}>
-                        <div className="aspect-square relative mb-2 overflow-hidden">
-                          <Image
-                            src={product.default_image || PLACEHOLDER_IMAGE}
-                            alt={product.name}
-                            fill
-                            className="object-contain group-hover:scale-105 transition-transform"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = PLACEHOLDER_IMAGE;
-                            }}
-                          />
+                  // Рекламный модуль на 4-й позиции (только если товаров >= 3)
+                  const showPromoCard = products.length >= 3 && index === 3;
+
+                  return (
+                    <Fragment key={product.id}>
+                      {showPromoCard && (
+                        <div
+                          onClick={() => setMeasurementModalOpen(true)}
+                          className="group bg-gradient-to-br from-[#62bb46] to-[#4a9935] rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all relative flex flex-col justify-between min-h-[280px]"
+                        >
+                          {/* Декоративные элементы */}
+                          <div className="absolute top-3 right-3 w-16 h-16 bg-white/10 rounded-full" />
+                          <div className="absolute bottom-6 left-3 w-8 h-8 bg-white/10 rounded-full" />
+
+                          <div className="relative z-10">
+                            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-3">
+                              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                              </svg>
+                            </div>
+                            <h3 className="text-white font-bold text-lg leading-tight mb-2">
+                              Шкафы по вашим размерам
+                            </h3>
+                            <p className="text-white/80 text-sm leading-snug">
+                              Бесплатный замер и консультация на дому
+                            </p>
+                          </div>
+
+                          <div className="relative z-10 mt-4">
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#62bb46] text-sm font-bold rounded-lg group-hover:bg-gray-100 transition-colors">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              Вызвать замерщика
+                            </span>
+                          </div>
                         </div>
-                        <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2 h-8 font-[var(--font-open-sans)] font-normal">
-                          {product.name}
-                        </h3>
-                      </Link>
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-sm font-bold text-gray-900">35 990 ₽</span>
-                        <span className="text-xs text-gray-400 line-through">72 000 ₽</span>
+                      )}
+
+                      <div className="group bg-white rounded-lg p-3 hover:shadow-md transition-shadow relative">
+                        {/* Сердечко избранного */}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (inWishlist) {
+                              removeByProductId(product.id);
+                            } else {
+                              addToWishlist({
+                                id: Date.now(),
+                                productId: product.id,
+                                name: product.name,
+                                slug: product.slug,
+                                image: product.default_image || PLACEHOLDER_IMAGE,
+                                price: 35990,
+                              });
+                            }
+                          }}
+                          className="absolute top-4 right-4 z-10 p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors"
+                          title={inWishlist ? 'Убрать из избранного' : 'Добавить в избранное'}
+                        >
+                          <svg
+                            className={`w-5 h-5 transition-colors ${inWishlist ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-400'}`}
+                            fill={inWishlist ? 'currentColor' : 'none'}
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                            />
+                          </svg>
+                        </button>
+
+                        <Link href={`/product/${product.slug}`}>
+                          <div className="aspect-square relative mb-2 overflow-hidden">
+                            <Image
+                              src={product.default_image || PLACEHOLDER_IMAGE}
+                              alt={product.name}
+                              fill
+                              className="object-contain group-hover:scale-105 transition-transform"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = PLACEHOLDER_IMAGE;
+                              }}
+                            />
+                          </div>
+                          <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2 h-8 font-[var(--font-open-sans)] font-normal">
+                            {product.name}
+                          </h3>
+                        </Link>
+                        <div className="flex items-baseline gap-2 mb-2">
+                          <span className="text-sm font-bold text-gray-900">35 990 ₽</span>
+                          <span className="text-xs text-gray-400 line-through">72 000 ₽</span>
+                        </div>
+                        <Link
+                          href={`/product/${product.slug}`}
+                          className="block w-full py-2 bg-[#62bb46] text-white text-sm font-medium rounded hover:bg-[#55a83d] transition-colors text-center"
+                        >
+                          Купить
+                        </Link>
                       </div>
-                      <Link
-                        href={`/product/${product.slug}`}
-                        className="block w-full py-2 bg-[#62bb46] text-white text-sm font-medium rounded hover:bg-[#55a83d] transition-colors text-center"
-                      >
-                        Купить
-                      </Link>
-                    </div>
+                    </Fragment>
                   );
                 })}
               </div>
@@ -521,6 +563,12 @@ function CatalogPageContent() {
         onClose={() => setMobileFilterOpen(false)}
         isMobileOnly={true}
         totalProducts={total}
+      />
+
+      {/* Measurement modal */}
+      <MeasurementModal
+        isOpen={measurementModalOpen}
+        onClose={() => setMeasurementModalOpen(false)}
       />
     </div>
   );
