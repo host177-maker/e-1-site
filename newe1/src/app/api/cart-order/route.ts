@@ -114,12 +114,18 @@ export async function POST(request: NextRequest) {
 
     const orderId = orderResult.rows[0].id;
 
-    // Try to send email (optional, don't fail if it doesn't work)
+    // Send email notification (required)
     let emailSent = false;
-    try {
-      const salesEmail = await getEmailByKey(EMAIL_KEYS.SALES);
+    const salesEmail = await getEmailByKey(EMAIL_KEYS.SALES);
 
-      if (salesEmail && process.env.SMTP_HOST) {
+    if (!salesEmail) {
+      console.error('Sales email not configured');
+      // Continue without email if not configured
+    } else if (!process.env.SMTP_HOST) {
+      console.error('SMTP not configured');
+      // Continue without email if SMTP not configured
+    } else {
+      try {
         const transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST,
           port: Number(process.env.SMTP_PORT) || 587,
@@ -283,10 +289,10 @@ export async function POST(request: NextRequest) {
           `UPDATE cart_orders SET email_sent = true WHERE id = $1`,
           [orderId]
         );
+      } catch (emailError) {
+        console.error('Failed to send email:', emailError);
+        // Log error but don't fail the request - order is already saved
       }
-    } catch (emailError) {
-      console.error('Failed to send email:', emailError);
-      // Don't fail the request, order is already saved
     }
 
     return NextResponse.json({

@@ -107,20 +107,31 @@ export default function DeliveryOptions({ cityName, hasAssembly = false, onDeliv
   // Yandex Maps API Key
   const YANDEX_API_KEY = '51e35aa4-fa5e-432e-a7c6-e5e71105ec3a';
 
-  // Load delivery points and prices
+  // Load delivery points (once)
   useEffect(() => {
-    const loadData = async () => {
+    const loadPoints = async () => {
       try {
-        // Load delivery points from GeoJSON
         const pointsRes = await fetch('/api/delivery-points');
         const pointsData = await pointsRes.json();
 
         if (pointsData.success) {
           setDeliveryPoints(pointsData.points);
         }
+      } catch (err) {
+        console.error('Error loading delivery points:', err);
+        setError('Ошибка загрузки данных доставки');
+      }
+    };
 
-        // Load prices from service prices (get default or first active)
-        const pricesRes = await fetch('/api/e1admin/service-prices');
+    loadPoints();
+  }, []);
+
+  // Load prices based on city (reload when city changes)
+  useEffect(() => {
+    const loadPrices = async () => {
+      try {
+        // Pass city name to get region-specific prices
+        const pricesRes = await fetch(`/api/e1admin/service-prices?region=${encodeURIComponent(cityName)}`);
         const pricesData = await pricesRes.json();
 
         if (pricesData.success && pricesData.data.length > 0) {
@@ -134,15 +145,14 @@ export default function DeliveryOptions({ cityName, hasAssembly = false, onDeliv
           });
         }
       } catch (err) {
-        console.error('Error loading delivery data:', err);
-        setError('Ошибка загрузки данных доставки');
+        console.error('Error loading prices:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadData();
-  }, []);
+    loadPrices();
+  }, [cityName]);
 
   // Find nearest point when city changes and we have points
   useEffect(() => {

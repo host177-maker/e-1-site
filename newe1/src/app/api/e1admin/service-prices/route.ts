@@ -25,16 +25,43 @@ async function ensureServicePricesTable() {
   `);
 }
 
-// GET: List all service prices
-export async function GET() {
+// GET: List all service prices or get by region
+export async function GET(request: NextRequest) {
   try {
     await ensureServicePricesTable();
     const pool = getPool();
+    const { searchParams } = new URL(request.url);
+    const region = searchParams.get('region');
 
-    const result = await pool.query(`
-      SELECT * FROM service_prices
-      ORDER BY sort_order ASC, region_group ASC
-    `);
+    let result;
+    if (region) {
+      // Try to find exact match first, then partial match
+      result = await pool.query(`
+        SELECT * FROM service_prices
+        WHERE is_active = true AND (
+          LOWER(region_group) = LOWER($1) OR
+          LOWER($1) LIKE '%' || LOWER(region_group) || '%' OR
+          LOWER(region_group) LIKE '%' || LOWER($1) || '%'
+        )
+        ORDER BY sort_order ASC
+        LIMIT 1
+      `, [region]);
+
+      // If no match found, get the default (first active)
+      if (result.rows.length === 0) {
+        result = await pool.query(`
+          SELECT * FROM service_prices
+          WHERE is_active = true
+          ORDER BY sort_order ASC
+          LIMIT 1
+        `);
+      }
+    } else {
+      result = await pool.query(`
+        SELECT * FROM service_prices
+        ORDER BY sort_order ASC, region_group ASC
+      `);
+    }
 
     return NextResponse.json({
       success: true,

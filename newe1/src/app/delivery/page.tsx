@@ -137,21 +137,31 @@ export default function DeliveryMapPage() {
   const resultPopupRef = useRef<HTMLDivElement>(null);
   const calculateDeliveryRef = useRef<((coords: [number, number], address: string) => void) | null>(null);
 
-  // Load delivery points and prices
+  // Load delivery points (once)
   useEffect(() => {
-    const loadData = async () => {
+    const loadPoints = async () => {
       try {
-        const [pointsRes, pricesRes] = await Promise.all([
-          fetch('/api/delivery-points'),
-          fetch('/api/e1admin/service-prices')
-        ]);
-
+        const pointsRes = await fetch('/api/delivery-points');
         const pointsData = await pointsRes.json();
-        const pricesData = await pricesRes.json();
 
         if (pointsData.success) {
           setDeliveryPoints(pointsData.points);
         }
+      } catch (error) {
+        console.error('Error loading delivery points:', error);
+      }
+    };
+
+    loadPoints();
+  }, []);
+
+  // Load prices based on city (reload when city changes)
+  useEffect(() => {
+    const loadPrices = async () => {
+      try {
+        // Pass city name to get region-specific prices
+        const pricesRes = await fetch(`/api/e1admin/service-prices?region=${encodeURIComponent(city.name)}`);
+        const pricesData = await pricesRes.json();
 
         if (pricesData.success && pricesData.data.length > 0) {
           const priceData = pricesData.data[0];
@@ -164,12 +174,12 @@ export default function DeliveryMapPage() {
           });
         }
       } catch (error) {
-        console.error('Error loading delivery data:', error);
+        console.error('Error loading prices:', error);
       }
     };
 
-    loadData();
-  }, []);
+    loadPrices();
+  }, [city.name]);
 
   // Initialize map
   const initMap = useCallback(() => {
