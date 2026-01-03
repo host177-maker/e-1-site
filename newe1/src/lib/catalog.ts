@@ -142,43 +142,151 @@ export async function getSeriesBySlug(slug: string): Promise<CatalogSeries | nul
   return result.rows[0] || null;
 }
 
-// Получить опции для фильтров
-export async function getFilterOptions(): Promise<{
-  doorTypes: { id: number; name: string; slug: string }[];
-  series: { id: number; name: string; slug: string }[];
+// Получить опции для фильтров с подсчётом товаров
+export async function getFilterOptions(currentFilters?: {
+  doorTypes?: string[];
+  series?: string[];
+  widthMin?: number;
+  widthMax?: number;
+  heights?: number[];
+  depths?: number[];
+}): Promise<{
+  doorTypes: { id: number; name: string; slug: string; count: number }[];
+  series: { id: number; name: string; slug: string; count: number }[];
   widthRange: { min: number; max: number };
-  heights: number[];
-  depths: number[];
+  heights: { value: number; count: number }[];
+  depths: { value: number; count: number }[];
   priceRange: { min: number; max: number };
 }> {
   const pool = getPool();
 
+  // Базовое условие для активных товаров
+  const baseCondition = 'p.is_active = true';
+
+  // Формируем условия для подсчёта (без текущего типа фильтра)
+  const buildCountConditions = (excludeFilter: string) => {
+    const conditions: string[] = [baseCondition];
+    const params: (string | number | string[] | number[])[] = [];
+    let paramIndex = 1;
+
+    if (excludeFilter !== 'doorTypes' && currentFilters?.doorTypes?.length) {
+      conditions.push(`dt.slug = ANY($${paramIndex++}::text[])`);
+      params.push(currentFilters.doorTypes);
+    }
+    if (excludeFilter !== 'series' && currentFilters?.series?.length) {
+      conditions.push(`s.slug = ANY($${paramIndex++}::text[])`);
+      params.push(currentFilters.series);
+    }
+    if (excludeFilter !== 'dimensions') {
+      if (currentFilters?.widthMin) {
+        conditions.push(`EXISTS (SELECT 1 FROM catalog_variants v WHERE v.product_id = p.id AND v.is_active = true AND v.width >= $${paramIndex++})`);
+        params.push(currentFilters.widthMin);
+      }
+      if (currentFilters?.widthMax) {
+        conditions.push(`EXISTS (SELECT 1 FROM catalog_variants v WHERE v.product_id = p.id AND v.is_active = true AND v.width <= $${paramIndex++})`);
+        params.push(currentFilters.widthMax);
+      }
+      if (currentFilters?.heights?.length) {
+        conditions.push(`EXISTS (SELECT 1 FROM catalog_variants v WHERE v.product_id = p.id AND v.is_active = true AND v.height = ANY($${paramIndex++}::int[]))`);
+        params.push(currentFilters.heights);
+      }
+      if (currentFilters?.depths?.length) {
+        conditions.push(`EXISTS (SELECT 1 FROM catalog_variants v WHERE v.product_id = p.id AND v.is_active = true AND v.depth = ANY($${paramIndex++}::int[]))`);
+        params.push(currentFilters.depths);
+      }
+    }
+
+    return { conditions, params };
+  };
+
+  // Подсчёт для типов шкафов
+  const doorTypeConditions = buildCountConditions('doorTypes');
+  const doorTypesQuery = `
+    SELECT dt.id, dt.name, dt.slug, COUNT(DISTINCT p.id) as count
+    FROM catalog_door_types dt
+    LEFT JOIN catalog_products p ON p.door_type_id = dt.id AND ${doorTypeConditions.conditions.join(' AND ')}
+    LEFT JOIN catalog_series s ON p.series_id = s.id
+    GROUP BY dt.id, dt.name, dt.slug
+    ORDER BY dt.sort_order
+  `;
+
+  // Подсчёт для серий
+  const seriesConditions = buildCountConditions('series');
+  const seriesQuery = `
+    SELECT s.id, s.name, s.slug, COUNT(DISTINCT p.id) as count
+    FROM catalog_series s
+    LEFT JOIN catalog_products p ON p.series_id = s.id AND ${seriesConditions.conditions.join(' AND ')}
+    LEFT JOIN catalog_door_types dt ON p.door_type_id = dt.id
+    WHERE s.is_active = true
+    GROUP BY s.id, s.name, s.slug
+    ORDER BY s.sort_order, s.name
+  `;
+
+  // Размеры
+  const dimensionsQuery = `
+    SELECT
+      MIN(v.width) as min_width, MAX(v.width) as max_width,
+      ARRAY_AGG(DISTINCT v.height ORDER BY v.height) as heights,
+      ARRAY_AGG(DISTINCT v.depth ORDER BY v.depth) as depths
+    FROM catalog_variants v
+    JOIN catalog_products p ON v.product_id = p.id
+    WHERE v.is_active = true AND p.is_active = true
+  `;
+
   const [doorTypesResult, seriesResult, dimensionsResult] = await Promise.all([
-    pool.query(`SELECT id, name, slug FROM catalog_door_types ORDER BY sort_order`),
-    pool.query(`SELECT id, name, slug FROM catalog_series WHERE is_active = true ORDER BY sort_order, name`),
-    pool.query(`
-      SELECT
-        MIN(v.width) as min_width, MAX(v.width) as max_width,
-        ARRAY_AGG(DISTINCT v.height ORDER BY v.height) as heights,
-        ARRAY_AGG(DISTINCT v.depth ORDER BY v.depth) as depths
-      FROM catalog_variants v
-      JOIN catalog_products p ON v.product_id = p.id
-      WHERE v.is_active = true AND p.is_active = true
-    `)
+    pool.query(doorTypesQuery, doorTypeConditions.params),
+    pool.query(seriesQuery, seriesConditions.params),
+    pool.query(dimensionsQuery)
   ]);
 
   const dimensions = dimensionsResult.rows[0];
 
+  // Подсчёт для высот и глубин
+  const heightCounts: { value: number; count: number }[] = [];
+  const depthCounts: { value: number; count: number }[] = [];
+
+  if (dimensions.heights) {
+    for (const h of dimensions.heights) {
+      const countResult = await pool.query(
+        `SELECT COUNT(DISTINCT p.id) as count FROM catalog_products p
+         JOIN catalog_variants v ON v.product_id = p.id
+         LEFT JOIN catalog_series s ON p.series_id = s.id
+         LEFT JOIN catalog_door_types dt ON p.door_type_id = dt.id
+         WHERE p.is_active = true AND v.is_active = true AND v.height = $1
+         ${currentFilters?.doorTypes?.length ? `AND dt.slug = ANY($2::text[])` : ''}
+         ${currentFilters?.series?.length ? `AND s.slug = ANY($${currentFilters?.doorTypes?.length ? 3 : 2}::text[])` : ''}`,
+        [h, ...(currentFilters?.doorTypes?.length ? [currentFilters.doorTypes] : []), ...(currentFilters?.series?.length ? [currentFilters.series] : [])]
+      );
+      heightCounts.push({ value: h, count: parseInt(countResult.rows[0].count) });
+    }
+  }
+
+  if (dimensions.depths) {
+    for (const d of dimensions.depths) {
+      const countResult = await pool.query(
+        `SELECT COUNT(DISTINCT p.id) as count FROM catalog_products p
+         JOIN catalog_variants v ON v.product_id = p.id
+         LEFT JOIN catalog_series s ON p.series_id = s.id
+         LEFT JOIN catalog_door_types dt ON p.door_type_id = dt.id
+         WHERE p.is_active = true AND v.is_active = true AND v.depth = $1
+         ${currentFilters?.doorTypes?.length ? `AND dt.slug = ANY($2::text[])` : ''}
+         ${currentFilters?.series?.length ? `AND s.slug = ANY($${currentFilters?.doorTypes?.length ? 3 : 2}::text[])` : ''}`,
+        [d, ...(currentFilters?.doorTypes?.length ? [currentFilters.doorTypes] : []), ...(currentFilters?.series?.length ? [currentFilters.series] : [])]
+      );
+      depthCounts.push({ value: d, count: parseInt(countResult.rows[0].count) });
+    }
+  }
+
   return {
-    doorTypes: doorTypesResult.rows,
-    series: seriesResult.rows,
+    doorTypes: doorTypesResult.rows.map(r => ({ ...r, count: parseInt(r.count) })),
+    series: seriesResult.rows.map(r => ({ ...r, count: parseInt(r.count) })),
     widthRange: {
       min: dimensions.min_width || 80,
       max: dimensions.max_width || 300
     },
-    heights: dimensions.heights || [],
-    depths: dimensions.depths || [],
-    priceRange: { min: 2000, max: 170000 } // Пока статичные значения
+    heights: heightCounts,
+    depths: depthCounts,
+    priceRange: { min: 2000, max: 170000 }
   };
 }
 
@@ -186,8 +294,10 @@ export async function getFilterOptions(): Promise<{
 export async function getProducts(options: {
   seriesId?: number;
   seriesSlug?: string;
+  seriesSlugs?: string[];
   doorTypeId?: number;
   doorTypeSlug?: string;
+  doorTypeSlugs?: string[];
   widthMin?: number;
   widthMax?: number;
   heights?: number[];
@@ -199,7 +309,7 @@ export async function getProducts(options: {
 }): Promise<{ products: CatalogProduct[]; total: number }> {
   const pool = getPool();
   const conditions: string[] = ['p.is_active = true'];
-  const params: (string | number)[] = [];
+  const params: (string | number | string[] | number[])[] = [];
   let paramIndex = 1;
 
   // Условия, требующие JOIN с variants
@@ -217,6 +327,12 @@ export async function getProducts(options: {
     params.push(options.seriesSlug);
   }
 
+  // Мультивыбор серий
+  if (options.seriesSlugs && options.seriesSlugs.length > 0) {
+    conditions.push(`s.slug = ANY($${paramIndex++}::text[])`);
+    params.push(options.seriesSlugs);
+  }
+
   if (options.doorTypeId) {
     conditions.push(`p.door_type_id = $${paramIndex++}`);
     params.push(options.doorTypeId);
@@ -225,6 +341,12 @@ export async function getProducts(options: {
   if (options.doorTypeSlug) {
     conditions.push(`dt.slug = $${paramIndex++}`);
     params.push(options.doorTypeSlug);
+  }
+
+  // Мультивыбор типов шкафов
+  if (options.doorTypeSlugs && options.doorTypeSlugs.length > 0) {
+    conditions.push(`dt.slug = ANY($${paramIndex++}::text[])`);
+    params.push(options.doorTypeSlugs);
   }
 
   // Фильтры по размерам (через подзапрос к variants)
@@ -241,11 +363,11 @@ export async function getProducts(options: {
     }
     if (options.heights && options.heights.length > 0) {
       variantConditions.push(`v.height = ANY($${paramIndex++}::int[])`);
-      params.push(options.heights as unknown as number);
+      params.push(options.heights);
     }
     if (options.depths && options.depths.length > 0) {
       variantConditions.push(`v.depth = ANY($${paramIndex++}::int[])`);
-      params.push(options.depths as unknown as number);
+      params.push(options.depths);
     }
 
     if (variantConditions.length > 0) {

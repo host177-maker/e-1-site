@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useEffect, useState, useCallback, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCity } from '@/context/CityContext';
@@ -26,17 +26,17 @@ interface CatalogProduct {
 }
 
 interface FilterOptions {
-  doorTypes: { id: number; name: string; slug: string }[];
-  series: { id: number; name: string; slug: string }[];
+  doorTypes: { id: number; name: string; slug: string; count: number }[];
+  series: { id: number; name: string; slug: string; count: number }[];
   widthRange: { min: number; max: number };
-  heights: number[];
-  depths: number[];
+  heights: { value: number; count: number }[];
+  depths: { value: number; count: number }[];
   priceRange: { min: number; max: number };
 }
 
 interface FilterValues {
-  doorType: string;
-  series: string;
+  doorTypes: string[];
+  series: string[];
   widthMin: number;
   widthMax: number;
   heights: number[];
@@ -48,8 +48,8 @@ interface FilterValues {
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
 const DEFAULT_FILTERS: FilterValues = {
-  doorType: '',
-  series: '',
+  doorTypes: [],
+  series: [],
   widthMin: 80,
   widthMax: 300,
   heights: [],
@@ -60,7 +60,6 @@ const DEFAULT_FILTERS: FilterValues = {
 
 function CatalogPageContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const isInitialLoad = useRef(true);
   const { city } = useCity();
 
@@ -68,8 +67,8 @@ function CatalogPageContent() {
   const getInitialFilters = useCallback((): FilterValues => {
     if (!searchParams) return DEFAULT_FILTERS;
     return {
-      doorType: searchParams.get('doorType') || '',
-      series: searchParams.get('series') || '',
+      doorTypes: searchParams.get('doorTypes')?.split(',').filter(Boolean) || [],
+      series: searchParams.get('series')?.split(',').filter(Boolean) || [],
       widthMin: parseInt(searchParams.get('widthMin') || '') || DEFAULT_FILTERS.widthMin,
       widthMax: parseInt(searchParams.get('widthMax') || '') || DEFAULT_FILTERS.widthMax,
       heights: searchParams.get('heights')?.split(',').map(h => parseInt(h)).filter(h => !isNaN(h)) || [],
@@ -99,8 +98,8 @@ function CatalogPageContent() {
     }
     try {
       const params = new URLSearchParams();
-      if (filters.series) params.set('series', filters.series);
-      if (filters.doorType) params.set('doorType', filters.doorType);
+      if (filters.series.length > 0) params.set('series', filters.series.join(','));
+      if (filters.doorTypes.length > 0) params.set('doorTypes', filters.doorTypes.join(','));
       if (filters.widthMin !== DEFAULT_FILTERS.widthMin) params.set('widthMin', filters.widthMin.toString());
       if (filters.widthMax !== DEFAULT_FILTERS.widthMax) params.set('widthMax', filters.widthMax.toString());
       if (filters.heights.length > 0) params.set('heights', filters.heights.join(','));
@@ -111,10 +110,8 @@ function CatalogPageContent() {
       params.set('limit', limit.toString());
       params.set('offset', ((page - 1) * limit).toString());
 
-      // Запросим filterOptions только при первой загрузке
-      if (!filterOptions) {
-        params.set('includeFilters', 'true');
-      }
+      // Всегда запрашиваем filterOptions для обновления счётчиков
+      params.set('includeFilters', 'true');
 
       const response = await fetch(`/api/catalog?${params}`);
       const data = await response.json();
@@ -138,7 +135,7 @@ function CatalogPageContent() {
       setLoadingMore(false);
       isInitialLoad.current = false;
     }
-  }, [filters, filterOptions]);
+  }, [filters]);
 
   useEffect(() => {
     fetchProducts(false, currentPage);
@@ -150,8 +147,8 @@ function CatalogPageContent() {
     if (isInitialLoad.current) return;
 
     const params = new URLSearchParams();
-    if (filters.doorType) params.set('doorType', filters.doorType);
-    if (filters.series) params.set('series', filters.series);
+    if (filters.doorTypes.length > 0) params.set('doorTypes', filters.doorTypes.join(','));
+    if (filters.series.length > 0) params.set('series', filters.series.join(','));
     if (filters.widthMin !== DEFAULT_FILTERS.widthMin) params.set('widthMin', filters.widthMin.toString());
     if (filters.widthMax !== DEFAULT_FILTERS.widthMax) params.set('widthMax', filters.widthMax.toString());
     if (filters.heights.length > 0) params.set('heights', filters.heights.join(','));
@@ -218,8 +215,8 @@ function CatalogPageContent() {
 
   // Get title based on filters
   const getPageTitle = () => {
-    if (filters.series) {
-      const selectedSeries = series.find(s => s.slug === filters.series);
+    if (filters.series.length === 1) {
+      const selectedSeries = series.find(s => s.slug === filters.series[0]);
       if (selectedSeries) {
         return `${selectedSeries.name} в г. ${city.name}`;
       }
@@ -229,8 +226,8 @@ function CatalogPageContent() {
 
   // Count active filters
   const activeFiltersCount = [
-    filters.doorType,
-    filters.series,
+    filters.doorTypes.length > 0,
+    filters.series.length > 0,
     filters.heights.length > 0,
     filters.depths.length > 0,
     filterOptions && filters.widthMin !== filterOptions.widthRange.min,
@@ -250,7 +247,7 @@ function CatalogPageContent() {
 
       <div className="max-w-[1440px] mx-auto px-4 py-8">
         <div className="flex gap-6">
-          {/* Sidebar filter - desktop */}
+          {/* Sidebar filter - desktop only */}
           <div className="hidden lg:block w-64 flex-shrink-0">
             <CatalogFilter
               filterOptions={filterOptions}
@@ -398,13 +395,14 @@ function CatalogPageContent() {
         </div>
       </div>
 
-      {/* Mobile filter modal */}
+      {/* Mobile filter modal - only renders on mobile */}
       <CatalogFilter
         filterOptions={filterOptions}
         filters={filters}
         onFiltersChange={handleFiltersChange}
         isOpen={mobileFilterOpen}
         onClose={() => setMobileFilterOpen(false)}
+        isMobileOnly={true}
       />
     </div>
   );

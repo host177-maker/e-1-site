@@ -3,17 +3,17 @@
 import { useState, useEffect, useCallback } from 'react';
 
 interface FilterOptions {
-  doorTypes: { id: number; name: string; slug: string }[];
-  series: { id: number; name: string; slug: string }[];
+  doorTypes: { id: number; name: string; slug: string; count: number }[];
+  series: { id: number; name: string; slug: string; count: number }[];
   widthRange: { min: number; max: number };
-  heights: number[];
-  depths: number[];
+  heights: { value: number; count: number }[];
+  depths: { value: number; count: number }[];
   priceRange: { min: number; max: number };
 }
 
 interface FilterValues {
-  doorType: string;
-  series: string;
+  doorTypes: string[];
+  series: string[];
   widthMin: number;
   widthMax: number;
   heights: number[];
@@ -28,6 +28,7 @@ interface CatalogFilterProps {
   onFiltersChange: (filters: FilterValues) => void;
   isOpen: boolean;
   onClose: () => void;
+  isMobileOnly?: boolean;
 }
 
 // Маппинг типов шкафов для отображения
@@ -45,6 +46,7 @@ export default function CatalogFilter({
   onFiltersChange,
   isOpen,
   onClose,
+  isMobileOnly = false,
 }: CatalogFilterProps) {
   const [localFilters, setLocalFilters] = useState<FilterValues>(filters);
   const [widthInputMin, setWidthInputMin] = useState(filters.widthMin.toString());
@@ -61,20 +63,20 @@ export default function CatalogFilter({
     setPriceInputMax(filters.priceMax.toString());
   }, [filters]);
 
-  const handleDoorTypeChange = (slug: string) => {
-    const newFilters = {
-      ...localFilters,
-      doorType: localFilters.doorType === slug ? '' : slug,
-    };
+  const handleDoorTypeToggle = (slug: string) => {
+    const newDoorTypes = localFilters.doorTypes.includes(slug)
+      ? localFilters.doorTypes.filter(dt => dt !== slug)
+      : [...localFilters.doorTypes, slug];
+    const newFilters = { ...localFilters, doorTypes: newDoorTypes };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   };
 
-  const handleSeriesChange = (slug: string) => {
-    const newFilters = {
-      ...localFilters,
-      series: localFilters.series === slug ? '' : slug,
-    };
+  const handleSeriesToggle = (slug: string) => {
+    const newSeries = localFilters.series.includes(slug)
+      ? localFilters.series.filter(s => s !== slug)
+      : [...localFilters.series, slug];
+    const newFilters = { ...localFilters, series: newSeries };
     setLocalFilters(newFilters);
     onFiltersChange(newFilters);
   };
@@ -119,8 +121,8 @@ export default function CatalogFilter({
 
   const resetFilters = () => {
     const defaultFilters: FilterValues = {
-      doorType: '',
-      series: '',
+      doorTypes: [],
+      series: [],
       widthMin: filterOptions?.widthRange.min || 80,
       widthMax: filterOptions?.widthRange.max || 300,
       heights: [],
@@ -137,8 +139,8 @@ export default function CatalogFilter({
   };
 
   const hasActiveFilters =
-    localFilters.doorType ||
-    localFilters.series ||
+    localFilters.doorTypes.length > 0 ||
+    localFilters.series.length > 0 ||
     localFilters.heights.length > 0 ||
     localFilters.depths.length > 0 ||
     (filterOptions && (
@@ -174,11 +176,12 @@ export default function CatalogFilter({
               <label key={dt.id} className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={localFilters.doorType === dt.slug}
-                  onChange={() => handleDoorTypeChange(dt.slug)}
+                  checked={localFilters.doorTypes.includes(dt.slug)}
+                  onChange={() => handleDoorTypeToggle(dt.slug)}
                   className="w-4 h-4 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
                 />
-                <span className="text-sm text-gray-700">{doorTypeLabels[dt.slug] || dt.name}</span>
+                <span className="text-sm text-gray-700 flex-1">{doorTypeLabels[dt.slug] || dt.name}</span>
+                <span className="text-xs text-gray-400">({dt.count})</span>
               </label>
             ))}
         </div>
@@ -192,11 +195,12 @@ export default function CatalogFilter({
             <label key={s.id} className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
-                checked={localFilters.series === s.slug}
-                onChange={() => handleSeriesChange(s.slug)}
+                checked={localFilters.series.includes(s.slug)}
+                onChange={() => handleSeriesToggle(s.slug)}
                 className="w-4 h-4 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
               />
-              <span className="text-sm text-gray-700">{s.name}</span>
+              <span className="text-sm text-gray-700 flex-1">{s.name}</span>
+              <span className="text-xs text-gray-400">({s.count})</span>
             </label>
           ))}
         </div>
@@ -258,15 +262,15 @@ export default function CatalogFilter({
           <div className="flex flex-wrap gap-2">
             {filterOptions.heights.slice(0, 10).map(h => (
               <button
-                key={h}
-                onClick={() => handleHeightToggle(h)}
+                key={h.value}
+                onClick={() => handleHeightToggle(h.value)}
                 className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                  localFilters.heights.includes(h)
+                  localFilters.heights.includes(h.value)
                     ? 'bg-[#62bb46] text-white border-[#62bb46]'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-[#62bb46]'
                 }`}
               >
-                {h}
+                {h.value} <span className="text-xs opacity-70">({h.count})</span>
               </button>
             ))}
           </div>
@@ -280,15 +284,15 @@ export default function CatalogFilter({
           <div className="flex flex-wrap gap-2">
             {filterOptions.depths.slice(0, 10).map(d => (
               <button
-                key={d}
-                onClick={() => handleDepthToggle(d)}
+                key={d.value}
+                onClick={() => handleDepthToggle(d.value)}
                 className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-                  localFilters.depths.includes(d)
+                  localFilters.depths.includes(d.value)
                     ? 'bg-[#62bb46] text-white border-[#62bb46]'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-[#62bb46]'
                 }`}
               >
-                {d}
+                {d.value} <span className="text-xs opacity-70">({d.count})</span>
               </button>
             ))}
           </div>
@@ -357,33 +361,32 @@ export default function CatalogFilter({
     </div>
   );
 
-  return (
-    <>
-      {/* Desktop filter */}
-      <div className="hidden lg:block bg-white rounded-xl shadow-sm p-4 sticky top-4">
-        <h2 className="font-bold text-lg text-gray-900 mb-4">Фильтры</h2>
-        {filterContent}
-      </div>
-
-      {/* Mobile filter modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-          <div className="absolute inset-y-0 left-0 w-full max-w-sm bg-white overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-              <h2 className="font-bold text-lg text-gray-900">Фильтры</h2>
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-4">
-              {filterContent}
-            </div>
+  // Если это только мобильная версия, не рендерим десктоп
+  if (isMobileOnly) {
+    return isOpen ? (
+      <div className="fixed inset-0 z-50 lg:hidden">
+        <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+        <div className="absolute inset-y-0 left-0 w-full max-w-sm bg-white overflow-y-auto">
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+            <h2 className="font-bold text-lg text-gray-900">Фильтры</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="p-4">
+            {filterContent}
           </div>
         </div>
-      )}
-    </>
+      </div>
+    ) : null;
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm p-4 sticky top-4">
+      <h2 className="font-bold text-lg text-gray-900 mb-4">Фильтры</h2>
+      {filterContent}
+    </div>
   );
 }
