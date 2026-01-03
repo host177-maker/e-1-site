@@ -51,6 +51,7 @@ export default function QuickOrderModal({
     name: '',
     phone: '',
     email: '',
+    promoCode: '',
     comment: '',
     agreeToPolicy: false,
   });
@@ -98,6 +99,7 @@ export default function QuickOrderModal({
           name: '',
           phone: '',
           email: '',
+          promoCode: '',
           comment: '',
           agreeToPolicy: false,
         });
@@ -212,6 +214,20 @@ export default function QuickOrderModal({
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#62bb46] transition-colors"
                   placeholder="email@example.com"
+                />
+              </div>
+
+              {/* Promo code field (optional) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Промокод <span className="text-gray-400">(необязательно)</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.promoCode}
+                  onChange={(e) => setFormData({ ...formData, promoCode: e.target.value.toUpperCase() })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#62bb46] transition-colors"
+                  placeholder="Введите промокод"
                 />
               </div>
 

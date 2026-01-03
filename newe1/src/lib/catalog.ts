@@ -110,6 +110,15 @@ export interface CatalogFilling {
   image_filled?: string;
 }
 
+export interface CatalogService {
+  id: number;
+  name: string;
+  description?: string;
+  icon?: string;
+  sort_order: number;
+  is_active: boolean;
+}
+
 export interface ImportResult {
   success: boolean;
   seriesCount: number;
@@ -117,6 +126,7 @@ export interface ImportResult {
   fillingsCount: number;
   productsCount: number;
   variantsCount: number;
+  servicesCount: number;
   errors: string[];
 }
 
@@ -140,6 +150,20 @@ export async function getSeriesBySlug(slug: string): Promise<CatalogSeries | nul
     [slug]
   );
   return result.rows[0] || null;
+}
+
+// Получить все активные услуги
+export async function getServices(): Promise<CatalogService[]> {
+  const pool = getPool();
+  try {
+    const result = await pool.query(
+      'SELECT * FROM catalog_services WHERE is_active = true ORDER BY sort_order, name'
+    );
+    return result.rows;
+  } catch {
+    // Таблица может ещё не существовать
+    return [];
+  }
 }
 
 // Предопределённые диапазоны для подсчёта
@@ -720,6 +744,12 @@ export async function importCatalog(data: {
     image_small?: string;
     image_large?: string;
   }>;
+  services?: Array<{
+    name: string;
+    description?: string;
+    icon?: string;
+    sort_order?: number;
+  }>;
 }, adminId: number): Promise<ImportResult> {
   const pool = getPool();
   const errors: string[] = [];
@@ -728,6 +758,7 @@ export async function importCatalog(data: {
   let fillingsCount = 0;
   let productsCount = 0;
   let variantsCount = 0;
+  let servicesCount = 0;
 
   // Создаём запись в истории импорта
   const historyResult = await pool.query(
@@ -924,6 +955,23 @@ export async function importCatalog(data: {
       }
     }
 
+    // 7. Импорт услуг
+    if (data.services && data.services.length > 0) {
+      for (const service of data.services) {
+        try {
+          await pool.query(
+            `INSERT INTO catalog_services (name, description, icon, sort_order)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT DO NOTHING`,
+            [service.name, service.description || null, service.icon || null, service.sort_order || 0]
+          );
+          servicesCount++;
+        } catch (e) {
+          errors.push(`Ошибка услуги "${service.name}": ${e instanceof Error ? e.message : String(e)}`);
+        }
+      }
+    }
+
     // Обновляем историю импорта
     await pool.query(
       `UPDATE catalog_import_history
@@ -939,6 +987,7 @@ export async function importCatalog(data: {
       fillingsCount,
       productsCount,
       variantsCount,
+      servicesCount,
       errors
     };
   } catch (e) {

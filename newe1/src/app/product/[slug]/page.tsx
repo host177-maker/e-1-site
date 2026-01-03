@@ -67,6 +67,14 @@ interface CatalogSeries {
   video2?: string;
 }
 
+interface CatalogService {
+  id: number;
+  name: string;
+  description?: string;
+  icon?: string;
+  sort_order: number;
+}
+
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
 export default function ProductPage() {
@@ -109,6 +117,7 @@ export default function ProductPage() {
   const [filling, setFilling] = useState<CatalogFilling | null>(null);
   const [fillings, setFillings] = useState<CatalogFilling[]>([]);
   const [series, setSeries] = useState<CatalogSeries | null>(null);
+  const [services, setServices] = useState<CatalogService[]>([]);
 
   // Выбранные параметры размеров (отдельно)
   const [selectedHeight, setSelectedHeight] = useState<number | null>(null);
@@ -340,6 +349,22 @@ export default function ProductPage() {
       fetchProduct();
     }
   }, [slug, fetchProduct]);
+
+  // Загружаем услуги один раз при монтировании
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetch('/api/catalog/services');
+        const data = await response.json();
+        if (data.success) {
+          setServices(data.services);
+        }
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      }
+    };
+    fetchServices();
+  }, []);
 
   // Обновляем URL при изменении параметров (без перезагрузки страницы)
   useEffect(() => {
@@ -1047,6 +1072,36 @@ export default function ProductPage() {
           <div className="mt-12 bg-white rounded-xl shadow-sm p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">О серии {series.name}</h2>
             <p className="text-gray-600 whitespace-pre-line">{series.description}</p>
+          </div>
+        )}
+
+        {/* Услуги */}
+        {services.length > 0 && (
+          <div className="mt-8 bg-white rounded-xl shadow-sm p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Наши услуги</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {services.map((service) => (
+                <div key={service.id} className="flex gap-4">
+                  {service.icon && (
+                    <div className="flex-shrink-0 w-12 h-12 bg-[#62bb46]/10 rounded-lg flex items-center justify-center">
+                      <Image
+                        src={service.icon}
+                        alt={service.name}
+                        width={24}
+                        height={24}
+                        className="text-[#62bb46]"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{service.name}</h3>
+                    {service.description && (
+                      <p className="text-sm text-gray-600 mt-1">{service.description}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

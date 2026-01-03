@@ -39,6 +39,7 @@ export default function CartPage() {
     name: '',
     phone: '',
     email: '',
+    promoCode: '',
     comment: '',
     agreeToPrivacy: false,
   });
@@ -81,6 +82,7 @@ export default function CartPage() {
           customerName: formData.name,
           customerPhone: formData.phone,
           customerEmail: formData.email,
+          promoCode: formData.promoCode,
           comment: formData.comment,
           items: items.map(item => ({
             name: item.name,
@@ -364,6 +366,20 @@ export default function CartPage() {
                           onChange={handleInputChange}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent"
                           placeholder="email@example.com"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Промокод
+                        </label>
+                        <input
+                          type="text"
+                          name="promoCode"
+                          value={formData.promoCode}
+                          onChange={(e) => setFormData(prev => ({ ...prev, promoCode: e.target.value.toUpperCase() }))}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent"
+                          placeholder="Введите промокод"
                         />
                       </div>
 
