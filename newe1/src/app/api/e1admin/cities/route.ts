@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     const pool = getPool();
     const body = await request.json();
 
-    const { name, region_id, external_code, sort_order, is_active } = body;
+    const { name, name_prepositional, region_id, external_code, sort_order, is_active } = body;
 
     if (!name || !name.trim()) {
       return NextResponse.json(
@@ -108,10 +108,10 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await pool.query(
-      `INSERT INTO cities (name, region_id, external_code, sort_order, is_active)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO cities (name, name_prepositional, region_id, external_code, sort_order, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [name.trim(), region_id, external_code || null, sort_order || 500, is_active !== false]
+      [name.trim(), name_prepositional?.trim() || null, region_id, external_code || null, sort_order || 500, is_active !== false]
     );
 
     // Get region name for response

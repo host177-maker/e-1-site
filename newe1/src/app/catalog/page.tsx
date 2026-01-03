@@ -440,15 +440,12 @@ function CatalogPageContent() {
                         <span className="text-sm font-bold text-gray-900">35 990 ₽</span>
                         <span className="text-xs text-gray-400 line-through">72 000 ₽</span>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // TODO: Add to cart logic
-                        }}
-                        className="w-full py-2 bg-[#62bb46] text-white text-sm font-medium rounded hover:bg-[#55a83d] transition-colors"
+                      <Link
+                        href={`/product/${product.slug}`}
+                        className="block w-full py-2 bg-[#62bb46] text-white text-sm font-medium rounded hover:bg-[#55a83d] transition-colors text-center"
                       >
                         Купить
-                      </button>
+                      </Link>
                     </div>
                   );
                 })}

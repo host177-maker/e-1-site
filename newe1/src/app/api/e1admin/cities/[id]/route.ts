@@ -109,7 +109,7 @@ export async function PATCH(
     const values: (string | boolean | number | null)[] = [];
     let paramIndex = 1;
 
-    const allowedFields = ['name', 'region_id', 'external_code', 'sort_order', 'is_active'];
+    const allowedFields = ['name', 'name_prepositional', 'region_id', 'external_code', 'sort_order', 'is_active'];
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {

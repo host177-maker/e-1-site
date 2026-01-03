@@ -275,10 +275,13 @@ export default function ProductPage() {
           const variantWithImage = data.variants.find((v: CatalogVariant) => v.image_white);
           setMainImage(variantWithImage?.image_white || PLACEHOLDER_IMAGE);
 
+          // Находим максимальную глубину для использования по умолчанию
+          const maxDepth = Math.max(...data.variants.map((v: CatalogVariant) => v.depth));
+
           // Размеры
           const height = urlHeight ? Number(urlHeight) : firstVariant.height;
           const width = urlWidth ? Number(urlWidth) : firstVariant.width;
-          const depth = urlDepth ? Number(urlDepth) : firstVariant.depth;
+          const depth = urlDepth ? Number(urlDepth) : maxDepth;
 
           // Проверяем, что такой вариант существует
           const variantExists = data.variants.some((v: CatalogVariant) =>
@@ -292,7 +295,7 @@ export default function ProductPage() {
           } else {
             setSelectedHeight(firstVariant.height);
             setSelectedWidth(firstVariant.width);
-            setSelectedDepth(firstVariant.depth);
+            setSelectedDepth(maxDepth);
           }
 
           // Цвет корпуса
@@ -726,7 +729,7 @@ export default function ProductPage() {
               <button
                 onClick={() => {
                   if (isInWishlist(product.id)) {
-                    removeFromWishlist(product.id);
+                    removeByProductId(product.id);
                   } else {
                     addToWishlist({
                       id: Date.now(),
