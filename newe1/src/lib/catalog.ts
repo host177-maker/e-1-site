@@ -142,10 +142,58 @@ export async function getSeriesBySlug(slug: string): Promise<CatalogSeries | nul
   return result.rows[0] || null;
 }
 
+// Получить опции для фильтров
+export async function getFilterOptions(): Promise<{
+  doorTypes: { id: number; name: string; slug: string }[];
+  series: { id: number; name: string; slug: string }[];
+  widthRange: { min: number; max: number };
+  heights: number[];
+  depths: number[];
+  priceRange: { min: number; max: number };
+}> {
+  const pool = getPool();
+
+  const [doorTypesResult, seriesResult, dimensionsResult] = await Promise.all([
+    pool.query(`SELECT id, name, slug FROM catalog_door_types ORDER BY sort_order`),
+    pool.query(`SELECT id, name, slug FROM catalog_series WHERE is_active = true ORDER BY sort_order, name`),
+    pool.query(`
+      SELECT
+        MIN(v.width) as min_width, MAX(v.width) as max_width,
+        ARRAY_AGG(DISTINCT v.height ORDER BY v.height) as heights,
+        ARRAY_AGG(DISTINCT v.depth ORDER BY v.depth) as depths
+      FROM catalog_variants v
+      JOIN catalog_products p ON v.product_id = p.id
+      WHERE v.is_active = true AND p.is_active = true
+    `)
+  ]);
+
+  const dimensions = dimensionsResult.rows[0];
+
+  return {
+    doorTypes: doorTypesResult.rows,
+    series: seriesResult.rows,
+    widthRange: {
+      min: dimensions.min_width || 80,
+      max: dimensions.max_width || 300
+    },
+    heights: dimensions.heights || [],
+    depths: dimensions.depths || [],
+    priceRange: { min: 2000, max: 170000 } // Пока статичные значения
+  };
+}
+
 // Получить товары (с фильтрами)
 export async function getProducts(options: {
   seriesId?: number;
   seriesSlug?: string;
+  doorTypeId?: number;
+  doorTypeSlug?: string;
+  widthMin?: number;
+  widthMax?: number;
+  heights?: number[];
+  depths?: number[];
+  priceMin?: number;
+  priceMax?: number;
   limit?: number;
   offset?: number;
 }): Promise<{ products: CatalogProduct[]; total: number }> {
@@ -153,6 +201,11 @@ export async function getProducts(options: {
   const conditions: string[] = ['p.is_active = true'];
   const params: (string | number)[] = [];
   let paramIndex = 1;
+
+  // Условия, требующие JOIN с variants
+  const needsVariantJoin = options.widthMin || options.widthMax ||
+    (options.heights && options.heights.length > 0) ||
+    (options.depths && options.depths.length > 0);
 
   if (options.seriesId) {
     conditions.push(`p.series_id = $${paramIndex++}`);
@@ -164,6 +217,45 @@ export async function getProducts(options: {
     params.push(options.seriesSlug);
   }
 
+  if (options.doorTypeId) {
+    conditions.push(`p.door_type_id = $${paramIndex++}`);
+    params.push(options.doorTypeId);
+  }
+
+  if (options.doorTypeSlug) {
+    conditions.push(`dt.slug = $${paramIndex++}`);
+    params.push(options.doorTypeSlug);
+  }
+
+  // Фильтры по размерам (через подзапрос к variants)
+  if (needsVariantJoin) {
+    const variantConditions: string[] = [];
+
+    if (options.widthMin) {
+      variantConditions.push(`v.width >= $${paramIndex++}`);
+      params.push(options.widthMin);
+    }
+    if (options.widthMax) {
+      variantConditions.push(`v.width <= $${paramIndex++}`);
+      params.push(options.widthMax);
+    }
+    if (options.heights && options.heights.length > 0) {
+      variantConditions.push(`v.height = ANY($${paramIndex++}::int[])`);
+      params.push(options.heights as unknown as number);
+    }
+    if (options.depths && options.depths.length > 0) {
+      variantConditions.push(`v.depth = ANY($${paramIndex++}::int[])`);
+      params.push(options.depths as unknown as number);
+    }
+
+    if (variantConditions.length > 0) {
+      conditions.push(`EXISTS (
+        SELECT 1 FROM catalog_variants v
+        WHERE v.product_id = p.id AND v.is_active = true AND ${variantConditions.join(' AND ')}
+      )`);
+    }
+  }
+
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
   // Получаем общее количество
@@ -171,6 +263,7 @@ export async function getProducts(options: {
     `SELECT COUNT(DISTINCT p.id) as total
      FROM catalog_products p
      LEFT JOIN catalog_series s ON p.series_id = s.id
+     LEFT JOIN catalog_door_types dt ON p.door_type_id = dt.id
      ${whereClause}`,
     params
   );

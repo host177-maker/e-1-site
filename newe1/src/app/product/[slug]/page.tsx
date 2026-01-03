@@ -810,7 +810,7 @@ export default function ProductPage() {
                   />
                   <div className="flex-1">
                     <div className="font-medium text-gray-900">Добавить сборку</div>
-                    <div className="text-sm text-gray-500">Профессиональная сборка изделия</div>
+                    <div className="text-sm text-gray-500">Сборка изделия</div>
                   </div>
                   <div className="text-right">
                     <div className="font-bold text-gray-900">+{assemblyPrice.toLocaleString('ru-RU')} ₽</div>
