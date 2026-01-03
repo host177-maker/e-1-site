@@ -33,6 +33,8 @@ interface CartOrderRequest {
   customerPhone: string;
   customerEmail?: string;
   promoCode?: string;
+  promoDiscount?: number;
+  discountAmount?: number;
   comment?: string;
   city?: string;
   delivery?: DeliveryInfo;
@@ -239,7 +241,9 @@ export async function POST(request: NextRequest) {
                 ${body.promoCode ? `
                 <tr>
                   <td style="padding: 8px 0; color: #666;">Промокод:</td>
-                  <td style="padding: 8px 0; font-weight: bold; color: #62bb46;">${body.promoCode}</td>
+                  <td style="padding: 8px 0; font-weight: bold; color: #62bb46;">
+                    ${body.promoCode}${body.promoDiscount ? ` (скидка ${body.promoDiscount}%` + (body.discountAmount ? `, -${body.discountAmount.toLocaleString('ru-RU')} ₽)` : ')') : ''}
+                  </td>
                 </tr>
                 ` : ''}
                 ${body.comment ? `

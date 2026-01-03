@@ -117,9 +117,13 @@ function CatalogPageContent() {
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [measurementModalOpen, setMeasurementModalOpen] = useState(false);
 
-  const limit = 20;
+  // Базовый лимит для отображения (включая рекламный модуль на 1й странице)
+  const baseDisplayLimit = 20;
+  // На первой странице рекламный модуль занимает 1 место, поэтому грузим на 1 товар меньше
+  const getProductsLimit = (page: number) => page === 1 ? baseDisplayLimit - 1 : baseDisplayLimit;
 
   const fetchProducts = useCallback(async (append = false, page = 1) => {
+    const limit = getProductsLimit(page);
     if (append) {
       setLoadingMore(true);
     } else {
@@ -183,7 +187,10 @@ function CatalogPageContent() {
       }
 
       params.set('limit', limit.toString());
-      params.set('offset', ((page - 1) * limit).toString());
+      // Offset для первой страницы = 0, для остальных учитываем разницу лимитов
+      const firstPageLimit = getProductsLimit(1);
+      const offset = page === 1 ? 0 : firstPageLimit + (page - 2) * limit;
+      params.set('offset', offset.toString());
 
       // Всегда запрашиваем filterOptions для обновления счётчиков
       params.set('includeFilters', 'true');
@@ -255,8 +262,13 @@ function CatalogPageContent() {
   };
 
   const handleLoadMore = () => {
-    const nextPage = Math.floor(products.length / limit) + 1;
-    fetchProducts(true, nextPage + 1);
+    // Рассчитываем следующую страницу с учётом разного лимита на первой странице
+    const firstPageLimit = getProductsLimit(1);
+    const regularLimit = getProductsLimit(2);
+    const nextPage = products.length <= firstPageLimit
+      ? 2
+      : Math.floor((products.length - firstPageLimit) / regularLimit) + 2;
+    fetchProducts(true, nextPage);
   };
 
   const handlePageChange = (page: number) => {
@@ -265,7 +277,8 @@ function CatalogPageContent() {
   };
 
   const hasMore = products.length < total;
-  const totalPages = Math.ceil(total / limit);
+  // Для пагинации используем базовый лимит
+  const totalPages = Math.ceil(total / baseDisplayLimit);
 
   // Generate page numbers to display
   const getPageNumbers = () => {
