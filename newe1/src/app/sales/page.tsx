@@ -182,12 +182,11 @@ export default function PromotionsPage() {
   };
 
   return (
-    <div className="bg-white">
+    <div className="bg-white font-[var(--font-open-sans)]">
       {/* Hero section */}
       <div className="bg-[#f5f5f5] py-8">
         <div className="container-custom">
           <h1 className="text-3xl md:text-4xl font-bold text-[#3d4543]">Акции и спецпредложения</h1>
-          <p className="text-gray-600 mt-2">Выгодные предложения от нашей компании</p>
         </div>
       </div>
 
