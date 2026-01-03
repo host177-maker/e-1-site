@@ -116,14 +116,15 @@ function CatalogPageContent() {
   const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [measurementModalOpen, setMeasurementModalOpen] = useState(false);
+  const [isLoadMoreMode, setIsLoadMoreMode] = useState(false); // Режим "показать ещё" - без рекламного модуля
 
-  // Базовый лимит для отображения (включая рекламный модуль на 1й странице)
+  // Базовый лимит для отображения (включая рекламный модуль)
   const baseDisplayLimit = 20;
-  // На первой странице рекламный модуль занимает 1 место, поэтому грузим на 1 товар меньше
-  const getProductsLimit = (page: number) => page === 1 ? baseDisplayLimit - 1 : baseDisplayLimit;
+  // Рекламный модуль занимает 1 место, поэтому грузим на 1 товар меньше (кроме режима "показать ещё")
+  const getProductsLimit = (forLoadMore: boolean) => forLoadMore ? baseDisplayLimit : baseDisplayLimit - 1;
 
-  const fetchProducts = useCallback(async (append = false, page = 1) => {
-    const limit = getProductsLimit(page);
+  const fetchProducts = useCallback(async (append = false, page = 1, customOffset?: number) => {
+    const limit = getProductsLimit(append);
     if (append) {
       setLoadingMore(true);
     } else {
@@ -187,9 +188,8 @@ function CatalogPageContent() {
       }
 
       params.set('limit', limit.toString());
-      // Offset для первой страницы = 0, для остальных учитываем разницу лимитов
-      const firstPageLimit = getProductsLimit(1);
-      const offset = page === 1 ? 0 : firstPageLimit + (page - 2) * limit;
+      // Offset: используем customOffset для append, иначе рассчитываем от страницы
+      const offset = customOffset !== undefined ? customOffset : (page - 1) * limit;
       params.set('offset', offset.toString());
 
       // Всегда запрашиваем filterOptions для обновления счётчиков
@@ -259,20 +259,18 @@ function CatalogPageContent() {
   const handleFiltersChange = (newFilters: FilterValues) => {
     setFilters(newFilters);
     setCurrentPage(1);
+    setIsLoadMoreMode(false); // Сброс режима при смене фильтров
   };
 
   const handleLoadMore = () => {
-    // Рассчитываем следующую страницу с учётом разного лимита на первой странице
-    const firstPageLimit = getProductsLimit(1);
-    const regularLimit = getProductsLimit(2);
-    const nextPage = products.length <= firstPageLimit
-      ? 2
-      : Math.floor((products.length - firstPageLimit) / regularLimit) + 2;
-    fetchProducts(true, nextPage);
+    setIsLoadMoreMode(true); // Включаем режим "показать ещё"
+    // Передаём offset = количество уже загруженных товаров
+    fetchProducts(true, 1, products.length);
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    setIsLoadMoreMode(false); // Сброс режима при переходе на другую страницу
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -397,15 +395,15 @@ function CatalogPageContent() {
                 {products.map((product, index) => {
                   const inWishlist = isInWishlist(product.id);
 
-                  // Рекламный модуль на 4-й позиции (только если товаров >= 3)
-                  const showPromoCard = products.length >= 3 && index === 3;
+                  // Рекламный модуль на 4-й позиции (только если товаров >= 3 и не режим "показать ещё")
+                  const showPromoCard = products.length >= 3 && index === 3 && !isLoadMoreMode;
 
                   return (
                     <Fragment key={product.id}>
                       {showPromoCard && (
                         <div
                           onClick={() => setMeasurementModalOpen(true)}
-                          className="group bg-gradient-to-br from-[#62bb46] to-[#4a9935] rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all relative flex flex-col justify-between min-h-[280px]"
+                          className="group bg-gradient-to-br from-[#ff7043] to-[#e64a19] rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all relative flex flex-col justify-between min-h-[280px]"
                         >
                           {/* Декоративные элементы */}
                           <div className="absolute top-3 right-3 w-16 h-16 bg-white/10 rounded-full" />
@@ -421,12 +419,12 @@ function CatalogPageContent() {
                               Шкафы по вашим размерам
                             </h3>
                             <p className="text-white/80 text-sm leading-snug">
-                              Бесплатный замер и консультация на дому
+                              Замер и консультация на дому
                             </p>
                           </div>
 
                           <div className="relative z-10 mt-4">
-                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#62bb46] text-sm font-bold rounded-lg group-hover:bg-gray-100 transition-colors">
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#e64a19] text-sm font-bold rounded-lg group-hover:bg-gray-100 transition-colors">
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                               </svg>
