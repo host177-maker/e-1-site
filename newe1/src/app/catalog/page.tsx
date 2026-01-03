@@ -403,7 +403,7 @@ function CatalogPageContent() {
                       {showPromoCard && (
                         <div
                           onClick={() => setMeasurementModalOpen(true)}
-                          className="group bg-gradient-to-br from-[#ff7043] to-[#e64a19] rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all relative flex flex-col justify-between min-h-[280px]"
+                          className="group bg-gradient-to-br from-[#78c47d] to-[#4a9b50] rounded-lg p-4 cursor-pointer hover:shadow-lg transition-all relative flex flex-col justify-between min-h-[280px]"
                         >
                           {/* Декоративные элементы */}
                           <div className="absolute top-3 right-3 w-16 h-16 bg-white/10 rounded-full" />
@@ -424,7 +424,7 @@ function CatalogPageContent() {
                           </div>
 
                           <div className="relative z-10 mt-4">
-                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#e64a19] text-sm font-bold rounded-lg group-hover:bg-gray-100 transition-colors">
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#4a9b50] text-sm font-bold rounded-lg group-hover:bg-gray-100 transition-colors">
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                               </svg>
