@@ -360,12 +360,16 @@ export default function DeliveryOptions({ cityName, hasAssembly = false, onDeliv
 
       const addressCoords = firstResult.geometry.getCoordinates();
 
-      // Find nearest delivery point to the destination address
+      // Find nearest delivery point to the destination address (don't update state to avoid map re-init)
       const nearestToAddress = findNearestPoint(addressCoords as [number, number], deliveryPoints);
-      if (nearestToAddress && nearestToAddress.id !== nearestPoint.id) {
-        setNearestPoint(nearestToAddress);
-      }
       const startPoint = nearestToAddress || nearestPoint;
+
+      // Ensure map is ready
+      if (!mapInstanceRef.current) {
+        setCalculating(false);
+        setAddressError('Карта не загружена, попробуйте снова');
+        return;
+      }
 
       // Clear previous route and marker
       if (routeRef.current && mapInstanceRef.current) {

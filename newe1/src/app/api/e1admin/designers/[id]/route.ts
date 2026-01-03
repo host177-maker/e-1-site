@@ -92,7 +92,8 @@ export async function PATCH(
       'portfolio_link',
       'promo_code',
       'is_active',
-      'step_completed'
+      'step_completed',
+      'discount_percent'
     ];
 
     for (const field of allowedFields) {

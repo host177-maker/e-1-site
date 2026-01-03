@@ -114,26 +114,33 @@ export async function POST(request: NextRequest) {
 
     const orderId = orderResult.rows[0].id;
 
-    // Send email notification (required)
+    // Send email notification (using same settings as quick-order)
     let emailSent = false;
     const salesEmail = await getEmailByKey(EMAIL_KEYS.SALES);
+
+    const smtpServer = process.env.SMTP_SERVER;
+    const smtpPort = parseInt(process.env.SMTP_PORT || '25', 10);
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPassword = process.env.SMTP_PASSWORD;
+    const smtpFrom = process.env.SMTP_FROM || 'robot@e-1.ru';
+    const smtpFromName = process.env.SMTP_FROM_NAME || 'Мебельная компания Е1';
 
     if (!salesEmail) {
       console.error('Sales email not configured');
       // Continue without email if not configured
-    } else if (!process.env.SMTP_HOST) {
-      console.error('SMTP not configured');
+    } else if (!smtpServer) {
+      console.error('SMTP not configured (SMTP_SERVER is missing)');
       // Continue without email if SMTP not configured
     } else {
       try {
         const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: Number(process.env.SMTP_PORT) || 587,
-          secure: process.env.SMTP_SECURE === 'true',
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-          },
+          host: smtpServer,
+          port: smtpPort,
+          secure: smtpPort === 465,
+          auth: smtpUser && smtpPassword ? {
+            user: smtpUser,
+            pass: smtpPassword,
+          } : undefined,
         });
 
         // Build items list HTML
@@ -276,7 +283,7 @@ export async function POST(request: NextRequest) {
         `;
 
         await transporter.sendMail({
-          from: process.env.SMTP_FROM || 'noreply@e-1.ru',
+          from: `"${smtpFromName}" <${smtpFrom}>`,
           to: salesEmail,
           subject: `Новый заказ #${orderId} от ${body.customerName}`,
           html: htmlContent,

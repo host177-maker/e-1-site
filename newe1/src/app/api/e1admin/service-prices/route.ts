@@ -25,30 +25,54 @@ async function ensureServicePricesTable() {
   `);
 }
 
-// GET: List all service prices or get by region
+// GET: List all service prices or get by region/city
 export async function GET(request: NextRequest) {
   try {
     await ensureServicePricesTable();
     const pool = getPool();
     const { searchParams } = new URL(request.url);
     const region = searchParams.get('region');
+    const city = searchParams.get('city');
 
     let result;
-    if (region) {
-      // Try to find exact match first, then partial match
-      result = await pool.query(`
-        SELECT * FROM service_prices
-        WHERE is_active = true AND (
-          LOWER(region_group) = LOWER($1) OR
-          LOWER($1) LIKE '%' || LOWER(region_group) || '%' OR
-          LOWER(region_group) LIKE '%' || LOWER($1) || '%'
-        )
-        ORDER BY sort_order ASC
-        LIMIT 1
-      `, [region]);
 
-      // If no match found, get the default (first active)
-      if (result.rows.length === 0) {
+    // If city name is provided, look up its price_group first
+    if (city || region) {
+      const cityName = city || region;
+
+      // First, try to find city's price_group
+      const cityResult = await pool.query(`
+        SELECT price_group FROM cities WHERE LOWER(name) = LOWER($1) LIMIT 1
+      `, [cityName]);
+
+      const priceGroup = cityResult.rows[0]?.price_group;
+
+      if (priceGroup) {
+        // Find price by city's price_group
+        result = await pool.query(`
+          SELECT * FROM service_prices
+          WHERE is_active = true AND LOWER(region_group) = LOWER($1)
+          ORDER BY sort_order ASC
+          LIMIT 1
+        `, [priceGroup]);
+      }
+
+      // If no price found by city's price_group, try partial match with city/region name
+      if (!result || result.rows.length === 0) {
+        result = await pool.query(`
+          SELECT * FROM service_prices
+          WHERE is_active = true AND (
+            LOWER(region_group) = LOWER($1) OR
+            LOWER($1) LIKE '%' || LOWER(region_group) || '%' OR
+            LOWER(region_group) LIKE '%' || LOWER($1) || '%'
+          )
+          ORDER BY sort_order ASC
+          LIMIT 1
+        `, [cityName]);
+      }
+
+      // If still no match found, get the default (first active)
+      if (!result || result.rows.length === 0) {
         result = await pool.query(`
           SELECT * FROM service_prices
           WHERE is_active = true

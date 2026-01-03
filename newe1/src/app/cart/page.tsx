@@ -73,12 +73,65 @@ export default function CartPage() {
     }, 100);
   }, []);
 
+  // Promo code state
+  const [promoCode, setPromoCode] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoApplied, setPromoApplied] = useState(false);
+  const [promoError, setPromoError] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+
+  // Apply promo code
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) {
+      setPromoError('Введите промокод');
+      return;
+    }
+
+    setPromoLoading(true);
+    setPromoError('');
+
+    try {
+      const response = await fetch('/api/verify-promo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ promo_code: promoCode }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setPromoDiscount(data.data.discount_percent);
+        setPromoApplied(true);
+        setPromoError('');
+      } else {
+        setPromoError(data.error || 'Промокод не найден');
+        setPromoDiscount(0);
+        setPromoApplied(false);
+      }
+    } catch {
+      setPromoError('Ошибка проверки промокода');
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  // Remove promo code
+  const handleRemovePromo = () => {
+    setPromoCode('');
+    setPromoDiscount(0);
+    setPromoApplied(false);
+    setPromoError('');
+  };
+
+  // Calculate discount amount (only on products, not assembly)
+  const discountAmount = promoDiscount > 0 ? Math.round(totalPrice * promoDiscount / 100) : 0;
+  const totalAfterDiscount = totalPrice - discountAmount;
+
   // Checkout form state
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
-    promoCode: '',
     comment: '',
     agreeToPrivacy: false,
   });
@@ -107,8 +160,14 @@ export default function CartPage() {
     setDeliveryData(data);
   }, []);
 
+  // Calculate assembly cost (from cart items)
+  const assemblyTotal = items.reduce((sum, item) => sum + (item.includeAssembly ? item.assemblyPrice * item.quantity : 0), 0);
+
+  // Calculate total with discount (discount only on products, not assembly)
+  const totalProductsAfterDiscount = totalAfterDiscount + assemblyTotal;
+
   // Calculate total with delivery
-  const totalWithDelivery = totalWithAssembly + deliveryData.deliveryCost + deliveryData.liftCost + deliveryData.assemblyCost;
+  const totalWithDelivery = totalProductsAfterDiscount + deliveryData.deliveryCost + deliveryData.liftCost + deliveryData.assemblyCost;
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,7 +188,9 @@ export default function CartPage() {
           customerName: formData.name,
           customerPhone: formData.phone,
           customerEmail: formData.email,
-          promoCode: formData.promoCode,
+          promoCode: promoApplied ? promoCode : '',
+          promoDiscount: promoDiscount,
+          discountAmount: discountAmount,
           comment: formData.comment,
           city: city.name,
           delivery: {
@@ -375,15 +436,67 @@ export default function CartPage() {
                   <>
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Итого</h3>
 
+                    {/* Promo code input */}
+                    <div className="mb-4 pb-4 border-b border-gray-200">
+                      <label className="block text-sm text-gray-600 mb-2">Промокод</label>
+                      {promoApplied ? (
+                        <div className="flex items-center justify-between bg-green-50 rounded-lg p-3">
+                          <div>
+                            <span className="text-green-600 font-medium">{promoCode}</span>
+                            <span className="text-green-600 text-sm ml-2">(-{promoDiscount}%)</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleRemovePromo}
+                            className="text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={promoCode}
+                            onChange={(e) => {
+                              setPromoCode(e.target.value.toUpperCase());
+                              setPromoError('');
+                            }}
+                            placeholder="Введите промокод"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#62bb46] focus:border-[#62bb46] outline-none text-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleApplyPromo}
+                            disabled={promoLoading || !promoCode.trim()}
+                            className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 text-sm"
+                          >
+                            {promoLoading ? '...' : 'Применить'}
+                          </button>
+                        </div>
+                      )}
+                      {promoError && (
+                        <p className="text-red-500 text-xs mt-1">{promoError}</p>
+                      )}
+                    </div>
+
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between text-gray-600">
                         <span>Товары ({items.reduce((sum, i) => sum + i.quantity, 0)} шт.)</span>
                         <span>{totalPrice.toLocaleString('ru-RU')} ₽</span>
                       </div>
-                      {totalWithAssembly > totalPrice && (
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                          <span>Скидка {promoDiscount}%</span>
+                          <span>-{discountAmount.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      {assemblyTotal > 0 && (
                         <div className="flex justify-between text-gray-600">
                           <span>Сборка</span>
-                          <span>{(totalWithAssembly - totalPrice).toLocaleString('ru-RU')} ₽</span>
+                          <span>{assemblyTotal.toLocaleString('ru-RU')} ₽</span>
                         </div>
                       )}
                     </div>
@@ -391,7 +504,7 @@ export default function CartPage() {
                     <div className="border-t border-gray-200 pt-4 mb-6">
                       <div className="flex justify-between text-xl font-bold text-gray-900">
                         <span>К оплате</span>
-                        <span>{totalWithAssembly.toLocaleString('ru-RU')} ₽</span>
+                        <span>{totalProductsAfterDiscount.toLocaleString('ru-RU')} ₽</span>
                       </div>
                     </div>
 
@@ -422,9 +535,21 @@ export default function CartPage() {
 
                     <div className="border-t border-gray-200 mt-6 pt-4 space-y-2">
                       <div className="flex justify-between text-gray-600">
-                        <span>Товары и сборка</span>
-                        <span>{totalWithAssembly.toLocaleString('ru-RU')} ₽</span>
+                        <span>Товары</span>
+                        <span>{totalPrice.toLocaleString('ru-RU')} ₽</span>
                       </div>
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                          <span>Скидка {promoDiscount}%</span>
+                          <span>-{discountAmount.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      {assemblyTotal > 0 && (
+                        <div className="flex justify-between text-gray-600">
+                          <span>Сборка</span>
+                          <span>{assemblyTotal.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
                       {(deliveryData.deliveryCost > 0 || deliveryData.liftCost > 0 || deliveryData.assemblyCost > 0) && (
                         <div className="flex justify-between text-gray-600">
                           <span>Доставка{deliveryData.assemblyCost > 0 ? ', подъём и сборщик' : ' и подъём'}</span>
@@ -506,19 +631,13 @@ export default function CartPage() {
                         />
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Промокод
-                        </label>
-                        <input
-                          type="text"
-                          name="promoCode"
-                          value={formData.promoCode}
-                          onChange={(e) => setFormData(prev => ({ ...prev, promoCode: e.target.value.toUpperCase() }))}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent"
-                          placeholder="Введите промокод"
-                        />
-                      </div>
+                      {/* Promo code shown if applied */}
+                      {promoApplied && (
+                        <div className="bg-green-50 rounded-lg p-3">
+                          <span className="text-green-600 font-medium">Промокод: {promoCode}</span>
+                          <span className="text-green-600 text-sm ml-2">(-{promoDiscount}%)</span>
+                        </div>
+                      )}
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
