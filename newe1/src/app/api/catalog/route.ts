@@ -23,6 +23,12 @@ export async function GET(request: NextRequest) {
     const heights = heightsParam ? heightsParam.split(',').map(h => parseInt(h)).filter(h => !isNaN(h)) : undefined;
     const depths = depthsParam ? depthsParam.split(',').map(d => parseInt(d)).filter(d => !isNaN(d)) : undefined;
 
+    // Диапазоны глубины и цены
+    const depthMin = searchParams.get('depthMin') ? parseInt(searchParams.get('depthMin')!) : undefined;
+    const depthMax = searchParams.get('depthMax') ? parseInt(searchParams.get('depthMax')!) : undefined;
+    const priceMin = searchParams.get('priceMin') ? parseInt(searchParams.get('priceMin')!) : undefined;
+    const priceMax = searchParams.get('priceMax') ? parseInt(searchParams.get('priceMax')!) : undefined;
+
     // Запрашиваем параметры фильтров с подсчётом
     const includeFilters = searchParams.get('includeFilters') === 'true';
 
@@ -32,7 +38,10 @@ export async function GET(request: NextRequest) {
       widthMin,
       widthMax,
       heights,
-      depths
+      depthMin,
+      depthMax,
+      priceMin,
+      priceMax
     };
 
     const [{ products, total }, series, filterOptions] = await Promise.all([

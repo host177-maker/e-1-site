@@ -30,8 +30,10 @@ interface FilterOptions {
   doorTypes: { id: number; name: string; slug: string; count: number }[];
   series: { id: number; name: string; slug: string; count: number }[];
   widthRange: { min: number; max: number };
+  widthRangeCounts?: { key: string; count: number }[];
   heights: { value: number; count: number }[];
   depths: { value: number; count: number }[];
+  depthRangeCounts?: { key: string; count: number }[];
   priceRange: { min: number; max: number };
 }
 

@@ -142,64 +142,49 @@ export async function getSeriesBySlug(slug: string): Promise<CatalogSeries | nul
   return result.rows[0] || null;
 }
 
-// Получить опции для фильтров с подсчётом товаров
+// Предопределённые диапазоны для подсчёта
+const widthRangesDef = [
+  { key: '0-1090', min: 0, max: 1090 },
+  { key: '1100-1390', min: 1100, max: 1390 },
+  { key: '1400-1610', min: 1400, max: 1610 },
+  { key: '1620-2000', min: 1620, max: 2000 },
+  { key: '2010-2390', min: 2010, max: 2390 },
+  { key: '2400-9990', min: 2400, max: 9990 },
+];
+
+const depthRangesDef = [
+  { key: '0-450', min: 0, max: 450 },
+  { key: '450-530', min: 450, max: 530 },
+  { key: '530-9990', min: 530, max: 9990 },
+];
+
+// Получить опции для фильтров с подсчётом товаров (каскадные счётчики)
 export async function getFilterOptions(currentFilters?: {
   doorTypes?: string[];
   series?: string[];
   widthMin?: number;
   widthMax?: number;
   heights?: number[];
-  depths?: number[];
+  depthMin?: number;
+  depthMax?: number;
+  priceMin?: number;
+  priceMax?: number;
 }): Promise<{
   doorTypes: { id: number; name: string; slug: string; count: number }[];
   series: { id: number; name: string; slug: string; count: number }[];
   widthRange: { min: number; max: number };
+  widthRangeCounts: { key: string; count: number }[];
   heights: { value: number; count: number }[];
   depths: { value: number; count: number }[];
+  depthRangeCounts: { key: string; count: number }[];
   priceRange: { min: number; max: number };
 }> {
   const pool = getPool();
 
-  // Базовое условие для активных товаров
-  const baseCondition = 'p.is_active = true';
+  // Каскадные фильтры: каждый уровень зависит от верхних
+  // Иерархия: doorTypes -> series -> price/width/height/depth
 
-  // Формируем условия для подсчёта (без текущего типа фильтра)
-  const buildCountConditions = (excludeFilter: string) => {
-    const conditions: string[] = [baseCondition];
-    const params: (string | number | string[] | number[])[] = [];
-    let paramIndex = 1;
-
-    if (excludeFilter !== 'doorTypes' && currentFilters?.doorTypes?.length) {
-      conditions.push(`dt.slug = ANY($${paramIndex++}::text[])`);
-      params.push(currentFilters.doorTypes);
-    }
-    if (excludeFilter !== 'series' && currentFilters?.series?.length) {
-      conditions.push(`s.slug = ANY($${paramIndex++}::text[])`);
-      params.push(currentFilters.series);
-    }
-    if (excludeFilter !== 'dimensions') {
-      if (currentFilters?.widthMin) {
-        conditions.push(`EXISTS (SELECT 1 FROM catalog_variants v WHERE v.product_id = p.id AND v.is_active = true AND v.width >= $${paramIndex++})`);
-        params.push(currentFilters.widthMin);
-      }
-      if (currentFilters?.widthMax) {
-        conditions.push(`EXISTS (SELECT 1 FROM catalog_variants v WHERE v.product_id = p.id AND v.is_active = true AND v.width <= $${paramIndex++})`);
-        params.push(currentFilters.widthMax);
-      }
-      if (currentFilters?.heights?.length) {
-        conditions.push(`EXISTS (SELECT 1 FROM catalog_variants v WHERE v.product_id = p.id AND v.is_active = true AND v.height = ANY($${paramIndex++}::int[]))`);
-        params.push(currentFilters.heights);
-      }
-      if (currentFilters?.depths?.length) {
-        conditions.push(`EXISTS (SELECT 1 FROM catalog_variants v WHERE v.product_id = p.id AND v.is_active = true AND v.depth = ANY($${paramIndex++}::int[]))`);
-        params.push(currentFilters.depths);
-      }
-    }
-
-    return { conditions, params };
-  };
-
-  // Подсчёт для типов шкафов - упрощённый запрос
+  // 1. Типы шкафов - всегда полные счётчики (верхний уровень)
   const doorTypesQuery = `
     SELECT dt.id, dt.name, dt.slug,
            (SELECT COUNT(DISTINCT p.id) FROM catalog_products p
@@ -208,56 +193,128 @@ export async function getFilterOptions(currentFilters?: {
     ORDER BY dt.sort_order
   `;
 
-  // Подсчёт для серий - упрощённый запрос
-  const seriesQuery = `
-    SELECT s.id, s.name, s.slug,
-           (SELECT COUNT(DISTINCT p.id) FROM catalog_products p
-            WHERE p.series_id = s.id AND p.is_active = true) as count
-    FROM catalog_series s
-    WHERE s.is_active = true
-    ORDER BY s.sort_order, s.name
+  // 2. Серии - фильтруются по выбранным типам шкафов
+  let seriesQuery: string;
+  let seriesParams: string[] = [];
+  if (currentFilters?.doorTypes?.length) {
+    seriesQuery = `
+      SELECT s.id, s.name, s.slug,
+             (SELECT COUNT(DISTINCT p.id) FROM catalog_products p
+              JOIN catalog_door_types dt ON p.door_type_id = dt.id
+              WHERE p.series_id = s.id AND p.is_active = true
+              AND dt.slug = ANY($1::text[])) as count
+      FROM catalog_series s
+      WHERE s.is_active = true
+      ORDER BY s.sort_order, s.name
+    `;
+    seriesParams = currentFilters.doorTypes;
+  } else {
+    seriesQuery = `
+      SELECT s.id, s.name, s.slug,
+             (SELECT COUNT(DISTINCT p.id) FROM catalog_products p
+              WHERE p.series_id = s.id AND p.is_active = true) as count
+      FROM catalog_series s
+      WHERE s.is_active = true
+      ORDER BY s.sort_order, s.name
+    `;
+  }
+
+  // Базовые условия для размеров (зависят от doorTypes + series)
+  const buildDimensionConditions = () => {
+    const conditions: string[] = ['v.is_active = true', 'p.is_active = true'];
+    const params: (string | string[])[] = [];
+    let paramIndex = 1;
+
+    if (currentFilters?.doorTypes?.length) {
+      conditions.push(`dt.slug = ANY($${paramIndex++}::text[])`);
+      params.push(currentFilters.doorTypes);
+    }
+    if (currentFilters?.series?.length) {
+      conditions.push(`s.slug = ANY($${paramIndex++}::text[])`);
+      params.push(currentFilters.series);
+    }
+
+    return { conditions, params, paramIndex };
+  };
+
+  const { conditions: dimConditions, params: dimParams } = buildDimensionConditions();
+  const dimJoins = `
+    FROM catalog_variants v
+    JOIN catalog_products p ON v.product_id = p.id
+    LEFT JOIN catalog_series s ON p.series_id = s.id
+    LEFT JOIN catalog_door_types dt ON p.door_type_id = dt.id
   `;
+  const dimWhere = dimConditions.length > 0 ? `WHERE ${dimConditions.join(' AND ')}` : '';
 
   // Размеры
   const dimensionsQuery = `
     SELECT
-      MIN(v.width) as min_width, MAX(v.width) as max_width,
-      ARRAY_AGG(DISTINCT v.height ORDER BY v.height) as heights,
-      ARRAY_AGG(DISTINCT v.depth ORDER BY v.depth) as depths
-    FROM catalog_variants v
-    JOIN catalog_products p ON v.product_id = p.id
-    WHERE v.is_active = true AND p.is_active = true
+      MIN(v.width) as min_width, MAX(v.width) as max_width
+    ${dimJoins}
+    ${dimWhere}
   `;
 
   const [doorTypesResult, seriesResult, dimensionsResult] = await Promise.all([
     pool.query(doorTypesQuery),
-    pool.query(seriesQuery),
-    pool.query(dimensionsQuery)
+    seriesParams.length > 0
+      ? pool.query(seriesQuery, [seriesParams])
+      : pool.query(seriesQuery),
+    dimParams.length > 0
+      ? pool.query(dimensionsQuery, dimParams)
+      : pool.query(dimensionsQuery)
   ]);
 
-  const dimensions = dimensionsResult.rows[0];
+  const dimensions = dimensionsResult.rows[0] || { min_width: 80, max_width: 300 };
 
-  // Подсчёт для высот - один запрос
-  const heightCountsResult = await pool.query(`
+  // Подсчёт для высот с каскадными фильтрами
+  const heightCountsQuery = `
     SELECT v.height as value, COUNT(DISTINCT p.id) as count
-    FROM catalog_variants v
-    JOIN catalog_products p ON v.product_id = p.id
-    WHERE v.is_active = true AND p.is_active = true
+    ${dimJoins}
+    ${dimWhere}
     GROUP BY v.height
     ORDER BY v.height
-  `);
+  `;
+  const heightCountsResult = dimParams.length > 0
+    ? await pool.query(heightCountsQuery, dimParams)
+    : await pool.query(heightCountsQuery);
   const heightCounts = heightCountsResult.rows.map(r => ({ value: r.value, count: parseInt(r.count) }));
 
-  // Подсчёт для глубин - один запрос
-  const depthCountsResult = await pool.query(`
+  // Подсчёт для глубин с каскадными фильтрами
+  const depthCountsQuery = `
     SELECT v.depth as value, COUNT(DISTINCT p.id) as count
-    FROM catalog_variants v
-    JOIN catalog_products p ON v.product_id = p.id
-    WHERE v.is_active = true AND p.is_active = true
+    ${dimJoins}
+    ${dimWhere}
     GROUP BY v.depth
     ORDER BY v.depth
-  `);
+  `;
+  const depthCountsResult = dimParams.length > 0
+    ? await pool.query(depthCountsQuery, dimParams)
+    : await pool.query(depthCountsQuery);
   const depthCounts = depthCountsResult.rows.map(r => ({ value: r.value, count: parseInt(r.count) }));
+
+  // Подсчёт для диапазонов ширины
+  const widthRangeCounts: { key: string; count: number }[] = [];
+  for (const range of widthRangesDef) {
+    const widthRangeQuery = `
+      SELECT COUNT(DISTINCT p.id) as count
+      ${dimJoins}
+      ${dimWhere}${dimConditions.length > 0 ? ' AND ' : ' WHERE '}v.width >= $${dimParams.length + 1} AND v.width <= $${dimParams.length + 2}
+    `;
+    const result = await pool.query(widthRangeQuery, [...dimParams, range.min, range.max]);
+    widthRangeCounts.push({ key: range.key, count: parseInt(result.rows[0]?.count || '0') });
+  }
+
+  // Подсчёт для диапазонов глубины
+  const depthRangeCounts: { key: string; count: number }[] = [];
+  for (const range of depthRangesDef) {
+    const depthRangeQuery = `
+      SELECT COUNT(DISTINCT p.id) as count
+      ${dimJoins}
+      ${dimWhere}${dimConditions.length > 0 ? ' AND ' : ' WHERE '}v.depth >= $${dimParams.length + 1} AND v.depth <= $${dimParams.length + 2}
+    `;
+    const result = await pool.query(depthRangeQuery, [...dimParams, range.min, range.max]);
+    depthRangeCounts.push({ key: range.key, count: parseInt(result.rows[0]?.count || '0') });
+  }
 
   return {
     doorTypes: doorTypesResult.rows.map(r => ({ ...r, count: parseInt(r.count) })),
@@ -266,8 +323,10 @@ export async function getFilterOptions(currentFilters?: {
       min: dimensions.min_width || 80,
       max: dimensions.max_width || 300
     },
+    widthRangeCounts,
     heights: heightCounts,
     depths: depthCounts,
+    depthRangeCounts,
     priceRange: { min: 2000, max: 170000 }
   };
 }

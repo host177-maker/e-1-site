@@ -6,8 +6,10 @@ interface FilterOptions {
   doorTypes: { id: number; name: string; slug: string; count: number }[];
   series: { id: number; name: string; slug: string; count: number }[];
   widthRange: { min: number; max: number };
+  widthRangeCounts?: { key: string; count: number }[];
   heights: { value: number; count: number }[];
   depths: { value: number; count: number }[];
+  depthRangeCounts?: { key: string; count: number }[];
   priceRange: { min: number; max: number };
 }
 
@@ -207,18 +209,25 @@ export default function CatalogFilter({
       <div>
         <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Серия</h3>
         <div className="space-y-1">
-          {filterOptions.series.map(s => (
-            <label key={s.id} className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={localFilters.series.includes(s.slug)}
-                onChange={() => handleSeriesToggle(s.slug)}
-                className="w-3.5 h-3.5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
-              />
-              <span className="text-xs text-gray-700 flex-1">{s.name}</span>
-              <span className="text-[10px] text-gray-400">({s.count})</span>
-            </label>
-          ))}
+          {filterOptions.series.map(s => {
+            const isDisabled = s.count === 0;
+            return (
+              <label
+                key={s.id}
+                className={`flex items-center gap-2 ${isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={localFilters.series.includes(s.slug)}
+                  onChange={() => !isDisabled && handleSeriesToggle(s.slug)}
+                  disabled={isDisabled}
+                  className="w-3.5 h-3.5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46] disabled:opacity-50"
+                />
+                <span className={`text-xs flex-1 ${isDisabled ? 'text-gray-400' : 'text-gray-700'}`}>{s.name}</span>
+                <span className="text-[10px] text-gray-400">({s.count})</span>
+              </label>
+            );
+          })}
         </div>
       </div>
 
@@ -244,17 +253,28 @@ export default function CatalogFilter({
       <div>
         <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Ширина</h3>
         <div className="grid grid-cols-2 gap-1">
-          {widthRangesList.map(range => (
-            <label key={range.key} className="flex items-center gap-1 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={localFilters.widthRanges.includes(range.key)}
-                onChange={() => handleWidthRangeToggle(range.key)}
-                className="w-3 h-3 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
-              />
-              <span className="text-[11px] text-gray-700">{range.label}</span>
-            </label>
-          ))}
+          {widthRangesList.map(range => {
+            const countData = filterOptions.widthRangeCounts?.find(c => c.key === range.key);
+            const count = countData?.count ?? 0;
+            const isDisabled = count === 0;
+            return (
+              <label
+                key={range.key}
+                className={`flex items-center gap-1 ${isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={localFilters.widthRanges.includes(range.key)}
+                  onChange={() => !isDisabled && handleWidthRangeToggle(range.key)}
+                  disabled={isDisabled}
+                  className="w-3 h-3 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46] disabled:opacity-50"
+                />
+                <span className={`text-[11px] ${isDisabled ? 'text-gray-400' : 'text-gray-700'}`}>
+                  {range.label} <span className="text-gray-400">({count})</span>
+                </span>
+              </label>
+            );
+          })}
         </div>
       </div>
 
@@ -263,19 +283,26 @@ export default function CatalogFilter({
         <div>
           <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Высота</h3>
           <div className="flex flex-wrap gap-1">
-            {filteredHeights.slice(0, 8).map(h => (
-              <button
-                key={h.value}
-                onClick={() => handleHeightToggle(h.value)}
-                className={`px-1.5 py-0.5 text-[11px] rounded border transition-colors ${
-                  localFilters.heights.includes(h.value)
-                    ? 'bg-[#62bb46] text-white border-[#62bb46]'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-[#62bb46]'
-                }`}
-              >
-                {h.displayValue} см <span className="opacity-70">({h.count})</span>
-              </button>
-            ))}
+            {filteredHeights.slice(0, 8).map(h => {
+              const isDisabled = h.count === 0;
+              const isSelected = localFilters.heights.includes(h.value);
+              return (
+                <button
+                  key={h.value}
+                  onClick={() => !isDisabled && handleHeightToggle(h.value)}
+                  disabled={isDisabled}
+                  className={`px-1.5 py-0.5 text-[11px] rounded border transition-colors ${
+                    isSelected
+                      ? 'bg-[#62bb46] text-white border-[#62bb46]'
+                      : isDisabled
+                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-[#62bb46]'
+                  }`}
+                >
+                  {h.displayValue} см <span className="opacity-70">({h.count})</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -284,17 +311,28 @@ export default function CatalogFilter({
       <div>
         <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Глубина</h3>
         <div className="grid grid-cols-2 gap-1">
-          {depthRangesList.map(range => (
-            <label key={range.key} className="flex items-center gap-1 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={localFilters.depthRanges.includes(range.key)}
-                onChange={() => handleDepthRangeToggle(range.key)}
-                className="w-3 h-3 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
-              />
-              <span className="text-[11px] text-gray-700">{range.label}</span>
-            </label>
-          ))}
+          {depthRangesList.map(range => {
+            const countData = filterOptions.depthRangeCounts?.find(c => c.key === range.key);
+            const count = countData?.count ?? 0;
+            const isDisabled = count === 0;
+            return (
+              <label
+                key={range.key}
+                className={`flex items-center gap-1 ${isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={localFilters.depthRanges.includes(range.key)}
+                  onChange={() => !isDisabled && handleDepthRangeToggle(range.key)}
+                  disabled={isDisabled}
+                  className="w-3 h-3 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46] disabled:opacity-50"
+                />
+                <span className={`text-[11px] ${isDisabled ? 'text-gray-400' : 'text-gray-700'}`}>
+                  {range.label} <span className="text-gray-400">({count})</span>
+                </span>
+              </label>
+            );
+          })}
         </div>
       </div>
 
@@ -315,30 +353,34 @@ export default function CatalogFilter({
     return isOpen ? (
       <div className="fixed inset-0 z-50 lg:hidden">
         <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-        <div className="absolute inset-y-0 left-0 w-full max-w-sm bg-white overflow-y-auto">
-          <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+        <div className="absolute bottom-0 left-0 right-0 h-[66vh] bg-white rounded-t-2xl overflow-hidden flex flex-col">
+          {/* Заголовок */}
+          <div className="flex-shrink-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
             <div>
               <h2 className="font-bold text-base text-gray-900">Фильтры</h2>
               <p className="text-[11px] text-gray-500">Найдено: {totalProducts}</p>
             </div>
-            <div className="flex items-center gap-2">
-              {hasActiveFilters && (
-                <button
-                  onClick={resetFilters}
-                  className="text-[11px] text-[#62bb46] hover:underline"
-                >
-                  Сбросить
-                </button>
-              )}
-              <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+            {hasActiveFilters && (
+              <button
+                onClick={resetFilters}
+                className="text-[11px] text-[#62bb46] hover:underline"
+              >
+                Сбросить
               </button>
-            </div>
+            )}
           </div>
-          <div className="p-4">
+          {/* Контент с прокруткой */}
+          <div className="flex-1 overflow-y-auto p-4">
             {filterContent}
+          </div>
+          {/* Кнопка применить */}
+          <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-white">
+            <button
+              onClick={onClose}
+              className="w-full py-3 bg-[#62bb46] text-white font-medium rounded-lg hover:bg-[#55a83d] transition-colors"
+            >
+              Применить
+            </button>
           </div>
         </div>
       </div>
