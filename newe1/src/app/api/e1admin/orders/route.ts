@@ -4,6 +4,8 @@ import { getPool } from '@/lib/db';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+// CartItem interface is used for typing the items JSONB column
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface CartItem {
   name: string;
   slug: string;

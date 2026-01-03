@@ -129,7 +129,6 @@ export default function DeliveryMapPage() {
   const [deliveryResult, setDeliveryResult] = useState<DeliveryResult | null>(null);
   const [searchAddress, setSearchAddress] = useState('');
   const [isCalculating, setIsCalculating] = useState(false);
-  const [mapReady, setMapReady] = useState(false);
 
   const mapRef = useRef<any>(null);
   const routeRef = useRef<any>(null);
