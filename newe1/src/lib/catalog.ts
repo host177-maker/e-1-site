@@ -199,26 +199,22 @@ export async function getFilterOptions(currentFilters?: {
     return { conditions, params };
   };
 
-  // Подсчёт для типов шкафов
-  const doorTypeConditions = buildCountConditions('doorTypes');
+  // Подсчёт для типов шкафов - упрощённый запрос
   const doorTypesQuery = `
-    SELECT dt.id, dt.name, dt.slug, COUNT(DISTINCT p.id) as count
+    SELECT dt.id, dt.name, dt.slug,
+           (SELECT COUNT(DISTINCT p.id) FROM catalog_products p
+            WHERE p.door_type_id = dt.id AND p.is_active = true) as count
     FROM catalog_door_types dt
-    LEFT JOIN catalog_products p ON p.door_type_id = dt.id AND ${doorTypeConditions.conditions.join(' AND ')}
-    LEFT JOIN catalog_series s ON p.series_id = s.id
-    GROUP BY dt.id, dt.name, dt.slug
     ORDER BY dt.sort_order
   `;
 
-  // Подсчёт для серий
-  const seriesConditions = buildCountConditions('series');
+  // Подсчёт для серий - упрощённый запрос
   const seriesQuery = `
-    SELECT s.id, s.name, s.slug, COUNT(DISTINCT p.id) as count
+    SELECT s.id, s.name, s.slug,
+           (SELECT COUNT(DISTINCT p.id) FROM catalog_products p
+            WHERE p.series_id = s.id AND p.is_active = true) as count
     FROM catalog_series s
-    LEFT JOIN catalog_products p ON p.series_id = s.id AND ${seriesConditions.conditions.join(' AND ')}
-    LEFT JOIN catalog_door_types dt ON p.door_type_id = dt.id
     WHERE s.is_active = true
-    GROUP BY s.id, s.name, s.slug
     ORDER BY s.sort_order, s.name
   `;
 
@@ -234,48 +230,34 @@ export async function getFilterOptions(currentFilters?: {
   `;
 
   const [doorTypesResult, seriesResult, dimensionsResult] = await Promise.all([
-    pool.query(doorTypesQuery, doorTypeConditions.params),
-    pool.query(seriesQuery, seriesConditions.params),
+    pool.query(doorTypesQuery),
+    pool.query(seriesQuery),
     pool.query(dimensionsQuery)
   ]);
 
   const dimensions = dimensionsResult.rows[0];
 
-  // Подсчёт для высот и глубин
-  const heightCounts: { value: number; count: number }[] = [];
-  const depthCounts: { value: number; count: number }[] = [];
+  // Подсчёт для высот - один запрос
+  const heightCountsResult = await pool.query(`
+    SELECT v.height as value, COUNT(DISTINCT p.id) as count
+    FROM catalog_variants v
+    JOIN catalog_products p ON v.product_id = p.id
+    WHERE v.is_active = true AND p.is_active = true
+    GROUP BY v.height
+    ORDER BY v.height
+  `);
+  const heightCounts = heightCountsResult.rows.map(r => ({ value: r.value, count: parseInt(r.count) }));
 
-  if (dimensions.heights) {
-    for (const h of dimensions.heights) {
-      const countResult = await pool.query(
-        `SELECT COUNT(DISTINCT p.id) as count FROM catalog_products p
-         JOIN catalog_variants v ON v.product_id = p.id
-         LEFT JOIN catalog_series s ON p.series_id = s.id
-         LEFT JOIN catalog_door_types dt ON p.door_type_id = dt.id
-         WHERE p.is_active = true AND v.is_active = true AND v.height = $1
-         ${currentFilters?.doorTypes?.length ? `AND dt.slug = ANY($2::text[])` : ''}
-         ${currentFilters?.series?.length ? `AND s.slug = ANY($${currentFilters?.doorTypes?.length ? 3 : 2}::text[])` : ''}`,
-        [h, ...(currentFilters?.doorTypes?.length ? [currentFilters.doorTypes] : []), ...(currentFilters?.series?.length ? [currentFilters.series] : [])]
-      );
-      heightCounts.push({ value: h, count: parseInt(countResult.rows[0].count) });
-    }
-  }
-
-  if (dimensions.depths) {
-    for (const d of dimensions.depths) {
-      const countResult = await pool.query(
-        `SELECT COUNT(DISTINCT p.id) as count FROM catalog_products p
-         JOIN catalog_variants v ON v.product_id = p.id
-         LEFT JOIN catalog_series s ON p.series_id = s.id
-         LEFT JOIN catalog_door_types dt ON p.door_type_id = dt.id
-         WHERE p.is_active = true AND v.is_active = true AND v.depth = $1
-         ${currentFilters?.doorTypes?.length ? `AND dt.slug = ANY($2::text[])` : ''}
-         ${currentFilters?.series?.length ? `AND s.slug = ANY($${currentFilters?.doorTypes?.length ? 3 : 2}::text[])` : ''}`,
-        [d, ...(currentFilters?.doorTypes?.length ? [currentFilters.doorTypes] : []), ...(currentFilters?.series?.length ? [currentFilters.series] : [])]
-      );
-      depthCounts.push({ value: d, count: parseInt(countResult.rows[0].count) });
-    }
-  }
+  // Подсчёт для глубин - один запрос
+  const depthCountsResult = await pool.query(`
+    SELECT v.depth as value, COUNT(DISTINCT p.id) as count
+    FROM catalog_variants v
+    JOIN catalog_products p ON v.product_id = p.id
+    WHERE v.is_active = true AND p.is_active = true
+    GROUP BY v.depth
+    ORDER BY v.depth
+  `);
+  const depthCounts = depthCountsResult.rows.map(r => ({ value: r.value, count: parseInt(r.count) }));
 
   return {
     doorTypes: doorTypesResult.rows.map(r => ({ ...r, count: parseInt(r.count) })),

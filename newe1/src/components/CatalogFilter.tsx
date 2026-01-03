@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 interface FilterOptions {
   doorTypes: { id: number; name: string; slug: string; count: number }[];
@@ -14,12 +14,10 @@ interface FilterOptions {
 interface FilterValues {
   doorTypes: string[];
   series: string[];
-  widthMin: number;
-  widthMax: number;
+  widthRange: string;
   heights: number[];
   depths: number[];
-  priceMin: number;
-  priceMax: number;
+  priceRange: string;
 }
 
 interface CatalogFilterProps {
@@ -40,6 +38,26 @@ const doorTypeLabels: Record<string, string> = {
   'bez-dverey': 'Без дверей',
 };
 
+// Градации цены
+const priceRanges = [
+  { key: '0-19999', label: 'до 19 999', min: 0, max: 19999 },
+  { key: '20000-34999', label: '20 000 - 34 999', min: 20000, max: 34999 },
+  { key: '35000-49999', label: '35 000 - 49 999', min: 35000, max: 49999 },
+  { key: '50000-79999', label: '50 000 - 79 999', min: 50000, max: 79999 },
+  { key: '80000-109999', label: '80 000 - 109 999', min: 80000, max: 109999 },
+  { key: '110000-999999', label: 'от 110 000', min: 110000, max: 999999 },
+];
+
+// Градации ширины
+const widthRanges = [
+  { key: '0-109', label: 'до 109', min: 0, max: 109 },
+  { key: '110-139', label: '110-139', min: 110, max: 139 },
+  { key: '140-161', label: '140-161', min: 140, max: 161 },
+  { key: '162-200', label: '162-200', min: 162, max: 200 },
+  { key: '201-239', label: '201-239', min: 201, max: 239 },
+  { key: '240-999', label: 'от 240', min: 240, max: 999 },
+];
+
 export default function CatalogFilter({
   filterOptions,
   filters,
@@ -49,18 +67,10 @@ export default function CatalogFilter({
   isMobileOnly = false,
 }: CatalogFilterProps) {
   const [localFilters, setLocalFilters] = useState<FilterValues>(filters);
-  const [widthInputMin, setWidthInputMin] = useState(filters.widthMin.toString());
-  const [widthInputMax, setWidthInputMax] = useState(filters.widthMax.toString());
-  const [priceInputMin, setPriceInputMin] = useState(filters.priceMin.toString());
-  const [priceInputMax, setPriceInputMax] = useState(filters.priceMax.toString());
 
   // Синхронизация с внешними фильтрами
   useEffect(() => {
     setLocalFilters(filters);
-    setWidthInputMin(filters.widthMin.toString());
-    setWidthInputMax(filters.widthMax.toString());
-    setPriceInputMin(filters.priceMin.toString());
-    setPriceInputMax(filters.priceMax.toString());
   }, [filters]);
 
   const handleDoorTypeToggle = (slug: string) => {
@@ -99,42 +109,28 @@ export default function CatalogFilter({
     onFiltersChange(newFilters);
   };
 
-  const handleWidthChange = useCallback(() => {
-    const min = parseInt(widthInputMin) || filterOptions?.widthRange.min || 80;
-    const max = parseInt(widthInputMax) || filterOptions?.widthRange.max || 300;
-    if (min !== localFilters.widthMin || max !== localFilters.widthMax) {
-      const newFilters = { ...localFilters, widthMin: min, widthMax: max };
-      setLocalFilters(newFilters);
-      onFiltersChange(newFilters);
-    }
-  }, [widthInputMin, widthInputMax, localFilters, filterOptions, onFiltersChange]);
+  const handleWidthRangeChange = (key: string) => {
+    const newFilters = { ...localFilters, widthRange: localFilters.widthRange === key ? '' : key };
+    setLocalFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
 
-  const handlePriceChange = useCallback(() => {
-    const min = parseInt(priceInputMin) || filterOptions?.priceRange.min || 2000;
-    const max = parseInt(priceInputMax) || filterOptions?.priceRange.max || 170000;
-    if (min !== localFilters.priceMin || max !== localFilters.priceMax) {
-      const newFilters = { ...localFilters, priceMin: min, priceMax: max };
-      setLocalFilters(newFilters);
-      onFiltersChange(newFilters);
-    }
-  }, [priceInputMin, priceInputMax, localFilters, filterOptions, onFiltersChange]);
+  const handlePriceRangeChange = (key: string) => {
+    const newFilters = { ...localFilters, priceRange: localFilters.priceRange === key ? '' : key };
+    setLocalFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
 
   const resetFilters = () => {
     const defaultFilters: FilterValues = {
       doorTypes: [],
       series: [],
-      widthMin: filterOptions?.widthRange.min || 80,
-      widthMax: filterOptions?.widthRange.max || 300,
+      widthRange: '',
       heights: [],
       depths: [],
-      priceMin: filterOptions?.priceRange.min || 2000,
-      priceMax: filterOptions?.priceRange.max || 170000,
+      priceRange: '',
     };
     setLocalFilters(defaultFilters);
-    setWidthInputMin(defaultFilters.widthMin.toString());
-    setWidthInputMax(defaultFilters.widthMax.toString());
-    setPriceInputMin(defaultFilters.priceMin.toString());
-    setPriceInputMax(defaultFilters.priceMax.toString());
     onFiltersChange(defaultFilters);
   };
 
@@ -143,21 +139,18 @@ export default function CatalogFilter({
     localFilters.series.length > 0 ||
     localFilters.heights.length > 0 ||
     localFilters.depths.length > 0 ||
-    (filterOptions && (
-      localFilters.widthMin !== filterOptions.widthRange.min ||
-      localFilters.widthMax !== filterOptions.widthRange.max ||
-      localFilters.priceMin !== filterOptions.priceRange.min ||
-      localFilters.priceMax !== filterOptions.priceRange.max
-    ));
+    localFilters.widthRange !== '' ||
+    localFilters.priceRange !== '';
 
   if (!filterOptions) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-4">
+      <div className="bg-white rounded-xl shadow-sm p-4 min-h-[400px]">
         <div className="animate-pulse space-y-4">
           <div className="h-4 bg-gray-200 rounded w-1/2"></div>
           <div className="space-y-2">
-            <div className="h-8 bg-gray-200 rounded"></div>
-            <div className="h-8 bg-gray-200 rounded"></div>
+            <div className="h-6 bg-gray-200 rounded"></div>
+            <div className="h-6 bg-gray-200 rounded"></div>
+            <div className="h-6 bg-gray-200 rounded"></div>
           </div>
         </div>
       </div>
@@ -165,11 +158,11 @@ export default function CatalogFilter({
   }
 
   const filterContent = (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Тип шкафа */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-3">Тип шкафа</h3>
-        <div className="space-y-2">
+        <h3 className="font-medium text-gray-900 mb-2 text-sm">Тип шкафа</h3>
+        <div className="space-y-1.5">
           {filterOptions.doorTypes
             .filter(dt => doorTypeLabels[dt.slug])
             .map(dt => (
@@ -180,7 +173,7 @@ export default function CatalogFilter({
                   onChange={() => handleDoorTypeToggle(dt.slug)}
                   className="w-4 h-4 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
                 />
-                <span className="text-sm text-gray-700 flex-1">{doorTypeLabels[dt.slug] || dt.name}</span>
+                <span className="text-sm text-gray-700 flex-1">{doorTypeLabels[dt.slug]}</span>
                 <span className="text-xs text-gray-400">({dt.count})</span>
               </label>
             ))}
@@ -189,8 +182,8 @@ export default function CatalogFilter({
 
       {/* Серия */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-3">Серия</h3>
-        <div className="space-y-2">
+        <h3 className="font-medium text-gray-900 mb-2 text-sm">Серия</h3>
+        <div className="space-y-1.5">
           {filterOptions.series.map(s => (
             <label key={s.id} className="flex items-center gap-2 cursor-pointer">
               <input
@@ -208,69 +201,38 @@ export default function CatalogFilter({
 
       {/* Ширина */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-3">Ширина, см</h3>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={widthInputMin}
-            onChange={(e) => setWidthInputMin(e.target.value)}
-            onBlur={handleWidthChange}
-            onKeyDown={(e) => e.key === 'Enter' && handleWidthChange()}
-            min={filterOptions.widthRange.min}
-            max={filterOptions.widthRange.max}
-            placeholder="от"
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent outline-none"
-          />
-          <span className="text-gray-400">—</span>
-          <input
-            type="number"
-            value={widthInputMax}
-            onChange={(e) => setWidthInputMax(e.target.value)}
-            onBlur={handleWidthChange}
-            onKeyDown={(e) => e.key === 'Enter' && handleWidthChange()}
-            min={filterOptions.widthRange.min}
-            max={filterOptions.widthRange.max}
-            placeholder="до"
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent outline-none"
-          />
-        </div>
-        {/* Слайдер */}
-        <div className="mt-3 px-1">
-          <input
-            type="range"
-            min={filterOptions.widthRange.min}
-            max={filterOptions.widthRange.max}
-            value={localFilters.widthMin}
-            onChange={(e) => {
-              const val = parseInt(e.target.value);
-              setWidthInputMin(val.toString());
-              if (val <= localFilters.widthMax) {
-                const newFilters = { ...localFilters, widthMin: val };
-                setLocalFilters(newFilters);
-                onFiltersChange(newFilters);
-              }
-            }}
-            className="w-full accent-[#62bb46]"
-          />
+        <h3 className="font-medium text-gray-900 mb-2 text-sm">Ширина, см</h3>
+        <div className="grid grid-cols-2 gap-1.5">
+          {widthRanges.map(range => (
+            <label key={range.key} className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={localFilters.widthRange === range.key}
+                onChange={() => handleWidthRangeChange(range.key)}
+                className="w-3.5 h-3.5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
+              />
+              <span className="text-xs text-gray-700">{range.label}</span>
+            </label>
+          ))}
         </div>
       </div>
 
       {/* Высота */}
       {filterOptions.heights.length > 0 && (
         <div>
-          <h3 className="font-medium text-gray-900 mb-3">Высота, см</h3>
-          <div className="flex flex-wrap gap-2">
-            {filterOptions.heights.slice(0, 10).map(h => (
+          <h3 className="font-medium text-gray-900 mb-2 text-sm">Высота, см</h3>
+          <div className="flex flex-wrap gap-1.5">
+            {filterOptions.heights.slice(0, 8).map(h => (
               <button
                 key={h.value}
                 onClick={() => handleHeightToggle(h.value)}
-                className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                className={`px-2 py-1 text-xs rounded border transition-colors ${
                   localFilters.heights.includes(h.value)
                     ? 'bg-[#62bb46] text-white border-[#62bb46]'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-[#62bb46]'
                 }`}
               >
-                {h.value} <span className="text-xs opacity-70">({h.count})</span>
+                {h.value} <span className="opacity-70">({h.count})</span>
               </button>
             ))}
           </div>
@@ -280,19 +242,19 @@ export default function CatalogFilter({
       {/* Глубина */}
       {filterOptions.depths.length > 0 && (
         <div>
-          <h3 className="font-medium text-gray-900 mb-3">Глубина, см</h3>
-          <div className="flex flex-wrap gap-2">
-            {filterOptions.depths.slice(0, 10).map(d => (
+          <h3 className="font-medium text-gray-900 mb-2 text-sm">Глубина, см</h3>
+          <div className="flex flex-wrap gap-1.5">
+            {filterOptions.depths.slice(0, 8).map(d => (
               <button
                 key={d.value}
                 onClick={() => handleDepthToggle(d.value)}
-                className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                className={`px-2 py-1 text-xs rounded border transition-colors ${
                   localFilters.depths.includes(d.value)
                     ? 'bg-[#62bb46] text-white border-[#62bb46]'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-[#62bb46]'
                 }`}
               >
-                {d.value} <span className="text-xs opacity-70">({d.count})</span>
+                {d.value} <span className="opacity-70">({d.count})</span>
               </button>
             ))}
           </div>
@@ -301,51 +263,19 @@ export default function CatalogFilter({
 
       {/* Цена */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-3">Цена, ₽</h3>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={priceInputMin}
-            onChange={(e) => setPriceInputMin(e.target.value)}
-            onBlur={handlePriceChange}
-            onKeyDown={(e) => e.key === 'Enter' && handlePriceChange()}
-            min={filterOptions.priceRange.min}
-            max={filterOptions.priceRange.max}
-            placeholder="от"
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent outline-none"
-          />
-          <span className="text-gray-400">—</span>
-          <input
-            type="number"
-            value={priceInputMax}
-            onChange={(e) => setPriceInputMax(e.target.value)}
-            onBlur={handlePriceChange}
-            onKeyDown={(e) => e.key === 'Enter' && handlePriceChange()}
-            min={filterOptions.priceRange.min}
-            max={filterOptions.priceRange.max}
-            placeholder="до"
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent outline-none"
-          />
-        </div>
-        {/* Слайдер */}
-        <div className="mt-3 px-1">
-          <input
-            type="range"
-            min={filterOptions.priceRange.min}
-            max={filterOptions.priceRange.max}
-            step={1000}
-            value={localFilters.priceMin}
-            onChange={(e) => {
-              const val = parseInt(e.target.value);
-              setPriceInputMin(val.toString());
-              if (val <= localFilters.priceMax) {
-                const newFilters = { ...localFilters, priceMin: val };
-                setLocalFilters(newFilters);
-                onFiltersChange(newFilters);
-              }
-            }}
-            className="w-full accent-[#62bb46]"
-          />
+        <h3 className="font-medium text-gray-900 mb-2 text-sm">Цена, ₽</h3>
+        <div className="grid grid-cols-2 gap-1.5">
+          {priceRanges.map(range => (
+            <label key={range.key} className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={localFilters.priceRange === range.key}
+                onChange={() => handlePriceRangeChange(range.key)}
+                className="w-3.5 h-3.5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
+              />
+              <span className="text-xs text-gray-700">{range.label}</span>
+            </label>
+          ))}
         </div>
       </div>
 

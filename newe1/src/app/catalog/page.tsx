@@ -37,25 +37,41 @@ interface FilterOptions {
 interface FilterValues {
   doorTypes: string[];
   series: string[];
-  widthMin: number;
-  widthMax: number;
+  widthRange: string;
   heights: number[];
   depths: number[];
-  priceMin: number;
-  priceMax: number;
+  priceRange: string;
 }
+
+// Градации цены
+const priceRanges = [
+  { key: '0-19999', label: 'до 19 999', min: 0, max: 19999 },
+  { key: '20000-34999', label: '20 000 - 34 999', min: 20000, max: 34999 },
+  { key: '35000-49999', label: '35 000 - 49 999', min: 35000, max: 49999 },
+  { key: '50000-79999', label: '50 000 - 79 999', min: 50000, max: 79999 },
+  { key: '80000-109999', label: '80 000 - 109 999', min: 80000, max: 109999 },
+  { key: '110000-999999', label: 'от 110 000', min: 110000, max: 999999 },
+];
+
+// Градации ширины
+const widthRanges = [
+  { key: '0-109', label: 'до 109', min: 0, max: 109 },
+  { key: '110-139', label: '110-139', min: 110, max: 139 },
+  { key: '140-161', label: '140-161', min: 140, max: 161 },
+  { key: '162-200', label: '162-200', min: 162, max: 200 },
+  { key: '201-239', label: '201-239', min: 201, max: 239 },
+  { key: '240-999', label: 'от 240', min: 240, max: 999 },
+];
 
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
 const DEFAULT_FILTERS: FilterValues = {
   doorTypes: [],
   series: [],
-  widthMin: 80,
-  widthMax: 300,
+  widthRange: '',
   heights: [],
   depths: [],
-  priceMin: 2000,
-  priceMax: 170000,
+  priceRange: '',
 };
 
 function CatalogPageContent() {
@@ -69,12 +85,10 @@ function CatalogPageContent() {
     return {
       doorTypes: searchParams.get('doorTypes')?.split(',').filter(Boolean) || [],
       series: searchParams.get('series')?.split(',').filter(Boolean) || [],
-      widthMin: parseInt(searchParams.get('widthMin') || '') || DEFAULT_FILTERS.widthMin,
-      widthMax: parseInt(searchParams.get('widthMax') || '') || DEFAULT_FILTERS.widthMax,
+      widthRange: searchParams.get('widthRange') || '',
       heights: searchParams.get('heights')?.split(',').map(h => parseInt(h)).filter(h => !isNaN(h)) || [],
       depths: searchParams.get('depths')?.split(',').map(d => parseInt(d)).filter(d => !isNaN(d)) || [],
-      priceMin: parseInt(searchParams.get('priceMin') || '') || DEFAULT_FILTERS.priceMin,
-      priceMax: parseInt(searchParams.get('priceMax') || '') || DEFAULT_FILTERS.priceMax,
+      priceRange: searchParams.get('priceRange') || '',
     };
   }, [searchParams]);
 
@@ -100,12 +114,27 @@ function CatalogPageContent() {
       const params = new URLSearchParams();
       if (filters.series.length > 0) params.set('series', filters.series.join(','));
       if (filters.doorTypes.length > 0) params.set('doorTypes', filters.doorTypes.join(','));
-      if (filters.widthMin !== DEFAULT_FILTERS.widthMin) params.set('widthMin', filters.widthMin.toString());
-      if (filters.widthMax !== DEFAULT_FILTERS.widthMax) params.set('widthMax', filters.widthMax.toString());
+
+      // Парсим диапазон ширины
+      if (filters.widthRange) {
+        const widthRange = widthRanges.find(r => r.key === filters.widthRange);
+        if (widthRange) {
+          params.set('widthMin', widthRange.min.toString());
+          params.set('widthMax', widthRange.max.toString());
+        }
+      }
+
       if (filters.heights.length > 0) params.set('heights', filters.heights.join(','));
       if (filters.depths.length > 0) params.set('depths', filters.depths.join(','));
-      if (filters.priceMin !== DEFAULT_FILTERS.priceMin) params.set('priceMin', filters.priceMin.toString());
-      if (filters.priceMax !== DEFAULT_FILTERS.priceMax) params.set('priceMax', filters.priceMax.toString());
+
+      // Парсим диапазон цены (пока не используется в API, но подготовлено)
+      if (filters.priceRange) {
+        const priceRange = priceRanges.find(r => r.key === filters.priceRange);
+        if (priceRange) {
+          params.set('priceMin', priceRange.min.toString());
+          params.set('priceMax', priceRange.max.toString());
+        }
+      }
 
       params.set('limit', limit.toString());
       params.set('offset', ((page - 1) * limit).toString());
@@ -149,12 +178,10 @@ function CatalogPageContent() {
     const params = new URLSearchParams();
     if (filters.doorTypes.length > 0) params.set('doorTypes', filters.doorTypes.join(','));
     if (filters.series.length > 0) params.set('series', filters.series.join(','));
-    if (filters.widthMin !== DEFAULT_FILTERS.widthMin) params.set('widthMin', filters.widthMin.toString());
-    if (filters.widthMax !== DEFAULT_FILTERS.widthMax) params.set('widthMax', filters.widthMax.toString());
+    if (filters.widthRange) params.set('widthRange', filters.widthRange);
     if (filters.heights.length > 0) params.set('heights', filters.heights.join(','));
     if (filters.depths.length > 0) params.set('depths', filters.depths.join(','));
-    if (filters.priceMin !== DEFAULT_FILTERS.priceMin) params.set('priceMin', filters.priceMin.toString());
-    if (filters.priceMax !== DEFAULT_FILTERS.priceMax) params.set('priceMax', filters.priceMax.toString());
+    if (filters.priceRange) params.set('priceRange', filters.priceRange);
     if (currentPage > 1) params.set('page', currentPage.toString());
 
     const queryString = params.toString();
@@ -230,10 +257,8 @@ function CatalogPageContent() {
     filters.series.length > 0,
     filters.heights.length > 0,
     filters.depths.length > 0,
-    filterOptions && filters.widthMin !== filterOptions.widthRange.min,
-    filterOptions && filters.widthMax !== filterOptions.widthRange.max,
-    filterOptions && filters.priceMin !== filterOptions.priceRange.min,
-    filterOptions && filters.priceMax !== filterOptions.priceRange.max,
+    filters.widthRange !== '',
+    filters.priceRange !== '',
   ].filter(Boolean).length;
 
   return (
@@ -259,7 +284,7 @@ function CatalogPageContent() {
           </div>
 
           {/* Main content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 min-h-[600px]">
             {/* Mobile filter button and results count */}
             <div className="mb-6 flex items-center justify-between gap-4">
               <div className="text-gray-600">
