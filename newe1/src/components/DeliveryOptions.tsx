@@ -104,8 +104,23 @@ export default function DeliveryOptions({ cityName, hasAssembly = false, onDeliv
   const markerRef = useRef<any>(null);
   const routeRef = useRef<any>(null);
 
+  // Track if Yandex Maps script is loaded
+  const [ymapsLoaded, setYmapsLoaded] = useState(false);
+
   // Yandex Maps API Key
   const YANDEX_API_KEY = '51e35aa4-fa5e-432e-a7c6-e5e71105ec3a';
+
+  // Check if ymaps is already loaded on mount (e.g., script was loaded before)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).ymaps) {
+      setYmapsLoaded(true);
+    }
+  }, []);
+
+  // Handle ymaps script load
+  const handleYmapsLoad = useCallback(() => {
+    setYmapsLoaded(true);
+  }, []);
 
   // Load delivery points (once)
   useEffect(() => {
@@ -429,9 +444,9 @@ export default function DeliveryOptions({ cityName, hasAssembly = false, onDeliv
     }
   }, [address, nearestPoint, deliveryPoints]);
 
-  // Initialize appropriate map when delivery type changes
+  // Initialize appropriate map when delivery type changes or ymaps loads
   useEffect(() => {
-    if (loading || !nearestPoint) return;
+    if (loading || !nearestPoint || !ymapsLoaded) return;
 
     // Small delay to ensure DOM is ready
     const timer = setTimeout(() => {
@@ -443,7 +458,7 @@ export default function DeliveryOptions({ cityName, hasAssembly = false, onDeliv
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [deliveryType, loading, nearestPoint, initPickupMap, initDeliveryMap]);
+  }, [deliveryType, loading, nearestPoint, ymapsLoaded, initPickupMap, initDeliveryMap]);
 
   if (loading) {
     return (
@@ -466,6 +481,7 @@ export default function DeliveryOptions({ cityName, hasAssembly = false, onDeliv
       <Script
         src={`https://api-maps.yandex.ru/2.1/?lang=ru_RU&coordorder=longlat&apikey=${YANDEX_API_KEY}`}
         strategy="afterInteractive"
+        onLoad={handleYmapsLoad}
       />
 
       <div className="space-y-6">
