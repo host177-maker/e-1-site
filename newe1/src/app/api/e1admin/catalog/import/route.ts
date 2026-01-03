@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       }
 
       const spreadsheetId = match[1];
-      const sheets = ['Карточки товаров', 'Описание серий и групповых преи', 'Наполнение корпуса', 'Цвета  корпуса'];
+      const sheets = ['Карточки товаров', 'Описание серий и групповых преи', 'Наполнение корпуса', 'Цвета  корпуса', 'Описание услуг'];
 
       workbook = XLSX.utils.book_new();
 
@@ -75,7 +75,8 @@ export async function POST(request: NextRequest) {
         bodyColors: result.bodyColorsCount,
         fillings: result.fillingsCount,
         products: result.productsCount,
-        variants: result.variantsCount
+        variants: result.variantsCount,
+        services: result.servicesCount
       },
       errors: result.errors.slice(0, 50) // Показываем первые 50 ошибок
     });
@@ -97,6 +98,8 @@ function parseExcelData(workbook: XLSX.WorkBook) {
   const fillings: any[] = [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bodyColors: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const services: any[] = [];
 
   // 1. Парсинг листа "Карточки товаров"
   const productsSheet = workbook.Sheets['Карточки товаров'];
@@ -226,7 +229,26 @@ function parseExcelData(workbook: XLSX.WorkBook) {
     }
   }
 
-  return { products, series, fillings, bodyColors };
+  // 5. Парсинг листа "Описание услуг"
+  const servicesSheet = workbook.Sheets['Описание услуг'];
+  if (servicesSheet) {
+    const rows = XLSX.utils.sheet_to_json<string[]>(servicesSheet, { header: 1 });
+    // Пропускаем заголовок
+    // Ожидаемые колонки: Название, Описание, Иконка, Порядок
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || !row[0]) continue; // Пропускаем пустые строки
+
+      services.push({
+        name: String(row[0] || '').trim(),
+        description: String(row[1] || '').trim() || null,
+        icon: String(row[2] || '').trim() || null,
+        sort_order: parseInt(row[3]) || i
+      });
+    }
+  }
+
+  return { products, series, fillings, bodyColors, services };
 }
 
 // Получить статус каталога

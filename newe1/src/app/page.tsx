@@ -1,6 +1,5 @@
 import HeroBanner from '@/components/HeroBanner';
 import FeaturesSection from '@/components/FeaturesSection';
-import CatalogSection from '@/components/CatalogSection';
 import ReviewsSection from '@/components/ReviewsSection';
 import AboutSection from '@/components/AboutSection';
 
@@ -10,11 +9,8 @@ export default function Home() {
       {/* Hero Banner */}
       <HeroBanner />
 
-      {/* Features strip with green icons */}
+      {/* Features strip with category cards */}
       <FeaturesSection />
-
-      {/* Catalog Categories */}
-      <CatalogSection />
 
       {/* Reviews */}
       <ReviewsSection />

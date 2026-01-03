@@ -11,6 +11,7 @@ interface Region {
 interface City {
   id: number;
   name: string;
+  name_prepositional: string | null;
   region_id: number;
   region_name: string;
   external_code: string | null;
@@ -44,10 +45,14 @@ export default function CitiesPage() {
 
   // Form fields
   const [formName, setFormName] = useState('');
+  const [formNamePrepositional, setFormNamePrepositional] = useState('');
   const [formRegionId, setFormRegionId] = useState<number | null>(null);
   const [formExternalCode, setFormExternalCode] = useState('');
   const [formSortOrder, setFormSortOrder] = useState(500);
   const [formIsActive, setFormIsActive] = useState(true);
+
+  // Auto-fill loading state
+  const [autoFillLoading, setAutoFillLoading] = useState(false);
 
   const fetchRegions = useCallback(async () => {
     try {
@@ -92,6 +97,7 @@ export default function CitiesPage() {
   const openCreateModal = () => {
     setEditingCity(null);
     setFormName('');
+    setFormNamePrepositional('');
     setFormRegionId(regions.length > 0 ? regions[0].id : null);
     setFormExternalCode('');
     setFormSortOrder(500);
@@ -102,6 +108,7 @@ export default function CitiesPage() {
   const openEditModal = (city: City) => {
     setEditingCity(city);
     setFormName(city.name);
+    setFormNamePrepositional(city.name_prepositional || '');
     setFormRegionId(city.region_id);
     setFormExternalCode(city.external_code || '');
     setFormSortOrder(city.sort_order);
@@ -124,6 +131,7 @@ export default function CitiesPage() {
     try {
       const payload = {
         name: formName,
+        name_prepositional: formNamePrepositional || null,
         region_id: formRegionId,
         external_code: formExternalCode || null,
         sort_order: formSortOrder,
@@ -201,6 +209,29 @@ export default function CitiesPage() {
     }
   };
 
+  // Auto-fill prepositional names for all cities without them
+  const autoFillPrepositional = async () => {
+    if (!confirm('Автоматически заполнить предложный падеж для всех городов без этого поля?')) return;
+
+    setAutoFillLoading(true);
+    try {
+      const response = await fetch('/api/e1admin/cities/autofill-prepositional', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert(`Обновлено ${data.updated} городов`);
+        fetchCities();
+      } else {
+        alert(data.error || 'Ошибка автозаполнения');
+      }
+    } catch {
+      alert('Ошибка подключения к серверу');
+    } finally {
+      setAutoFillLoading(false);
+    }
+  };
+
   // Filter cities by search query
   const filteredCities = cities.filter(city => {
     if (!searchQuery) return true;
@@ -229,15 +260,32 @@ export default function CitiesPage() {
             <h1 className="text-2xl font-bold text-gray-900">Города</h1>
             <p className="text-gray-600 mt-1">Управление городами</p>
           </div>
-          <button
-            onClick={openCreateModal}
-            className="flex items-center gap-2 px-4 py-2 bg-[#7cb342] hover:bg-[#689f38] text-white font-medium rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Добавить город
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={autoFillPrepositional}
+              disabled={autoFillLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors disabled:opacity-50"
+              title="Автозаполнение предложного падежа"
+            >
+              {autoFillLoading ? (
+                <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              )}
+              Автозаполнить падежи
+            </button>
+            <button
+              onClick={openCreateModal}
+              className="flex items-center gap-2 px-4 py-2 bg-[#7cb342] hover:bg-[#689f38] text-white font-medium rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Добавить город
+            </button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -428,6 +476,21 @@ export default function CitiesPage() {
                   placeholder="Например: Краснодар"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7cb342] focus:border-transparent outline-none"
                 />
+              </div>
+
+              {/* Name Prepositional */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  В предложном падеже
+                </label>
+                <input
+                  type="text"
+                  value={formNamePrepositional}
+                  onChange={(e) => setFormNamePrepositional(e.target.value)}
+                  placeholder="Например: Краснодаре (для &quot;в Краснодаре&quot;)"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7cb342] focus:border-transparent outline-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">Используется в тексте &quot;Шкафы в [город]&quot;</p>
               </div>
 
               {/* Region */}

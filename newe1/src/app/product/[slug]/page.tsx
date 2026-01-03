@@ -1,9 +1,13 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useCity } from '@/context/CityContext';
+import { useWishlist } from '@/context/WishlistContext';
+import { useCart } from '@/context/CartContext';
+import QuickOrderModal from '@/components/QuickOrderModal';
 
 interface CatalogProduct {
   id: number;
@@ -63,11 +67,23 @@ interface CatalogSeries {
   video2?: string;
 }
 
+interface CatalogService {
+  id: number;
+  name: string;
+  description?: string;
+  icon?: string;
+  sort_order: number;
+}
+
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
 export default function ProductPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { city } = useCity();
+  const { addToWishlist, removeByProductId, isInWishlist } = useWishlist();
+  const { addToCart } = useCart();
   const slug = (params?.slug as string) || '';
   const isInitialLoad = useRef(true);
   const urlParamsApplied = useRef(false);
@@ -101,6 +117,7 @@ export default function ProductPage() {
   const [filling, setFilling] = useState<CatalogFilling | null>(null);
   const [fillings, setFillings] = useState<CatalogFilling[]>([]);
   const [series, setSeries] = useState<CatalogSeries | null>(null);
+  const [services, setServices] = useState<CatalogService[]>([]);
 
   // Выбранные параметры размеров (отдельно)
   const [selectedHeight, setSelectedHeight] = useState<number | null>(null);
@@ -114,6 +131,56 @@ export default function ProductPage() {
   // Галерея
   const [mainImage, setMainImage] = useState<string>(PLACEHOLDER_IMAGE);
   const [showInterior, setShowInterior] = useState(false);
+
+  // Toast notification
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Cart button state
+  const [isAddedToCart, setIsAddedToCart] = useState(false);
+  const cartButtonTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const showToast = (message: string, duration = 3000) => {
+    if (toastTimeout.current) {
+      clearTimeout(toastTimeout.current);
+    }
+    setToastMessage(message);
+    toastTimeout.current = setTimeout(() => {
+      setToastMessage(null);
+    }, duration);
+  };
+
+  const handleAddToCart = () => {
+    if (!product) return;
+
+    addToCart({
+      productId: product.id,
+      name: product.name,
+      slug: product.slug,
+      image: mainImage,
+      price: basePrice,
+      oldPrice: oldPrice,
+      width: selectedWidth || undefined,
+      height: selectedHeight || undefined,
+      depth: selectedDepth || undefined,
+      bodyColor: selectedBodyColor?.name,
+      profileColor: selectedProfileColor?.name,
+      filling: filling?.short_name,
+      assemblyPrice: assemblyPrice,
+    });
+
+    // Change button text for 3 seconds
+    if (cartButtonTimeout.current) {
+      clearTimeout(cartButtonTimeout.current);
+    }
+    setIsAddedToCart(true);
+    cartButtonTimeout.current = setTimeout(() => {
+      setIsAddedToCart(false);
+    }, 3000);
+
+    // Show toast
+    showToast('Товар добавлен в корзину', 3000);
+  };
 
   // Модальные окна
   const [showFillingModal, setShowFillingModal] = useState(false);
@@ -130,6 +197,9 @@ export default function ProductPage() {
   const [showFillingSelectModal, setShowFillingSelectModal] = useState(false);
   const [tempFilling, setTempFilling] = useState<CatalogFilling | null>(null);
   const [showFillingInfoId, setShowFillingInfoId] = useState<number | null>(null);
+
+  // Модальное окно быстрого заказа
+  const [showQuickOrderModal, setShowQuickOrderModal] = useState(false);
 
   // Сборка
   const [includeAssembly, setIncludeAssembly] = useState(false);
@@ -210,10 +280,17 @@ export default function ProductPage() {
         if (data.variants.length > 0) {
           const firstVariant = data.variants[0];
 
+          // Сразу установить изображение - ищем любой вариант с картинкой
+          const variantWithImage = data.variants.find((v: CatalogVariant) => v.image_white);
+          setMainImage(variantWithImage?.image_white || PLACEHOLDER_IMAGE);
+
+          // Находим максимальную глубину для использования по умолчанию
+          const maxDepth = Math.max(...data.variants.map((v: CatalogVariant) => v.depth));
+
           // Размеры
           const height = urlHeight ? Number(urlHeight) : firstVariant.height;
           const width = urlWidth ? Number(urlWidth) : firstVariant.width;
-          const depth = urlDepth ? Number(urlDepth) : firstVariant.depth;
+          const depth = urlDepth ? Number(urlDepth) : maxDepth;
 
           // Проверяем, что такой вариант существует
           const variantExists = data.variants.some((v: CatalogVariant) =>
@@ -227,7 +304,7 @@ export default function ProductPage() {
           } else {
             setSelectedHeight(firstVariant.height);
             setSelectedWidth(firstVariant.width);
-            setSelectedDepth(firstVariant.depth);
+            setSelectedDepth(maxDepth);
           }
 
           // Цвет корпуса
@@ -272,6 +349,22 @@ export default function ProductPage() {
       fetchProduct();
     }
   }, [slug, fetchProduct]);
+
+  // Загружаем услуги один раз при монтировании
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetch('/api/catalog/services');
+        const data = await response.json();
+        if (data.success) {
+          setServices(data.services);
+        }
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      }
+    };
+    fetchServices();
+  }, []);
 
   // Обновляем URL при изменении параметров (без перезагрузки страницы)
   useEffect(() => {
@@ -364,7 +457,9 @@ export default function ProductPage() {
     }
 
     setCurrentVariant(variant);
-    setMainImage(variant.image_white || PLACEHOLDER_IMAGE);
+    // Fallback: если у текущего варианта нет картинки, ищем любую картинку среди вариантов
+    const variantImage = variant.image_white || variants.find(v => v.image_white)?.image_white || PLACEHOLDER_IMAGE;
+    setMainImage(variantImage);
     setShowInterior(false);
   }, [selectedHeight, selectedWidth, selectedDepth, selectedBodyColor, selectedProfileColor, variants]);
 
@@ -413,7 +508,19 @@ export default function ProductPage() {
         // Устанавливаем варианты наполнения для выбранного размера
         if (data.fillings && data.fillings.length > 0) {
           setFillings(data.fillings);
-          setFilling(data.fillings[0]); // Первый вариант по умолчанию
+          // Проверяем, доступно ли текущее наполнение для новых параметров
+          // Сравниваем по short_name, т.к. id разные для разных размеров
+          setFilling((currentFilling) => {
+            if (currentFilling && currentFilling.short_name) {
+              const sameFillingAvailable = data.fillings.find(
+                (f: CatalogFilling) => f.short_name === currentFilling.short_name
+              );
+              if (sameFillingAvailable) {
+                return sameFillingAvailable; // Сохраняем текущее наполнение
+              }
+            }
+            return data.fillings[0]; // Иначе первый вариант по умолчанию
+          });
         } else {
           // Если нет наполнений - очищаем только если запрос успешен
           setFillings([]);
@@ -523,40 +630,74 @@ export default function ProductPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Breadcrumbs */}
+      {/* Back to catalog button */}
       <div className="bg-white border-b">
         <div className="max-w-[1348px] mx-auto px-4 py-3">
-          <nav className="flex items-center gap-2 text-sm text-gray-500">
-            <Link href="/" className="hover:text-[#62bb46]">Главная</Link>
-            <span>/</span>
-            <Link href="/catalog" className="hover:text-[#62bb46]">Каталог</Link>
-            <span>/</span>
-            <span className="text-gray-900">{product.name}</span>
-          </nav>
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-sm text-gray-500 hover:text-[#62bb46] transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Назад в каталог
+          </button>
         </div>
       </div>
 
       <div className="max-w-[1348px] mx-auto px-4 py-8">
         {/* Заголовок - мобильная версия (над изображением) */}
         <div className="lg:hidden mb-4">
-          <div className="text-sm text-gray-500 mb-1">
-            {product.series_name}
+          <div className="flex items-start gap-2">
+            <h1 className="text-xl font-normal text-gray-900 line-clamp-2 font-[var(--font-open-sans)] flex-1">
+              {product.name}
+            </h1>
+            <button
+              onClick={() => {
+                if (isInWishlist(product.id)) {
+                  removeByProductId(product.id);
+                } else {
+                  addToWishlist({
+                    id: Date.now(),
+                    productId: product.id,
+                    name: product.name,
+                    slug: product.slug,
+                    image: mainImage,
+                    price: basePrice,
+                    oldPrice: oldPrice,
+                    width: selectedWidth || undefined,
+                    height: selectedHeight || undefined,
+                    depth: selectedDepth || undefined,
+                    bodyColor: selectedBodyColor?.name,
+                    profileColor: selectedProfileColor?.name,
+                    filling: filling?.short_name,
+                  });
+                }
+              }}
+              className={`p-2 rounded-full transition-colors flex-shrink-0 ${
+                isInWishlist(product.id)
+                  ? 'text-red-500 bg-red-50'
+                  : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+              }`}
+              title={isInWishlist(product.id) ? 'Убрать из избранного' : 'Добавить в избранное'}
+            >
+              <svg className="w-6 h-6" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
           </div>
-          <h1 className="text-xl font-bold text-gray-900 line-clamp-2">
-            {product.name}
-          </h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Галерея */}
           <div className="space-y-4">
             {/* Главное изображение */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden aspect-square relative">
+            <div className="aspect-square relative">
               <Image
                 src={showInterior && currentVariant?.image_interior ? currentVariant.image_interior : mainImage}
                 alt={product.name}
                 fill
-                className="object-contain p-8"
+                className="object-contain"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = PLACEHOLDER_IMAGE;
@@ -568,7 +709,13 @@ export default function ProductPage() {
             {currentVariant?.image_interior && (
               <div className="flex gap-2">
                 <button
-                  onClick={() => setShowInterior(false)}
+                  onClick={() => {
+                    setShowInterior(false);
+                    // Show toast on mobile with current variant parameters
+                    if (window.innerWidth < 1024 && currentVariant) {
+                      showToast(`${currentVariant.width}×${currentVariant.height}×${currentVariant.depth} мм`);
+                    }
+                  }}
                   className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
                     !showInterior
                       ? 'bg-[#62bb46] text-white'
@@ -578,7 +725,13 @@ export default function ProductPage() {
                   На белом фоне
                 </button>
                 <button
-                  onClick={() => setShowInterior(true)}
+                  onClick={() => {
+                    setShowInterior(true);
+                    // Show toast on mobile with current variant parameters
+                    if (window.innerWidth < 1024 && currentVariant) {
+                      showToast(`${currentVariant.width}×${currentVariant.height}×${currentVariant.depth} мм`);
+                    }
+                  }}
                   className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
                     showInterior
                       ? 'bg-[#62bb46] text-white'
@@ -594,13 +747,43 @@ export default function ProductPage() {
           {/* Информация о товаре */}
           <div className="space-y-4">
             {/* Заголовок - только десктоп (скрыт на мобильных) */}
-            <div className="hidden lg:block">
-              <div className="text-sm text-gray-500 mb-1">
-                {product.series_name}
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 min-h-[3rem] line-clamp-2">
+            <div className="hidden lg:flex items-start gap-3">
+              <h1 className="text-2xl font-normal text-gray-900 min-h-[3rem] line-clamp-2 font-[var(--font-open-sans)] flex-1">
                 {product.name}
               </h1>
+              <button
+                onClick={() => {
+                  if (isInWishlist(product.id)) {
+                    removeByProductId(product.id);
+                  } else {
+                    addToWishlist({
+                      id: Date.now(),
+                      productId: product.id,
+                      name: product.name,
+                      slug: product.slug,
+                      image: mainImage,
+                      price: basePrice,
+                      oldPrice: oldPrice,
+                      width: selectedWidth || undefined,
+                      height: selectedHeight || undefined,
+                      depth: selectedDepth || undefined,
+                      bodyColor: selectedBodyColor?.name,
+                      profileColor: selectedProfileColor?.name,
+                      filling: filling?.short_name,
+                    });
+                  }
+                }}
+                className={`p-2 rounded-full transition-colors flex-shrink-0 ${
+                  isInWishlist(product.id)
+                    ? 'text-red-500 bg-red-50'
+                    : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+                }`}
+                title={isInWishlist(product.id) ? 'Убрать из избранного' : 'Добавить в избранное'}
+              >
+                <svg className="w-7 h-7" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </button>
             </div>
 
             {/* Сообщение о недоступности вариантов */}
@@ -623,13 +806,26 @@ export default function ProductPage() {
             {/* Цена - показываем только если есть варианты */}
             {!hasNoVariants && (
               <div className="bg-white rounded-xl shadow-sm p-5">
-                <div className="flex items-baseline gap-3 mb-4">
+                <div className="flex items-baseline gap-3 mb-2">
                   <span className="text-3xl font-bold text-gray-900">
                     {(basePrice + (includeAssembly ? assemblyPrice : 0)).toLocaleString('ru-RU')} ₽
                   </span>
                   <span className="text-lg text-gray-400 line-through">
                     {oldPrice.toLocaleString('ru-RU')} ₽
                   </span>
+                </div>
+
+                {/* Доставка - компактно рядом с ценой */}
+                <div className="text-sm text-[#62bb46] font-medium mb-4">
+                  Доставим в {city.name} за 3 дня
+                </div>
+
+                {/* В наличии - упрощённый вид */}
+                <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
+                  <svg className="w-4 h-4 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>В наличии: 12 шт. (на Региональный склад Москва)</span>
                 </div>
 
                 {/* Сборка */}
@@ -642,7 +838,7 @@ export default function ProductPage() {
                   />
                   <div className="flex-1">
                     <div className="font-medium text-gray-900">Добавить сборку</div>
-                    <div className="text-sm text-gray-500">Профессиональная сборка изделия</div>
+                    <div className="text-sm text-gray-500">Сборка изделия</div>
                   </div>
                   <div className="text-right">
                     <div className="font-bold text-gray-900">+{assemblyPrice.toLocaleString('ru-RU')} ₽</div>
@@ -652,59 +848,11 @@ export default function ProductPage() {
               </div>
             )}
 
-            {/* Наполнение и размер/цвет в одном ряду */}
+            {/* Размер и цвет + Наполнение */}
             {!hasNoVariants && (
-              <div className="flex gap-4">
-                {/* Наполнение - левый блок 1/3 */}
-                {filling && (
-                  <div className="w-1/3 bg-white rounded-xl shadow-sm p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-bold text-gray-900 text-sm">Внутреннее наполнение</h3>
-                      <button
-                        onClick={() => setShowFillingModal(true)}
-                        className="text-[#62bb46] text-xs hover:underline"
-                      >
-                        Подробнее
-                      </button>
-                    </div>
-                    {/* Кнопка выбора наполнения */}
-                    {fillings.length > 1 ? (
-                      <button
-                        onClick={() => {
-                          setTempFilling(filling);
-                          setShowFillingSelectModal(true);
-                        }}
-                        className="w-full flex items-center gap-2 px-2 py-1.5 border border-gray-200 rounded text-xs hover:border-[#62bb46] transition-colors text-left mb-2"
-                      >
-                        <span className="text-gray-700 truncate flex-1">
-                          {filling.short_name || `${filling.width}×${filling.height}×${filling.depth}`}
-                        </span>
-                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                    ) : filling.short_name ? (
-                      <p className="text-gray-600 text-xs mb-2">{filling.short_name}</p>
-                    ) : null}
-                    {filling.image_plain && (
-                      <div className="relative h-32 bg-gray-50 rounded-lg overflow-hidden">
-                        <Image
-                          src={filling.image_plain}
-                          alt="Наполнение"
-                          fill
-                          className="object-contain"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Выбрать размер и цвет - правый блок 2/3 */}
-                <div className={`${filling ? 'w-2/3' : 'w-full'} bg-white rounded-xl shadow-sm p-4`}>
+              <div className="flex flex-col lg:flex-row gap-4">
+                {/* Выбрать размер и цвет - первый блок на мобильном, второй на десктопе */}
+                <div className={`${filling ? 'lg:w-2/3' : 'w-full'} bg-white rounded-xl shadow-sm p-4 order-1`}>
                   <h3 className="text-sm font-medium text-gray-900 mb-3">Выбрать размер и цвет</h3>
 
                   {/* Размеры в ряд */}
@@ -826,16 +974,85 @@ export default function ProductPage() {
                     Доп. комплектация
                   </button>
                 </div>
+
+                {/* Наполнение - второй блок на мобильном, первый на десктопе */}
+                {filling && (
+                  <div className="lg:w-1/3 bg-white rounded-xl shadow-sm p-4 order-2 lg:order-first">
+                    <h3 className="font-bold text-gray-900 text-sm mb-3">Наполнение корпуса</h3>
+                    {/* Кнопка выбора наполнения */}
+                    {fillings.length > 1 ? (
+                      <button
+                        onClick={() => {
+                          setTempFilling(filling);
+                          setShowFillingSelectModal(true);
+                        }}
+                        className="w-full flex items-center gap-2 px-2 py-1.5 border border-gray-200 rounded text-xs hover:border-[#62bb46] transition-colors text-left mb-2"
+                      >
+                        <span className="text-gray-700 truncate flex-1">
+                          {filling.short_name || `${filling.width}×${filling.height}×${filling.depth}`}
+                        </span>
+                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    ) : filling.short_name ? (
+                      <p className="text-gray-600 text-xs mb-2">{filling.short_name}</p>
+                    ) : null}
+                    {filling.image_plain && (
+                      <div
+                        className="relative h-32 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => {
+                          if (fillings.length > 1) {
+                            setTempFilling(filling);
+                            setShowFillingSelectModal(true);
+                          } else {
+                            setShowFillingModal(true);
+                          }
+                        }}
+                      >
+                        <Image
+                          src={filling.image_plain}
+                          alt="Наполнение"
+                          fill
+                          className="object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
             {/* Кнопки действий - показываем только если есть варианты */}
             {!hasNoVariants && (
               <div className="flex flex-col sm:flex-row gap-3">
-                <button className="flex-1 py-3 bg-[#62bb46] hover:bg-[#4a9935] text-white font-bold rounded-xl transition-colors">
-                  Добавить в корзину
+                <button
+                  onClick={handleAddToCart}
+                  className={`flex-1 py-3 font-bold rounded-xl transition-colors ${
+                    isAddedToCart
+                      ? 'bg-[#4a9935] text-white'
+                      : 'bg-[#62bb46] hover:bg-[#4a9935] text-white'
+                  }`}
+                >
+                  {isAddedToCart ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Добавлено в корзину 1 шт
+                    </span>
+                  ) : (
+                    'Добавить в корзину'
+                  )}
                 </button>
-                <button className="flex-1 py-3 border-2 border-[#62bb46] text-[#62bb46] hover:bg-[#62bb46] hover:text-white font-bold rounded-xl transition-colors">
+                <button
+                  onClick={() => setShowQuickOrderModal(true)}
+                  className="flex-1 py-3 border-2 border-[#62bb46] text-[#62bb46] hover:bg-[#62bb46] hover:text-white font-bold rounded-xl transition-colors"
+                >
                   Купить в 1 клик
                 </button>
               </div>
@@ -855,6 +1072,36 @@ export default function ProductPage() {
           <div className="mt-12 bg-white rounded-xl shadow-sm p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">О серии {series.name}</h2>
             <p className="text-gray-600 whitespace-pre-line">{series.description}</p>
+          </div>
+        )}
+
+        {/* Услуги */}
+        {services.length > 0 && (
+          <div className="mt-8 bg-white rounded-xl shadow-sm p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Наши услуги</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {services.map((service) => (
+                <div key={service.id} className="flex gap-4">
+                  {service.icon && (
+                    <div className="flex-shrink-0 w-12 h-12 bg-[#62bb46]/10 rounded-lg flex items-center justify-center">
+                      <Image
+                        src={service.icon}
+                        alt={service.name}
+                        width={24}
+                        height={24}
+                        className="text-[#62bb46]"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{service.name}</h3>
+                    {service.description && (
+                      <p className="text-sm text-gray-600 mt-1">{service.description}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -897,7 +1144,7 @@ export default function ProductPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">Внутреннее наполнение</h2>
+              <h2 className="text-xl font-bold text-gray-900">Наполнение корпуса</h2>
               <button
                 onClick={() => setShowFillingModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -1230,6 +1477,34 @@ export default function ProductPage() {
           </div>
         </div>
       )}
+
+      {/* Toast notification */}
+      {toastMessage && (
+        <div className="fixed bottom-20 lg:bottom-8 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
+          <div className="bg-gray-900/90 text-white px-6 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2">
+            <svg className="w-5 h-5 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {toastMessage}
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно быстрого заказа */}
+      <QuickOrderModal
+        isOpen={showQuickOrderModal}
+        onClose={() => setShowQuickOrderModal(false)}
+        productName={product.name}
+        productUrl={typeof window !== 'undefined' ? window.location.href : `/product/${slug}`}
+        selectedParams={{
+          width: selectedWidth,
+          height: selectedHeight,
+          depth: selectedDepth,
+          bodyColor: selectedBodyColor?.name || null,
+          profileColor: selectedProfileColor?.name || null,
+          filling: filling?.short_name || null,
+        }}
+      />
     </div>
   );
 }
