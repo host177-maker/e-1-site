@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
   },
 
   // Exclude pg from client-side bundling
-  serverExternalPackages: ['pg', 'pg-connection-string', 'pg-pool'],
+  serverExternalPackages: ['pg', 'pg-connection-string', 'pg-pool', 'pgpass'],
 
   // Webpack configuration to handle Node.js modules
   webpack: (config, { isServer }) => {
@@ -35,6 +35,11 @@ const nextConfig: NextConfig = {
         net: false,
         tls: false,
         dns: false,
+        path: false,
+        stream: false,
+        util: false,
+        crypto: false,
+        os: false,
         'pg-native': false,
       };
       // Externalize pg packages for non-server builds
@@ -43,6 +48,7 @@ const nextConfig: NextConfig = {
         'pg',
         'pg-connection-string',
         'pg-pool',
+        'pgpass',
       ];
     }
     return config;
