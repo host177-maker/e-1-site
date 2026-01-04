@@ -17,6 +17,7 @@ const serviceSubmenu = [
   { label: 'Инструкции к мебели', href: '/service/instructions' },
   { label: 'Проверить статус заказа', href: 'https://booking.e-1.ru/check/', external: true },
   { label: 'Чат с отделом доставки', href: 'https://booking.e-1.ru/service/', external: true },
+  { label: 'Советы от Е1', href: '/client/features/blog' },
 ];
 
 // Business submenu structure

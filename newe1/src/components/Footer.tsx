@@ -18,13 +18,14 @@ export default function Footer() {
     { href: '/reviews', label: 'Отзывы' },
   ];
 
-  // Column 2: География доставки, Условия покупки, Инструкции к мебели, Проверить статус заказа, Чат с отделом доставки
+  // Column 2: География доставки, Условия покупки, Инструкции к мебели, Проверить статус заказа, Чат с отделом доставки, Советы от Е1
   const column2Links = [
     { href: '/service/delivery', label: 'География доставки' },
     { href: '/service/purchase-terms', label: 'Условия покупки' },
     { href: '/service/instructions', label: 'Инструкции к мебели' },
     { href: 'https://booking.e-1.ru/status/', label: 'Проверить статус заказа', external: true },
     { href: 'https://booking.e-1.ru/service/', label: 'Чат с отделом доставки', external: true },
+    { href: '/client/features/blog', label: 'Советы от Е1' },
   ];
 
   // Column 3: B2B links
