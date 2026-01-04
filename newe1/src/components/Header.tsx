@@ -190,6 +190,31 @@ export default function Header() {
 
       {/* Full header - hides when compact mode is active */}
       <div className={`transition-opacity duration-200 ${isCompactMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+        {/* Mobile top bar - gray */}
+        <div className="lg:hidden bg-[#3d4543] text-white">
+          <div className="container-custom">
+            <div className="flex items-center justify-between py-2 text-[11px]">
+              {/* City selector - left */}
+              <button
+                onClick={() => setIsMobileCitySelectorOpen(true)}
+                className="flex items-center gap-1 hover:text-[#62bb46] transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>{isLoading ? '...' : city.name}</span>
+                <span className="text-[#62bb46] underline">сменить</span>
+              </button>
+
+              {/* Phone - right */}
+              <a href="tel:+78001001211" className="font-bold hover:text-[#62bb46] transition-colors whitespace-nowrap">
+                8-800-100-12-11
+              </a>
+            </div>
+          </div>
+        </div>
+
         {/* Main header row - white */}
         <div className="bg-white border-b border-gray-100 shadow-sm">
           <div className="container-custom">
@@ -262,18 +287,6 @@ export default function Header() {
                   <span className="text-xs text-gray-400">7:00–20:00</span>
                 </div>
               </div>
-
-              {/* Mobile: City selector */}
-              <button
-                onClick={() => setIsMobileCitySelectorOpen(true)}
-                className="lg:hidden flex items-center gap-1 text-xs text-gray-600 hover:text-[#62bb46] transition-colors ml-2"
-              >
-                <svg className="w-3.5 h-3.5 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span className="font-medium">{isLoading ? '...' : city.name}</span>
-              </button>
 
               {/* Right side: Messenger + Cart */}
               <div className="flex items-center gap-1 ml-auto">
