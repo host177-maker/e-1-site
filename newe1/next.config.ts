@@ -15,9 +15,8 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Enable instrumentation for migrations and configure server actions
+  // Configure server actions
   experimental: {
-    instrumentationHook: true,
     serverActions: {
       bodySizeLimit: '2mb',
     },
