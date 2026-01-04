@@ -161,10 +161,10 @@ export async function GET() {
             SELECT COUNT(*) as count
             FROM cities c
             WHERE c.is_active = true
-              AND NOT EXISTS (
+              AND (c.warehouse_id IS NULL OR NOT EXISTS (
                 SELECT 1 FROM warehouses w
-                WHERE w.city_id = c.id AND w.is_active = true
-              )
+                WHERE w.id = c.warehouse_id AND w.is_active = true
+              ))
           `)
         : Promise.resolve({ rows: [{ count: 0 }] })
     ]);
