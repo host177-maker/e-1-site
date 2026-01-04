@@ -18,11 +18,11 @@ export default function MeasurerBanner() {
           >
             {/* Левая часть - текст */}
             <div className="text-center md:text-left">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+              <h2 className="text-2xl md:text-3xl font-normal text-white mb-2">
                 Шкафы по вашим размерам
               </h2>
               <p className="text-white/80 text-base md:text-lg">
-                Замер и консультация на дому — бесплатно
+                Замер и консультация на дому
               </p>
             </div>
 
