@@ -306,6 +306,7 @@ export default function OrdersPage() {
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Клиент</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Телефон</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Город</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-700">Промокод</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Товаров</th>
                     <th className="px-3 py-2 text-right font-medium text-gray-700">Сумма</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-700">Дата</th>
@@ -343,6 +344,15 @@ export default function OrdersPage() {
                       <td className="px-3 py-2 text-gray-900">{order.customer_name}</td>
                       <td className="px-3 py-2 text-gray-600">{order.customer_phone}</td>
                       <td className="px-3 py-2 text-gray-600">{order.city || '—'}</td>
+                      <td className="px-3 py-2">
+                        {order.promo_code ? (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            {order.promo_code}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
                       <td className="px-3 py-2 text-gray-600">{order.items.length}</td>
                       <td className="px-3 py-2 text-right font-medium text-gray-900">
                         {formatPrice(order.total_price)}

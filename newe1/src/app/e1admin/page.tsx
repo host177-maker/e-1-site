@@ -52,6 +52,14 @@ interface DashboardData {
   };
   citiesWithoutWarehouses: Array<{ id: number; name: string }>;
   citiesWithoutPriceGroup: Array<{ id: number; name: string }>;
+  designers: {
+    total: number;
+    active: number;
+    promoOrders: {
+      week: { count: number; sum: number };
+      month: { count: number; sum: number };
+    };
+  };
 }
 
 function formatDate(dateString: string | null): string {
@@ -152,6 +160,46 @@ export default function AdminDashboard() {
                   <div className="text-xs text-gray-500 mb-1">30 дней</div>
                   <div className="text-xl font-bold text-gray-900">{data.orders.month.count}</div>
                   <div className="text-sm text-gray-600">{formatCurrency(data.orders.month.sum)}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Designers */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden lg:col-span-2">
+              <Link
+                href="/e1admin/designers"
+                className="flex items-center justify-between p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>
+                  <span className="font-semibold text-gray-900">Дизайнеры</span>
+                </div>
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+              <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Всего</div>
+                  <div className="text-xl font-bold text-gray-900">{data.designers.total}</div>
+                  <div className="text-sm text-gray-500">дизайнеров</div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Активных</div>
+                  <div className="text-xl font-bold text-green-600">{data.designers.active}</div>
+                  <div className="text-sm text-gray-500">с промокодами</div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Заказов по промо (7д)</div>
+                  <div className="text-xl font-bold text-gray-900">{data.designers.promoOrders.week.count}</div>
+                  <div className="text-sm text-purple-600 font-medium">{formatCurrency(data.designers.promoOrders.week.sum)}</div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Заказов по промо (30д)</div>
+                  <div className="text-xl font-bold text-gray-900">{data.designers.promoOrders.month.count}</div>
+                  <div className="text-sm text-purple-600 font-medium">{formatCurrency(data.designers.promoOrders.month.sum)}</div>
                 </div>
               </div>
             </div>

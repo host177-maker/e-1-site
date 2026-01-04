@@ -22,7 +22,7 @@ export async function GET() {
       SELECT table_name FROM information_schema.tables
       WHERE table_schema = 'public' AND table_name IN (
         'reviews', 'promotions', 'banners', 'regions', 'cities', 'salons',
-        'admin_users', 'cart_orders', 'warehouses'
+        'admin_users', 'cart_orders', 'warehouses', 'designers'
       )
     `);
     const existingTables = new Set(tableCheck.rows.map(r => r.table_name));
@@ -36,6 +36,8 @@ export async function GET() {
     const emptyOrders = { rows: [{ today_count: 0, today_sum: 0, yesterday_count: 0, yesterday_sum: 0, week_count: 0, week_sum: 0, month_count: 0, month_sum: 0 }] };
     const emptyUsers = { rows: [{ total: 0 }] };
     const emptyInactiveUsers = { rows: [] };
+    const emptyDesigners = { rows: [{ total: 0, active: 0 }] };
+    const emptyPromoOrders = { rows: [{ week_count: 0, week_sum: 0, month_count: 0, month_sum: 0 }] };
 
     // Execute all queries in parallel
     const [
@@ -50,7 +52,9 @@ export async function GET() {
       ordersResult,
       warehousesResult,
       citiesWithoutWarehousesResult,
-      citiesWithoutPriceGroupResult
+      citiesWithoutPriceGroupResult,
+      designersResult,
+      promoOrdersResult
     ] = await Promise.all([
       // Reviews counts
       has('reviews')
@@ -179,7 +183,29 @@ export async function GET() {
               AND (c.price_group IS NULL OR c.price_group = '')
             ORDER BY c.name
           `)
-        : Promise.resolve({ rows: [] })
+        : Promise.resolve({ rows: [] }),
+
+      // Designers count
+      has('designers')
+        ? pool.query(`
+            SELECT
+              COUNT(*) as total,
+              COUNT(*) FILTER (WHERE is_active = true) as active
+            FROM designers
+          `)
+        : Promise.resolve(emptyDesigners),
+
+      // Orders with promo codes (designer promo codes usage)
+      has('cart_orders')
+        ? pool.query(`
+            SELECT
+              COUNT(*) FILTER (WHERE promo_code IS NOT NULL AND promo_code != '' AND created_at >= CURRENT_DATE - INTERVAL '7 days') as week_count,
+              COALESCE(SUM(total_price) FILTER (WHERE promo_code IS NOT NULL AND promo_code != '' AND created_at >= CURRENT_DATE - INTERVAL '7 days'), 0) as week_sum,
+              COUNT(*) FILTER (WHERE promo_code IS NOT NULL AND promo_code != '' AND created_at >= CURRENT_DATE - INTERVAL '30 days') as month_count,
+              COALESCE(SUM(total_price) FILTER (WHERE promo_code IS NOT NULL AND promo_code != '' AND created_at >= CURRENT_DATE - INTERVAL '30 days'), 0) as month_sum
+            FROM cart_orders
+          `)
+        : Promise.resolve(emptyPromoOrders)
     ]);
 
     // Calculate days until promotion ends
@@ -257,6 +283,20 @@ export async function GET() {
         },
         citiesWithoutWarehouses: citiesWithoutWarehousesResult.rows.map((r: { id: number; name: string }) => ({ id: r.id, name: r.name })),
         citiesWithoutPriceGroup: citiesWithoutPriceGroupResult.rows.map((r: { id: number; name: string }) => ({ id: r.id, name: r.name })),
+        designers: {
+          total: parseInt(designersResult.rows[0].total) || 0,
+          active: parseInt(designersResult.rows[0].active) || 0,
+          promoOrders: {
+            week: {
+              count: parseInt(promoOrdersResult.rows[0].week_count) || 0,
+              sum: parseFloat(promoOrdersResult.rows[0].week_sum) || 0,
+            },
+            month: {
+              count: parseInt(promoOrdersResult.rows[0].month_count) || 0,
+              sum: parseFloat(promoOrdersResult.rows[0].month_sum) || 0,
+            },
+          },
+        },
       },
     });
   } catch (error) {
