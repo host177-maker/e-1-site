@@ -130,7 +130,10 @@ function parseExcelData(workbook: XLSX.WorkBook) {
         door_material5: row[16] && row[16] !== '-' ? String(row[16]).trim() : null,
         door_material6: row[17] && row[17] !== '-' ? String(row[17]).trim() : null,
         image_white: String(row[18] || '').trim() || null,
-        image_interior: String(row[19] || '').trim() || null
+        image_interior: String(row[19] || '').trim() || null,
+        // Колонки U и V - рекламные плашки
+        discount_percent: row[20] ? parseFloat(row[20]) || null : null,
+        promo_badge: String(row[21] || '').trim() || null
       });
     }
   }

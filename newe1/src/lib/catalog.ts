@@ -52,6 +52,9 @@ export interface CatalogProduct {
   variants_count?: number;
   min_price?: number;
   default_image?: string;
+  // Рекламные плашки
+  discount_percent?: number | null;
+  promo_badge?: string | null;
 }
 
 export interface CatalogVariant {
@@ -819,6 +822,8 @@ export async function importCatalog(data: {
     door_material6?: string;
     image_white?: string;
     image_interior?: string;
+    discount_percent?: number | null;
+    promo_badge?: string | null;
   }>;
   series: Array<{
     name: string;
@@ -1010,15 +1015,17 @@ export async function importCatalog(data: {
           const doorTypeId = doorTypeMap[p.door_type] || null;
 
           const result = await pool.query(
-            `INSERT INTO catalog_products (name, slug, series_id, door_type_id, door_count)
-             VALUES ($1, $2, $3, $4, $5)
+            `INSERT INTO catalog_products (name, slug, series_id, door_type_id, door_count, discount_percent, promo_badge)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
              ON CONFLICT (slug) DO UPDATE SET
                series_id = EXCLUDED.series_id,
                door_type_id = EXCLUDED.door_type_id,
                door_count = EXCLUDED.door_count,
+               discount_percent = EXCLUDED.discount_percent,
+               promo_badge = EXCLUDED.promo_badge,
                updated_at = CURRENT_TIMESTAMP
              RETURNING id`,
-            [p.card_name, slug, seriesId, doorTypeId, p.door_count || null]
+            [p.card_name, slug, seriesId, doorTypeId, p.door_count || null, p.discount_percent || null, p.promo_badge || null]
           );
           productMap[p.card_name] = result.rows[0].id;
           productsCount++;

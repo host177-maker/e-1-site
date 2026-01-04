@@ -17,6 +17,8 @@ interface CatalogProduct {
   series_name?: string;
   door_type_name?: string;
   door_count?: number;
+  discount_percent?: number | null;
+  promo_badge?: string | null;
 }
 
 interface CatalogVariant {
@@ -222,9 +224,13 @@ export default function ProductPage() {
     fetchAssemblyPercent();
   }, [city?.name]);
 
-  // Цены (пока заглушки)
-  const basePrice = 35990;
-  const oldPrice = 72000;
+  // Цены (пока заглушки) с учётом скидки
+  const originalPrice = 35990;
+  const hasPromoDiscount = product?.discount_percent && product.discount_percent > 0;
+  const basePrice = hasPromoDiscount
+    ? Math.round(originalPrice * (1 - product!.discount_percent! / 100))
+    : originalPrice;
+  const oldPrice = hasPromoDiscount ? originalPrice : 72000;
   const assemblyPrice = Math.round(basePrice * (assemblyPercent / 100));
 
   // Все уникальные цвета профиля из вариантов (для проверки наличия)
@@ -666,6 +672,21 @@ export default function ProductPage() {
       <div className="max-w-[1348px] mx-auto px-4 py-8">
         {/* Заголовок - мобильная версия (над изображением) */}
         <div className="lg:hidden mb-4">
+          {/* Рекламные плашки */}
+          {(product.promo_badge || hasPromoDiscount) && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {hasPromoDiscount && (
+                <span className="inline-block px-2.5 py-1 text-xs font-bold rounded bg-rose-500/90 text-white">
+                  Скидка {product.discount_percent}%
+                </span>
+              )}
+              {product.promo_badge && (
+                <span className="inline-block px-2.5 py-1 text-xs font-bold rounded bg-amber-500/90 text-white">
+                  {product.promo_badge}
+                </span>
+              )}
+            </div>
+          )}
           <div className="flex items-start gap-2">
             <h1 className="text-xl font-normal text-gray-900 line-clamp-2 font-[var(--font-inter)] flex-1">
               {product.name}
@@ -765,10 +786,26 @@ export default function ProductPage() {
           {/* Информация о товаре */}
           <div className="space-y-4">
             {/* Заголовок - только десктоп (скрыт на мобильных) */}
-            <div className="hidden lg:flex items-start gap-3">
-              <h1 className="text-2xl font-normal text-gray-900 min-h-[3rem] line-clamp-2 font-[var(--font-inter)] flex-1">
-                {product.name}
-              </h1>
+            <div className="hidden lg:block space-y-2">
+              {/* Рекламные плашки */}
+              {(product.promo_badge || hasPromoDiscount) && (
+                <div className="flex flex-wrap gap-2">
+                  {hasPromoDiscount && (
+                    <span className="inline-block px-3 py-1 text-sm font-bold rounded bg-rose-500/90 text-white">
+                      Скидка {product.discount_percent}%
+                    </span>
+                  )}
+                  {product.promo_badge && (
+                    <span className="inline-block px-3 py-1 text-sm font-bold rounded bg-amber-500/90 text-white">
+                      {product.promo_badge}
+                    </span>
+                  )}
+                </div>
+              )}
+              <div className="flex items-start gap-3">
+                <h1 className="text-2xl font-normal text-gray-900 min-h-[3rem] line-clamp-2 font-[var(--font-inter)] flex-1">
+                  {product.name}
+                </h1>
               <button
                 onClick={() => {
                   if (isInWishlist(product.id)) {
@@ -802,6 +839,7 @@ export default function ProductPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
               </button>
+              </div>
             </div>
 
             {/* Сообщение о недоступности вариантов */}
@@ -825,7 +863,7 @@ export default function ProductPage() {
             {!hasNoVariants && (
               <div className="bg-white rounded-xl shadow-sm p-5">
                 <div className="flex items-baseline gap-3 mb-2">
-                  <span className="text-3xl font-bold text-gray-900">
+                  <span className={`text-3xl font-bold ${hasPromoDiscount ? 'text-rose-600' : 'text-gray-900'}`}>
                     {(basePrice + (includeAssembly ? assemblyPrice : 0)).toLocaleString('ru-RU')} ₽
                   </span>
                   <span className="text-lg text-gray-400 line-through">

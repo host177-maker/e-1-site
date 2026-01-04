@@ -26,6 +26,8 @@ interface CatalogProduct {
   door_count?: number;
   variants_count?: number;
   default_image?: string;
+  discount_percent?: number | null;
+  promo_badge?: string | null;
 }
 
 interface FilterOptions {
@@ -453,11 +455,31 @@ function CatalogPageContent() {
                       )}
 
                       <div className="group bg-white rounded-lg p-3 hover:shadow-md transition-shadow relative">
+                        {/* Рекламные плашки */}
+                        {(product.promo_badge || product.discount_percent) && (
+                          <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+                            {product.discount_percent && product.discount_percent > 0 && (
+                              <span className="inline-block px-2 py-0.5 text-xs font-bold rounded bg-rose-500/90 text-white">
+                                -{product.discount_percent}%
+                              </span>
+                            )}
+                            {product.promo_badge && (
+                              <span className="inline-block px-2 py-0.5 text-xs font-bold rounded bg-amber-500/90 text-white">
+                                {product.promo_badge}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
                         {/* Сердечко избранного */}
                         <button
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
+                            const basePrice = 35990;
+                            const finalPrice = product.discount_percent
+                              ? Math.round(basePrice * (1 - product.discount_percent / 100))
+                              : basePrice;
                             if (inWishlist) {
                               removeByProductId(product.id);
                             } else {
@@ -467,7 +489,7 @@ function CatalogPageContent() {
                                 name: product.name,
                                 slug: product.slug,
                                 image: product.default_image || PLACEHOLDER_IMAGE,
-                                price: 35990,
+                                price: finalPrice,
                               });
                             }
                           }}
@@ -506,10 +528,23 @@ function CatalogPageContent() {
                             {product.name}
                           </h3>
                         </Link>
-                        <div className="flex items-baseline gap-2 mb-2">
-                          <span className="text-sm font-bold text-gray-900">35 990 ₽</span>
-                          <span className="text-xs text-gray-400 line-through">72 000 ₽</span>
-                        </div>
+                        {(() => {
+                          const basePrice = 35990;
+                          const hasDiscount = product.discount_percent && product.discount_percent > 0;
+                          const finalPrice = hasDiscount
+                            ? Math.round(basePrice * (1 - product.discount_percent! / 100))
+                            : basePrice;
+                          return (
+                            <div className="flex items-baseline gap-2 mb-2">
+                              <span className={`text-sm font-bold ${hasDiscount ? 'text-rose-600' : 'text-gray-900'}`}>
+                                {finalPrice.toLocaleString('ru-RU')} ₽
+                              </span>
+                              <span className="text-xs text-gray-400 line-through">
+                                {hasDiscount ? basePrice.toLocaleString('ru-RU') : '72 000'} ₽
+                              </span>
+                            </div>
+                          );
+                        })()}
                         <Link
                           href={`/product/${product.slug}`}
                           className="block w-full py-2 bg-[#62bb46] text-white text-sm font-medium rounded hover:bg-[#55a83d] transition-colors text-center"
