@@ -17,6 +17,15 @@ export async function GET() {
 
     const pool = getPool();
 
+    // Check which tables exist
+    const tableCheck = await pool.query(`
+      SELECT table_name FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name IN ('cart_orders', 'warehouses')
+    `);
+    const existingTables = new Set(tableCheck.rows.map(r => r.table_name));
+    const hasCartOrders = existingTables.has('cart_orders');
+    const hasWarehouses = existingTables.has('warehouses');
+
     // Execute all queries in parallel
     const [
       reviewsResult,
@@ -93,38 +102,44 @@ export async function GET() {
         ORDER BY last_login ASC NULLS FIRST
       `),
 
-      // Orders statistics
-      pool.query(`
-        SELECT
-          COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE) as today_count,
-          COALESCE(SUM(total_amount) FILTER (WHERE created_at::date = CURRENT_DATE), 0) as today_sum,
-          COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE - INTERVAL '1 day') as yesterday_count,
-          COALESCE(SUM(total_amount) FILTER (WHERE created_at::date = CURRENT_DATE - INTERVAL '1 day'), 0) as yesterday_sum,
-          COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days') as week_count,
-          COALESCE(SUM(total_amount) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'), 0) as week_sum,
-          COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') as month_count,
-          COALESCE(SUM(total_amount) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'), 0) as month_sum
-        FROM cart_orders
-      `),
+      // Orders statistics (only if table exists)
+      hasCartOrders
+        ? pool.query(`
+            SELECT
+              COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE) as today_count,
+              COALESCE(SUM(total_amount) FILTER (WHERE created_at::date = CURRENT_DATE), 0) as today_sum,
+              COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE - INTERVAL '1 day') as yesterday_count,
+              COALESCE(SUM(total_amount) FILTER (WHERE created_at::date = CURRENT_DATE - INTERVAL '1 day'), 0) as yesterday_sum,
+              COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days') as week_count,
+              COALESCE(SUM(total_amount) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'), 0) as week_sum,
+              COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') as month_count,
+              COALESCE(SUM(total_amount) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'), 0) as month_sum
+            FROM cart_orders
+          `)
+        : Promise.resolve({ rows: [{ today_count: 0, today_sum: 0, yesterday_count: 0, yesterday_sum: 0, week_count: 0, week_sum: 0, month_count: 0, month_sum: 0 }] }),
 
-      // Warehouses count
-      pool.query(`
-        SELECT
-          COUNT(*) as total,
-          COUNT(*) FILTER (WHERE is_active = true) as active
-        FROM warehouses
-      `),
+      // Warehouses count (only if table exists)
+      hasWarehouses
+        ? pool.query(`
+            SELECT
+              COUNT(*) as total,
+              COUNT(*) FILTER (WHERE is_active = true) as active
+            FROM warehouses
+          `)
+        : Promise.resolve({ rows: [{ total: 0, active: 0 }] }),
 
-      // Cities without warehouses
-      pool.query(`
-        SELECT COUNT(*) as count
-        FROM cities c
-        WHERE c.is_active = true
-          AND NOT EXISTS (
-            SELECT 1 FROM warehouses w
-            WHERE w.city_id = c.id AND w.is_active = true
-          )
-      `)
+      // Cities without warehouses (only if warehouses table exists)
+      hasWarehouses
+        ? pool.query(`
+            SELECT COUNT(*) as count
+            FROM cities c
+            WHERE c.is_active = true
+              AND NOT EXISTS (
+                SELECT 1 FROM warehouses w
+                WHERE w.city_id = c.id AND w.is_active = true
+              )
+          `)
+        : Promise.resolve({ rows: [{ count: 0 }] })
     ]);
 
     // Calculate days until promotion ends
