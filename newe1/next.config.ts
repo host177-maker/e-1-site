@@ -15,10 +15,9 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Disable automatic static optimization for error pages
-  // This prevents useContext errors during prerendering
+  // Enable instrumentation for migrations and configure server actions
   experimental: {
-    // Force App Router error handling
+    instrumentationHook: true,
     serverActions: {
       bodySizeLimit: '2mb',
     },
