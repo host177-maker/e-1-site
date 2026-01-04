@@ -18,7 +18,7 @@ export default function MeasurerBanner() {
           >
             {/* Левая часть - текст */}
             <div className="text-center md:text-left">
-              <h2 className="text-2xl md:text-3xl font-normal text-white mb-2">
+              <h2 className="text-2xl md:text-3xl font-normal mb-2" style={{ color: '#ffffff' }}>
                 Шкафы по вашим размерам
               </h2>
               <p className="text-white/80 text-base md:text-lg">
