@@ -68,7 +68,6 @@ export default function CatalogPage() {
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
   const [needsMigration, setNeedsMigration] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [googleSheetUrl, setGoogleSheetUrl] = useState('https://docs.google.com/spreadsheets/d/1rzihgEmV69qLreTWNkYIXWEuL8J_I0t-cTngqrulnXY/edit');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchStatus = useCallback(async () => {
@@ -205,43 +204,6 @@ export default function CatalogPage() {
     }
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
-    }
-  };
-
-  const handleImportFromUrl = async () => {
-    if (!googleSheetUrl.trim()) {
-      alert('Введите URL Google Sheets');
-      return;
-    }
-
-    setImporting(true);
-    setImportResult(null);
-
-    try {
-      const formData = new FormData();
-      formData.append('googleSheetUrl', googleSheetUrl);
-
-      const response = await fetch('/api/e1admin/catalog/import', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-      setImportResult(result);
-
-      if (result.success || result.stats) {
-        fetchStatus();
-      }
-    } catch (error) {
-      console.error('Import error:', error);
-      setImportResult({
-        success: false,
-        message: 'Ошибка подключения к серверу',
-        stats: { series: 0, bodyColors: 0, fillings: 0, products: 0, variants: 0 },
-        errors: [error instanceof Error ? error.message : 'Неизвестная ошибка']
-      });
-    } finally {
-      setImporting(false);
     }
   };
 
@@ -431,74 +393,30 @@ export default function CatalogPage() {
             <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Импорт каталога</h2>
               <p className="text-gray-600 mb-6">
-                Загрузите xlsx файл с данными каталога или укажите ссылку на Google Sheets
+                Загрузите xlsx файл с данными каталога
               </p>
 
-              <div className="space-y-6">
-                {/* Загрузка файла */}
-                <div>
-                  <h3 className="font-medium text-gray-700 mb-2">Загрузка из файла (.xlsx)</h3>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={importing}
-                    className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-[#7cb342] hover:text-[#7cb342] transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                    </svg>
-                    Выбрать файл
-                  </button>
-                </div>
-
-                {/* Разделитель */}
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-gray-400 text-sm">или</span>
-                  <div className="flex-1 h-px bg-gray-200" />
-                </div>
-
-                {/* Google Sheets URL */}
-                <div>
-                  <h3 className="font-medium text-gray-700 mb-2">Загрузка из Google Sheets</h3>
-                  <div className="flex flex-col md:flex-row gap-3">
-                    <input
-                      type="text"
-                      value={googleSheetUrl}
-                      onChange={(e) => setGoogleSheetUrl(e.target.value)}
-                      placeholder="https://docs.google.com/spreadsheets/d/..."
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7cb342] focus:border-transparent outline-none"
-                    />
-                    <button
-                      onClick={handleImportFromUrl}
-                      disabled={importing || !googleSheetUrl.trim()}
-                      className="flex items-center justify-center gap-2 px-6 py-3 bg-[#7cb342] hover:bg-[#689f38] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {importing ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          Импорт...
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
-                          Импортировать
-                        </>
-                      )}
-                    </button>
-                  </div>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Таблица должна быть опубликована в веб (Файл → Опубликовать в веб)
-                  </p>
-                </div>
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={importing}
+                  className="flex items-center gap-2 px-6 py-3 bg-[#7cb342] hover:bg-[#689f38] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Выбрать файл (.xlsx)
+                </button>
+                <p className="text-sm text-gray-500 mt-3">
+                  Поддерживаются колонки U (скидка %) и V (текст плашки) для рекламных акций
+                </p>
               </div>
             </div>
 

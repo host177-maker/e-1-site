@@ -179,7 +179,10 @@ function parseExcelData(workbook: XLSX.WorkBook) {
         door_material5: row[16] && row[16] !== '-' ? String(row[16]).trim() : null,
         door_material6: row[17] && row[17] !== '-' ? String(row[17]).trim() : null,
         image_white: String(row[18] || '').trim() || null,
-        image_interior: String(row[19] || '').trim() || null
+        image_interior: String(row[19] || '').trim() || null,
+        // Колонки U и V - рекламные плашки
+        discount_percent: row[20] ? parseFloat(row[20]) || null : null,
+        promo_badge: String(row[21] || '').trim() || null
       });
     }
   }
@@ -373,6 +376,10 @@ async function importCatalogOptimized(
       )
     `);
     await pool.query('CREATE INDEX IF NOT EXISTS idx_catalog_services_active_sort ON catalog_services(is_active, sort_order)');
+
+    // Миграция 012: Добавление полей для рекламных плашек
+    await pool.query('ALTER TABLE catalog_products ADD COLUMN IF NOT EXISTS discount_percent DECIMAL(5,2) DEFAULT NULL');
+    await pool.query('ALTER TABLE catalog_products ADD COLUMN IF NOT EXISTS promo_badge VARCHAR(100) DEFAULT NULL');
   } catch (migrationError) {
     console.log('Migration check:', migrationError instanceof Error ? migrationError.message : migrationError);
     // Продолжаем импорт даже если миграции уже применены
@@ -578,7 +585,7 @@ async function importCatalogOptimized(
 
     // 5. Сначала создаём уникальные товары (карточки)
     const productMap: { [name: string]: number } = {};
-    const uniqueProducts = new Map<string, { name: string; series: string; doorType: string; doorCount: number }>();
+    const uniqueProducts = new Map<string, { name: string; series: string; doorType: string; doorCount: number; discountPercent: number | null; promoBadge: string | null }>();
 
     for (const p of data.products) {
       if (!uniqueProducts.has(p.card_name)) {
@@ -586,7 +593,9 @@ async function importCatalogOptimized(
           name: p.card_name,
           series: p.series,
           doorType: p.door_type,
-          doorCount: p.door_count
+          doorCount: p.door_count,
+          discountPercent: p.discount_percent,
+          promoBadge: p.promo_badge
         });
       }
     }
@@ -613,15 +622,17 @@ async function importCatalogOptimized(
           const doorTypeId = getDoorTypeId(prod.doorType);
 
           const result = await pool.query(
-            `INSERT INTO catalog_products (name, slug, series_id, door_type_id, door_count)
-             VALUES ($1, $2, $3, $4, $5)
+            `INSERT INTO catalog_products (name, slug, series_id, door_type_id, door_count, discount_percent, promo_badge)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
              ON CONFLICT (slug) DO UPDATE SET
                series_id = EXCLUDED.series_id,
                door_type_id = EXCLUDED.door_type_id,
                door_count = EXCLUDED.door_count,
+               discount_percent = EXCLUDED.discount_percent,
+               promo_badge = EXCLUDED.promo_badge,
                updated_at = CURRENT_TIMESTAMP
              RETURNING id`,
-            [cardName, slug, seriesId, doorTypeId, prod.doorCount || null]
+            [cardName, slug, seriesId, doorTypeId, prod.doorCount || null, prod.discountPercent || null, prod.promoBadge || null]
           );
           productMap[cardName] = result.rows[0].id;
           productsCount++;
