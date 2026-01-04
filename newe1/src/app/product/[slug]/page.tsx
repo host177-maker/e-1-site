@@ -675,14 +675,14 @@ export default function ProductPage() {
         <div className="lg:hidden mb-4">
           {/* Рекламные плашки */}
           {(product.promo_badge || hasPromoDiscount) && (
-            <div className="flex flex-wrap gap-2 mb-2">
+            <div className="flex flex-wrap gap-1.5 mb-2">
               {hasPromoDiscount && (
-                <span className="inline-block px-2.5 py-1 text-xs font-bold rounded bg-rose-500/90 text-white">
-                  Скидка {product.discount_percent}%
+                <span className="inline-block px-2 py-0.5 text-[11px] rounded bg-rose-500/80 text-white">
+                  Скидка {Math.round(product.discount_percent!)}%
                 </span>
               )}
               {product.promo_badge && (
-                <span className="inline-block px-2.5 py-1 text-xs font-bold rounded bg-amber-500/90 text-white">
+                <span className="inline-block px-2 py-0.5 text-[11px] rounded bg-amber-500/80 text-white">
                   {product.promo_badge}
                 </span>
               )}
@@ -790,14 +790,14 @@ export default function ProductPage() {
             <div className="hidden lg:block space-y-2">
               {/* Рекламные плашки */}
               {(product.promo_badge || hasPromoDiscount) && (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {hasPromoDiscount && (
-                    <span className="inline-block px-3 py-1 text-sm font-bold rounded bg-rose-500/90 text-white">
-                      Скидка {product.discount_percent}%
+                    <span className="inline-block px-2.5 py-0.5 text-xs rounded bg-rose-500/80 text-white">
+                      Скидка {Math.round(product.discount_percent!)}%
                     </span>
                   )}
                   {product.promo_badge && (
-                    <span className="inline-block px-3 py-1 text-sm font-bold rounded bg-amber-500/90 text-white">
+                    <span className="inline-block px-2.5 py-0.5 text-xs rounded bg-amber-500/80 text-white">
                       {product.promo_badge}
                     </span>
                   )}
