@@ -22,38 +22,6 @@ const nextConfig: NextConfig = {
     },
   },
 
-  // Exclude pg from client-side bundling
-  serverExternalPackages: ['pg', 'pg-connection-string', 'pg-pool', 'pgpass'],
-
-  // Webpack configuration to handle Node.js modules
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      // Don't bundle Node.js modules on the client
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        dns: false,
-        path: false,
-        stream: false,
-        util: false,
-        crypto: false,
-        os: false,
-        'pg-native': false,
-      };
-      // Externalize pg packages for non-server builds
-      config.externals = [
-        ...(Array.isArray(config.externals) ? config.externals : []),
-        'pg',
-        'pg-connection-string',
-        'pg-pool',
-        'pgpass',
-      ];
-    }
-    return config;
-  },
-
   // Redirects for backward compatibility with old site
   async redirects() {
     return [

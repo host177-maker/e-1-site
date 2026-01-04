@@ -1,13 +1,21 @@
-async function runMigrations() {
+export async function register() {
+  // Only run on server side (Node.js runtime)
+  if (process.env.NEXT_RUNTIME !== 'nodejs') {
+    return;
+  }
+
   if (!process.env.POSTGRES_HOST) {
     console.log('Skipping migrations: POSTGRES_HOST not set');
     return;
   }
 
-  // Dynamic imports for Node.js only modules
-  const { Pool } = await import('pg');
-  const fs = await import('fs');
-  const path = await import('path');
+  // Use eval to hide require from webpack static analysis
+  // This prevents webpack from trying to bundle Node.js modules
+  const dynamicRequire = eval('require');
+
+  const { Pool } = dynamicRequire('pg');
+  const fs = dynamicRequire('fs');
+  const path = dynamicRequire('path');
 
   const pool = new Pool({
     host: process.env.POSTGRES_HOST,
@@ -29,7 +37,7 @@ async function runMigrations() {
 
     // Get list of executed migrations
     const { rows: executed } = await pool.query('SELECT name FROM _migrations');
-    const executedNames = new Set(executed.map(r => r.name));
+    const executedNames = new Set(executed.map((r: { name: string }) => r.name));
 
     // Get all migration files
     const migrationsDir = path.join(process.cwd(), 'src/lib/migrations');
@@ -40,7 +48,7 @@ async function runMigrations() {
     }
 
     const files = fs.readdirSync(migrationsDir)
-      .filter(f => f.endsWith('.sql'))
+      .filter((f: string) => f.endsWith('.sql'))
       .sort();
 
     // Run pending migrations
@@ -67,12 +75,5 @@ async function runMigrations() {
     console.error('Migration error:', err);
   } finally {
     await pool.end();
-  }
-}
-
-export async function register() {
-  // Only run on server side
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
-    await runMigrations();
   }
 }
