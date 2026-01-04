@@ -21,6 +21,7 @@ interface FilterOption {
 
 interface CatalogTopFilterProps {
   doorTypes: { id: number; name: string; slug: string; count: number }[];
+  wardrobeTypeCounts?: { key: string; count: number }[];
   filters: FilterValues;
   onFiltersChange: (filters: FilterValues) => void;
 }
@@ -133,21 +134,39 @@ const doorTypeLabels: Record<string, string> = {
   'garderob': 'Гардероб',
 };
 
+// Порядок отображения типов назначения
+const wardrobeTypesOrder = [
+  'two-door',
+  'three-door',
+  'bedroom',
+  'hallway',
+  'living',
+  'mirror',
+  'corner',
+];
+
 const wardrobeTypeLabels: Record<string, string> = {
+  'two-door': 'Двухдверные',
+  'three-door': 'Трёхдверные',
   'bedroom': 'В спальню',
   'hallway': 'В прихожую',
   'living': 'В гостиную',
   'mirror': 'С зеркалом',
   'corner': 'Угловые',
-  'two-door': 'Двухдверные',
-  'three-door': 'Трёхдверные',
 };
 
 export default function CatalogTopFilter({
   doorTypes,
+  wardrobeTypeCounts = [],
   filters,
   onFiltersChange,
 }: CatalogTopFilterProps) {
+
+  // Получить count для wardrobe type
+  const getWardrobeTypeCount = (key: string): number | undefined => {
+    const found = wardrobeTypeCounts.find(wt => wt.key === key);
+    return found?.count;
+  };
 
   const handleDoorTypeToggle = (slug: string) => {
     const newDoorTypes = filters.doorTypes.includes(slug)
@@ -176,11 +195,12 @@ export default function CatalogTopFilter({
         count: dt.count,
         icon: doorTypeIcons[dt.slug] || doorTypeIcons['kupe'],
       })),
-    // Типы назначения
-    ...Object.keys(wardrobeTypeLabels).map(key => ({
+    // Типы назначения (в заданном порядке)
+    ...wardrobeTypesOrder.map(key => ({
       key: `wardrobe-${key}`,
       slug: key,
       label: wardrobeTypeLabels[key],
+      count: getWardrobeTypeCount(key),
       icon: wardrobeTypeIcons[key],
     })),
   ];

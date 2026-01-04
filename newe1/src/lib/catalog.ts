@@ -201,6 +201,7 @@ export async function getFilterOptions(currentFilters?: {
   heights: { value: number; count: number }[];
   depths: { value: number; count: number }[];
   depthRangeCounts: { key: string; count: number }[];
+  wardrobeTypeCounts: { key: string; count: number }[];
   priceRange: { min: number; max: number };
 }> {
   const pool = getPool();
@@ -340,6 +341,68 @@ export async function getFilterOptions(currentFilters?: {
     depthRangeCounts.push({ key: range.key, count: parseInt(result.rows[0]?.count || '0') });
   }
 
+  // Подсчёт для специальных типов шкафов (wardrobeTypes)
+  const wardrobeTypeCounts: { key: string; count: number }[] = [];
+
+  // two-door: door_count = 2
+  const twoDoorResult = await pool.query(`
+    SELECT COUNT(DISTINCT p.id) as count
+    FROM catalog_products p
+    WHERE p.is_active = true AND p.door_count = 2
+  `);
+  wardrobeTypeCounts.push({ key: 'two-door', count: parseInt(twoDoorResult.rows[0]?.count || '0') });
+
+  // three-door: door_count = 3
+  const threeDoorResult = await pool.query(`
+    SELECT COUNT(DISTINCT p.id) as count
+    FROM catalog_products p
+    WHERE p.is_active = true AND p.door_count = 3
+  `);
+  wardrobeTypeCounts.push({ key: 'three-door', count: parseInt(threeDoorResult.rows[0]?.count || '0') });
+
+  // bedroom: depth > 570mm (57cm)
+  const bedroomResult = await pool.query(`
+    SELECT COUNT(DISTINCT p.id) as count
+    FROM catalog_products p
+    JOIN catalog_variants v ON v.product_id = p.id AND v.is_active = true
+    WHERE p.is_active = true AND v.depth > 570
+  `);
+  wardrobeTypeCounts.push({ key: 'bedroom', count: parseInt(bedroomResult.rows[0]?.count || '0') });
+
+  // hallway / mirror: door_material contains "зеркало"
+  const mirrorResult = await pool.query(`
+    SELECT COUNT(DISTINCT p.id) as count
+    FROM catalog_products p
+    JOIN catalog_variants v ON v.product_id = p.id AND v.is_active = true
+    WHERE p.is_active = true AND (
+      LOWER(COALESCE(v.door_material1, '')) LIKE '%зеркало%' OR
+      LOWER(COALESCE(v.door_material2, '')) LIKE '%зеркало%' OR
+      LOWER(COALESCE(v.door_material3, '')) LIKE '%зеркало%' OR
+      LOWER(COALESCE(v.door_material4, '')) LIKE '%зеркало%' OR
+      LOWER(COALESCE(v.door_material5, '')) LIKE '%зеркало%' OR
+      LOWER(COALESCE(v.door_material6, '')) LIKE '%зеркало%'
+    )
+  `);
+  wardrobeTypeCounts.push({ key: 'hallway', count: parseInt(mirrorResult.rows[0]?.count || '0') });
+  wardrobeTypeCounts.push({ key: 'mirror', count: parseInt(mirrorResult.rows[0]?.count || '0') });
+
+  // living: height > 2300mm (230cm)
+  const livingResult = await pool.query(`
+    SELECT COUNT(DISTINCT p.id) as count
+    FROM catalog_products p
+    JOIN catalog_variants v ON v.product_id = p.id AND v.is_active = true
+    WHERE p.is_active = true AND v.height > 2300
+  `);
+  wardrobeTypeCounts.push({ key: 'living', count: parseInt(livingResult.rows[0]?.count || '0') });
+
+  // corner: name contains "угловой"
+  const cornerResult = await pool.query(`
+    SELECT COUNT(DISTINCT p.id) as count
+    FROM catalog_products p
+    WHERE p.is_active = true AND LOWER(p.name) LIKE '%угловой%'
+  `);
+  wardrobeTypeCounts.push({ key: 'corner', count: parseInt(cornerResult.rows[0]?.count || '0') });
+
   return {
     doorTypes: doorTypesResult.rows.map(r => ({ ...r, count: parseInt(r.count) })),
     series: seriesResult.rows.map(r => ({ ...r, count: parseInt(r.count) })),
@@ -351,6 +414,7 @@ export async function getFilterOptions(currentFilters?: {
     heights: heightCounts,
     depths: depthCounts,
     depthRangeCounts,
+    wardrobeTypeCounts,
     priceRange: { min: 2000, max: 170000 }
   };
 }

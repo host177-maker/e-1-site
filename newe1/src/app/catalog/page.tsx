@@ -36,6 +36,7 @@ interface FilterOptions {
   heights: { value: number; count: number }[];
   depths: { value: number; count: number }[];
   depthRangeCounts?: { key: string; count: number }[];
+  wardrobeTypeCounts?: { key: string; count: number }[];
   priceRange: { min: number; max: number };
 }
 
@@ -352,6 +353,7 @@ function CatalogPageContent() {
       {filterOptions && (
         <CatalogTopFilter
           doorTypes={filterOptions.doorTypes}
+          wardrobeTypeCounts={filterOptions.wardrobeTypeCounts}
           filters={filters}
           onFiltersChange={handleFiltersChange}
         />
