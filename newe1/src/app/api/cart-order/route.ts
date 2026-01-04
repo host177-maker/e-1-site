@@ -312,33 +312,54 @@ export async function POST(request: NextRequest) {
                   ${itemsHtml}
                 </tbody>
                 <tfoot>
+                  <tr style="border-top: 2px solid #ddd;">
+                    <td colspan="5" style="padding: 16px 8px 8px 8px;"><strong>Расчёт стоимости заказа:</strong></td>
+                  </tr>
                   ${(body.baseTotalPrice && body.baseTotalPrice > 0) ? `
                   <tr>
-                    <td colspan="4" style="padding: 12px 8px; text-align: right; color: #666;">Товары:</td>
-                    <td style="padding: 12px 8px; text-align: right;">${body.baseTotalPrice.toLocaleString('ru-RU')} ₽</td>
+                    <td colspan="4" style="padding: 6px 8px; text-align: right; color: #666;">Товары (базовая цена):</td>
+                    <td style="padding: 6px 8px; text-align: right;">${body.baseTotalPrice.toLocaleString('ru-RU')} ₽</td>
                   </tr>
                   ` : ''}
                   ${(body.productDiscountAmount && body.productDiscountAmount > 0) ? `
                   <tr style="background: #fff3e0;">
-                    <td colspan="4" style="padding: 12px 8px; text-align: right; color: #e65100;">Скидка по акции:</td>
-                    <td style="padding: 12px 8px; text-align: right; color: #e65100; font-weight: bold;">-${body.productDiscountAmount.toLocaleString('ru-RU')} ₽</td>
+                    <td colspan="4" style="padding: 6px 8px; text-align: right; color: #e65100;">Скидка по акции:</td>
+                    <td style="padding: 6px 8px; text-align: right; color: #e65100; font-weight: bold;">-${body.productDiscountAmount.toLocaleString('ru-RU')} ₽</td>
                   </tr>
                   ` : ''}
                   ${(body.discountAmount && body.discountAmount > 0) ? `
                   <tr style="background: #e8f5e9;">
-                    <td colspan="4" style="padding: 12px 8px; text-align: right; color: #2e7d32;">Скидка по промокоду ${body.promoDiscount}% (${body.promoCode}):</td>
-                    <td style="padding: 12px 8px; text-align: right; color: #2e7d32; font-weight: bold;">-${body.discountAmount.toLocaleString('ru-RU')} ₽</td>
+                    <td colspan="4" style="padding: 6px 8px; text-align: right; color: #2e7d32;">Скидка по промокоду ${body.promoDiscount}% (${body.promoCode}):</td>
+                    <td style="padding: 6px 8px; text-align: right; color: #2e7d32; font-weight: bold;">-${body.discountAmount.toLocaleString('ru-RU')} ₽</td>
                   </tr>
                   ` : ''}
                   ${(body.assemblyTotal && body.assemblyTotal > 0) ? `
                   <tr>
-                    <td colspan="4" style="padding: 12px 8px; text-align: right; color: #666;">Сборка:</td>
-                    <td style="padding: 12px 8px; text-align: right;">${body.assemblyTotal.toLocaleString('ru-RU')} ₽</td>
+                    <td colspan="4" style="padding: 6px 8px; text-align: right; color: #666;">Сборка:</td>
+                    <td style="padding: 6px 8px; text-align: right;">${body.assemblyTotal.toLocaleString('ru-RU')} ₽</td>
+                  </tr>
+                  ` : ''}
+                  ${body.delivery && body.delivery.deliveryCost > 0 ? `
+                  <tr>
+                    <td colspan="4" style="padding: 6px 8px; text-align: right; color: #666;">${body.delivery.type === 'pickup' ? 'Самовывоз' : 'Доставка'}:</td>
+                    <td style="padding: 6px 8px; text-align: right;">${body.delivery.deliveryCost.toLocaleString('ru-RU')} ₽</td>
+                  </tr>
+                  ` : ''}
+                  ${body.delivery && body.delivery.liftCost > 0 ? `
+                  <tr>
+                    <td colspan="4" style="padding: 6px 8px; text-align: right; color: #666;">Подъём на этаж:</td>
+                    <td style="padding: 6px 8px; text-align: right;">${body.delivery.liftCost.toLocaleString('ru-RU')} ₽</td>
+                  </tr>
+                  ` : ''}
+                  ${body.delivery && (body.delivery.assemblyCost || 0) > 0 ? `
+                  <tr>
+                    <td colspan="4" style="padding: 6px 8px; text-align: right; color: #666;">Транспортные сборщика:</td>
+                    <td style="padding: 6px 8px; text-align: right;">${body.delivery.assemblyCost?.toLocaleString('ru-RU')} ₽</td>
                   </tr>
                   ` : ''}
                   <tr style="background: #62bb46; color: white;">
-                    <td colspan="4" style="padding: 12px 8px; font-weight: bold; text-align: right;">ИТОГО:</td>
-                    <td style="padding: 12px 8px; font-weight: bold; text-align: right;">${body.totalPrice.toLocaleString('ru-RU')} ₽</td>
+                    <td colspan="4" style="padding: 12px 8px; font-weight: bold; text-align: right;">ИТОГО К ОПЛАТЕ:</td>
+                    <td style="padding: 12px 8px; font-weight: bold; text-align: right; font-size: 16px;">${body.totalPrice.toLocaleString('ru-RU')} ₽</td>
                   </tr>
                 </tfoot>
               </table>
@@ -399,28 +420,62 @@ export async function POST(request: NextRequest) {
                       <td style="padding: 8px 0; color: #666;">Доставка:</td>
                       <td style="padding: 8px 0;">${body.delivery?.type === 'pickup' ? 'Самовывоз' : body.delivery?.address || 'Доставка'}</td>
                     </tr>
-                    ${(body.productDiscountAmount && body.productDiscountAmount > 0) ? `
-                    <tr>
-                      <td style="padding: 8px 0; color: #e65100;">Скидка по акции:</td>
-                      <td style="padding: 8px 0; color: #e65100; font-weight: bold;">-${body.productDiscountAmount.toLocaleString('ru-RU')} ₽</td>
-                    </tr>
-                    ` : ''}
-                    ${(body.discountAmount && body.discountAmount > 0) ? `
-                    <tr>
-                      <td style="padding: 8px 0; color: #2e7d32;">Скидка по промокоду (${body.promoCode}):</td>
-                      <td style="padding: 8px 0; color: #2e7d32; font-weight: bold;">-${body.discountAmount.toLocaleString('ru-RU')} ₽</td>
-                    </tr>
-                    ` : ''}
-                    <tr style="border-top: 2px solid #62bb46;">
-                      <td style="padding: 12px 0; font-weight: bold; font-size: 18px;">Итого:</td>
-                      <td style="padding: 12px 0; font-weight: bold; font-size: 18px; color: #62bb46;">${body.totalPrice.toLocaleString('ru-RU')} ₽</td>
-                    </tr>
                   </table>
 
                   <h3 style="color: #333; margin-top: 20px;">Товары:</h3>
                   <ul style="padding-left: 20px;">
-                    ${body.items.map(item => `<li style="margin-bottom: 8px;">${item.name} × ${item.quantity} шт.</li>`).join('')}
+                    ${body.items.map(item => `<li style="margin-bottom: 8px;">${item.name} × ${item.quantity} шт. — ${(item.price * item.quantity).toLocaleString('ru-RU')} ₽${item.oldPrice && item.oldPrice > item.price ? ` <span style="color: #e65100;">(скидка ${((item.oldPrice - item.price) * item.quantity).toLocaleString('ru-RU')} ₽)</span>` : ''}</li>`).join('')}
                   </ul>
+
+                  <h3 style="color: #333; margin-top: 20px; border-bottom: 1px solid #ddd; padding-bottom: 8px;">Расчёт стоимости:</h3>
+                  <table style="width: 100%; border-collapse: collapse;">
+                    ${(body.baseTotalPrice && body.baseTotalPrice > 0) ? `
+                    <tr>
+                      <td style="padding: 6px 0; color: #666;">Товары (базовая цена):</td>
+                      <td style="padding: 6px 0; text-align: right;">${body.baseTotalPrice.toLocaleString('ru-RU')} ₽</td>
+                    </tr>
+                    ` : ''}
+                    ${(body.productDiscountAmount && body.productDiscountAmount > 0) ? `
+                    <tr>
+                      <td style="padding: 6px 0; color: #e65100;">Скидка по акции:</td>
+                      <td style="padding: 6px 0; text-align: right; color: #e65100; font-weight: bold;">-${body.productDiscountAmount.toLocaleString('ru-RU')} ₽</td>
+                    </tr>
+                    ` : ''}
+                    ${(body.discountAmount && body.discountAmount > 0) ? `
+                    <tr>
+                      <td style="padding: 6px 0; color: #2e7d32;">Скидка по промокоду ${body.promoDiscount}% (${body.promoCode}):</td>
+                      <td style="padding: 6px 0; text-align: right; color: #2e7d32; font-weight: bold;">-${body.discountAmount.toLocaleString('ru-RU')} ₽</td>
+                    </tr>
+                    ` : ''}
+                    ${(body.assemblyTotal && body.assemblyTotal > 0) ? `
+                    <tr>
+                      <td style="padding: 6px 0; color: #666;">Сборка:</td>
+                      <td style="padding: 6px 0; text-align: right;">${body.assemblyTotal.toLocaleString('ru-RU')} ₽</td>
+                    </tr>
+                    ` : ''}
+                    ${body.delivery && body.delivery.deliveryCost > 0 ? `
+                    <tr>
+                      <td style="padding: 6px 0; color: #666;">${body.delivery.type === 'pickup' ? 'Самовывоз' : 'Доставка'}:</td>
+                      <td style="padding: 6px 0; text-align: right;">${body.delivery.deliveryCost.toLocaleString('ru-RU')} ₽</td>
+                    </tr>
+                    ` : ''}
+                    ${body.delivery && body.delivery.liftCost > 0 ? `
+                    <tr>
+                      <td style="padding: 6px 0; color: #666;">Подъём на этаж:</td>
+                      <td style="padding: 6px 0; text-align: right;">${body.delivery.liftCost.toLocaleString('ru-RU')} ₽</td>
+                    </tr>
+                    ` : ''}
+                    ${body.delivery && (body.delivery.assemblyCost || 0) > 0 ? `
+                    <tr>
+                      <td style="padding: 6px 0; color: #666;">Транспортные сборщика:</td>
+                      <td style="padding: 6px 0; text-align: right;">${body.delivery.assemblyCost?.toLocaleString('ru-RU')} ₽</td>
+                    </tr>
+                    ` : ''}
+                    <tr style="border-top: 2px solid #62bb46;">
+                      <td style="padding: 12px 0; font-weight: bold; font-size: 18px;">Итого к оплате:</td>
+                      <td style="padding: 12px 0; text-align: right; font-weight: bold; font-size: 18px; color: #62bb46;">${body.totalPrice.toLocaleString('ru-RU')} ₽</td>
+                    </tr>
+                  </table>
                 </div>
 
                 <div style="background: #333; color: #999; padding: 15px; border-radius: 0 0 10px 10px; text-align: center; font-size: 12px;">
