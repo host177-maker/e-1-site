@@ -14,6 +14,7 @@ interface Promotion {
   end_date: string;
   published_at: string | null;
   is_active: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
@@ -268,6 +269,30 @@ function PromotionsPageContent() {
     }
   };
 
+  const movePromotion = async (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= promotions.length) return;
+
+    const newPromotions = [...promotions];
+    [newPromotions[index], newPromotions[newIndex]] = [newPromotions[newIndex], newPromotions[index]];
+    setPromotions(newPromotions);
+
+    try {
+      const orderedIds = newPromotions.map(p => p.id);
+      const response = await fetch('/api/e1admin/promotions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderedIds }),
+      });
+      const data = await response.json();
+      if (!data.success) {
+        fetchPromotions(); // Revert on error
+      }
+    } catch {
+      fetchPromotions(); // Revert on error
+    }
+  };
+
   const getCardClass = (promotion: Promotion) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -381,7 +406,7 @@ function PromotionsPageContent() {
           </div>
         ) : (
           <div className="space-y-4">
-            {promotions.map((promotion) => {
+            {promotions.map((promotion, index) => {
               const statusInfo = getStatusInfo(promotion);
               return (
                 <div
@@ -445,6 +470,30 @@ function PromotionsPageContent() {
 
                     {/* Actions */}
                     <div className="flex lg:flex-col gap-2 flex-wrap">
+                      {/* Move buttons */}
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => movePromotion(index, 'up')}
+                          disabled={index === 0}
+                          className="flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          title="Переместить вверх"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => movePromotion(index, 'down')}
+                          disabled={index === promotions.length - 1}
+                          className="flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          title="Переместить вниз"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
+
                       <button
                         onClick={() => toggleActive(promotion)}
                         disabled={actionLoading === promotion.id}

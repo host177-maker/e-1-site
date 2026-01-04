@@ -19,10 +19,16 @@ async function ensurePromotionsTable(): Promise<void> {
       end_date DATE NOT NULL,
       published_at TIMESTAMP WITH TIME ZONE,
       is_active BOOLEAN DEFAULT true,
+      sort_order INTEGER DEFAULT 0,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
       created_by INTEGER
     )
+  `);
+
+  // Add sort_order column if it doesn't exist
+  await pool.query(`
+    ALTER TABLE promotions ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0
   `);
 }
 
@@ -75,10 +81,10 @@ export async function GET(request: NextRequest) {
 
     const result = await pool.query(
       `SELECT id, title, slug, content, images, start_date, end_date,
-              published_at, is_active, created_at, updated_at
+              published_at, is_active, sort_order, created_at, updated_at
        FROM promotions
        ${whereClause}
-       ORDER BY start_date DESC, created_at DESC`
+       ORDER BY sort_order ASC, created_at DESC`
     );
 
     // Get counts
@@ -169,6 +175,52 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error creating promotion:', error);
+    return NextResponse.json(
+      { success: false, error: 'Ошибка сервера' },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT: Reorder promotions
+export async function PUT(request: NextRequest) {
+  try {
+    const currentAdmin = await getCurrentAdmin();
+    if (!currentAdmin) {
+      return NextResponse.json(
+        { success: false, error: 'Не авторизован' },
+        { status: 401 }
+      );
+    }
+
+    await ensurePromotionsTable();
+
+    const body = await request.json();
+    const { orderedIds } = body;
+
+    if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Неверный формат данных' },
+        { status: 400 }
+      );
+    }
+
+    const pool = getPool();
+
+    // Update sort_order for each promotion
+    for (let i = 0; i < orderedIds.length; i++) {
+      await pool.query(
+        'UPDATE promotions SET sort_order = $1 WHERE id = $2',
+        [i, orderedIds[i]]
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Порядок обновлён',
+    });
+  } catch (error) {
+    console.error('Error reordering promotions:', error);
     return NextResponse.json(
       { success: false, error: 'Ошибка сервера' },
       { status: 500 }
