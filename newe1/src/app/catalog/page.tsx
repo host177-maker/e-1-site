@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { useCity } from '@/context/CityContext';
 import { useWishlist } from '@/context/WishlistContext';
 import CatalogFilter from '@/components/CatalogFilter';
+import CatalogTopFilter from '@/components/CatalogTopFilter';
 import MeasurementModal from '@/components/MeasurementModal';
 
 interface CatalogSeries {
@@ -346,6 +347,15 @@ function CatalogPageContent() {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{getPageTitle()}</h1>
         </div>
       </div>
+
+      {/* Top filter bar with icons */}
+      {filterOptions && (
+        <CatalogTopFilter
+          doorTypes={filterOptions.doorTypes}
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+        />
+      )}
 
       <div className="max-w-[1440px] mx-auto px-4 py-8">
         <div className="flex gap-6">
