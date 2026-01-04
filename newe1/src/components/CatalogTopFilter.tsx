@@ -221,26 +221,26 @@ export default function CatalogTopFilter({
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 py-4">
+    <div className="bg-white border-b border-gray-200 py-2">
       <div className="max-w-[1440px] mx-auto px-4">
-        {/* Desktop: показываем все в ряд с переносом */}
-        <div className="hidden md:flex flex-wrap justify-center gap-4 lg:gap-6">
+        {/* Desktop: показываем все в одну строку */}
+        <div className="hidden md:flex justify-center gap-1 lg:gap-2 xl:gap-3">
           {allOptions.map((option) => {
             const selected = isSelected(option);
             return (
               <button
                 key={option.key}
                 onClick={() => handleToggle(option)}
-                className={`flex flex-col items-center gap-1.5 p-2 rounded-lg transition-colors min-w-[70px] ${
+                className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-colors min-w-[55px] lg:min-w-[65px] ${
                   selected
                     ? 'text-[#62bb46]'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <div className={`w-10 h-10 lg:w-12 lg:h-12 ${selected ? 'text-[#62bb46]' : 'text-gray-500'}`}>
+                <div className={`w-7 h-7 lg:w-8 lg:h-8 xl:w-9 xl:h-9 ${selected ? 'text-[#62bb46]' : 'text-gray-500'}`}>
                   {option.icon}
                 </div>
-                <span className={`text-[11px] lg:text-xs text-center leading-tight ${selected ? 'font-medium' : ''}`}>
+                <span className={`text-[9px] lg:text-[10px] xl:text-[11px] text-center leading-tight whitespace-nowrap ${selected ? 'font-medium' : ''}`}>
                   {option.label}
                   {option.count !== undefined && (
                     <span className="text-gray-400 ml-0.5">({option.count})</span>
