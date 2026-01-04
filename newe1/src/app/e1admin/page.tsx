@@ -50,7 +50,8 @@ interface DashboardData {
     total: number;
     active: number;
   };
-  citiesWithoutWarehouses: number;
+  citiesWithoutWarehouses: Array<{ id: number; name: string }>;
+  citiesWithoutPriceGroup: Array<{ id: number; name: string }>;
 }
 
 function formatDate(dateString: string | null): string {
@@ -310,7 +311,7 @@ export default function AdminDashboard() {
                   <span className="font-semibold text-gray-900">География</span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-gray-100">
+              <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
                 <Link href="/e1admin/regions" className="p-4 hover:bg-gray-50 transition-colors text-center">
                   <div className="text-2xl font-bold text-gray-900">
                     {data.regions.active}<span className="text-base font-normal text-gray-400">/{data.regions.total}</span>
@@ -335,13 +336,48 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-sm text-gray-500">Салонов</div>
                 </Link>
-                <div className="p-4 text-center">
-                  <div className="text-2xl font-bold text-orange-500">
-                    {data.citiesWithoutWarehouses}
-                  </div>
-                  <div className="text-sm text-gray-500">Без складов</div>
-                </div>
               </div>
+              {/* Cities without warehouses and service groups */}
+              {(data.citiesWithoutWarehouses.length > 0 || data.citiesWithoutPriceGroup.length > 0) && (
+                <div className="border-t border-gray-100 p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {data.citiesWithoutWarehouses.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl font-bold text-orange-500">{data.citiesWithoutWarehouses.length}</span>
+                        <span className="text-sm text-gray-500">Без складов</span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {data.citiesWithoutWarehouses.map((city, idx) => (
+                          <span key={city.id}>
+                            <Link href={`/e1admin/cities?search=${encodeURIComponent(city.name)}`} className="hover:text-[#7cb342]">
+                              {city.name}
+                            </Link>
+                            {idx < data.citiesWithoutWarehouses.length - 1 && ', '}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {data.citiesWithoutPriceGroup.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-2xl font-bold text-orange-500">{data.citiesWithoutPriceGroup.length}</span>
+                        <span className="text-sm text-gray-500">Без группы услуг</span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {data.citiesWithoutPriceGroup.map((city, idx) => (
+                          <span key={city.id}>
+                            <Link href={`/e1admin/cities?search=${encodeURIComponent(city.name)}`} className="hover:text-[#7cb342]">
+                              {city.name}
+                            </Link>
+                            {idx < data.citiesWithoutPriceGroup.length - 1 && ', '}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ) : (

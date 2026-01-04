@@ -49,7 +49,8 @@ export async function GET() {
       inactiveUsersResult,
       ordersResult,
       warehousesResult,
-      citiesWithoutWarehousesResult
+      citiesWithoutWarehousesResult,
+      citiesWithoutPriceGroupResult
     ] = await Promise.all([
       // Reviews counts
       has('reviews')
@@ -158,15 +159,27 @@ export async function GET() {
       // Cities without warehouses (only if warehouses table exists)
       has('warehouses') && has('cities')
         ? pool.query(`
-            SELECT COUNT(*) as count
+            SELECT c.id, c.name
             FROM cities c
             WHERE c.is_active = true
               AND (c.warehouse_id IS NULL OR NOT EXISTS (
                 SELECT 1 FROM warehouses w
                 WHERE w.id = c.warehouse_id AND w.is_active = true
               ))
+            ORDER BY c.name
           `)
-        : Promise.resolve({ rows: [{ count: 0 }] })
+        : Promise.resolve({ rows: [] }),
+
+      // Cities without price_group (service group)
+      has('cities')
+        ? pool.query(`
+            SELECT c.id, c.name
+            FROM cities c
+            WHERE c.is_active = true
+              AND (c.price_group IS NULL OR c.price_group = '')
+            ORDER BY c.name
+          `)
+        : Promise.resolve({ rows: [] })
     ]);
 
     // Calculate days until promotion ends
@@ -242,7 +255,8 @@ export async function GET() {
           total: parseInt(warehousesResult.rows[0].total) || 0,
           active: parseInt(warehousesResult.rows[0].active) || 0,
         },
-        citiesWithoutWarehouses: parseInt(citiesWithoutWarehousesResult.rows[0].count) || 0,
+        citiesWithoutWarehouses: citiesWithoutWarehousesResult.rows.map((r: { id: number; name: string }) => ({ id: r.id, name: r.name })),
+        citiesWithoutPriceGroup: citiesWithoutPriceGroupResult.rows.map((r: { id: number; name: string }) => ({ id: r.id, name: r.name })),
       },
     });
   } catch (error) {
