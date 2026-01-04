@@ -458,7 +458,7 @@ function CatalogPageContent() {
                       <div className="group bg-white rounded-lg p-3 hover:shadow-md transition-shadow relative">
                         {/* Рекламные плашки */}
                         {(product.promo_badge || product.discount_percent) && (
-                          <div className="absolute top-2 left-2 z-10 flex flex-wrap gap-0.5">
+                          <div className="absolute top-2 left-2 z-10 flex flex-wrap gap-0.5 max-w-[calc(100%-48px)]">
                             {product.promo_badge && (
                               <span className="px-1.5 py-0.5 text-[10px] rounded bg-emerald-600/70 text-white">
                                 {product.promo_badge}
