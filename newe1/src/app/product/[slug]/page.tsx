@@ -86,7 +86,7 @@ export default function ProductPage() {
   const router = useRouter();
   const { city } = useCity();
   const { addToWishlist, removeByProductId, isInWishlist } = useWishlist();
-  const { addToCart } = useCart();
+  const { addToCart, itemCount } = useCart();
   const slug = (params?.slug as string) || '';
   const isInitialLoad = useRef(true);
   const urlParamsApplied = useRef(false);
@@ -1106,10 +1106,10 @@ export default function ProductPage() {
                   )}
                 </button>
                 <button
-                  onClick={() => setShowQuickOrderModal(true)}
+                  onClick={() => itemCount > 0 ? router.push('/cart') : setShowQuickOrderModal(true)}
                   className="flex-1 py-3 border-2 border-[#62bb46] text-[#62bb46] hover:bg-[#62bb46] hover:text-white font-bold rounded-xl transition-colors"
                 >
-                  Купить в 1 клик
+                  {itemCount > 0 ? 'Перейти в корзину' : 'Купить в 1 клик'}
                 </button>
               </div>
             )}
