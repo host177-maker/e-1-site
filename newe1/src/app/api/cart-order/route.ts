@@ -37,10 +37,22 @@ interface CartOrderRequest {
   discountAmount?: number;
   comment?: string;
   city?: string;
+  paymentMethod?: string;
   delivery?: DeliveryInfo;
   items: CartItem[];
   totalPrice: number;
 }
+
+// Payment method labels
+const paymentMethodLabels: Record<string, string> = {
+  'cash': 'Наличными при доставке',
+  'card': 'Оплата картой Мир или QR на сайте',
+  'yandex_pay': 'Яндекс Пэй',
+  'yandex_split': 'Яндекс Сплит',
+  'dolyame': 'Долями',
+  'credit': 'Кредит или рассрочка',
+  'invoice': 'Безналичная оплата по реквизитам',
+};
 
 // Ensure orders table exists
 async function ensureOrdersTable() {
@@ -52,8 +64,11 @@ async function ensureOrdersTable() {
       customer_phone VARCHAR(50) NOT NULL,
       customer_email VARCHAR(255),
       promo_code VARCHAR(50),
+      promo_discount INTEGER DEFAULT 0,
+      discount_amount DECIMAL(10, 2) DEFAULT 0,
       comment TEXT,
       city VARCHAR(100),
+      payment_method VARCHAR(50),
       delivery_type VARCHAR(20),
       delivery_address TEXT,
       lift_type VARCHAR(20),
@@ -65,10 +80,16 @@ async function ensureOrdersTable() {
       total_price DECIMAL(10, 2) NOT NULL,
       status VARCHAR(50) DEFAULT 'new',
       email_sent BOOLEAN DEFAULT false,
+      customer_email_sent BOOLEAN DEFAULT false,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     )
   `);
+  // Add new columns if they don't exist
+  await pool.query(`ALTER TABLE cart_orders ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50)`);
+  await pool.query(`ALTER TABLE cart_orders ADD COLUMN IF NOT EXISTS promo_discount INTEGER DEFAULT 0`);
+  await pool.query(`ALTER TABLE cart_orders ADD COLUMN IF NOT EXISTS discount_amount DECIMAL(10, 2) DEFAULT 0`);
+  await pool.query(`ALTER TABLE cart_orders ADD COLUMN IF NOT EXISTS customer_email_sent BOOLEAN DEFAULT false`);
 }
 
 export async function POST(request: NextRequest) {
@@ -90,18 +111,21 @@ export async function POST(request: NextRequest) {
     // Save order to database
     const orderResult = await pool.query(
       `INSERT INTO cart_orders (
-        customer_name, customer_phone, customer_email, promo_code, comment,
-        city, delivery_type, delivery_address, lift_type, floor,
+        customer_name, customer_phone, customer_email, promo_code, promo_discount, discount_amount, comment,
+        city, payment_method, delivery_type, delivery_address, lift_type, floor,
         delivery_cost, lift_cost, assembly_cost, items, total_price
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
       RETURNING id`,
       [
         body.customerName,
         body.customerPhone,
         body.customerEmail || null,
         body.promoCode || null,
+        body.promoDiscount || 0,
+        body.discountAmount || 0,
         body.comment || null,
         body.city || null,
+        body.paymentMethod || 'cash',
         body.delivery?.type || 'delivery',
         body.delivery?.address || null,
         body.delivery?.liftType || 'none',
@@ -256,6 +280,9 @@ export async function POST(request: NextRequest) {
 
               ${deliveryHtml}
 
+              <h2 style="color: #333; border-bottom: 2px solid #62bb46; padding-bottom: 10px; margin-top: 30px;">Способ оплаты</h2>
+              <p style="font-size: 16px; font-weight: bold; color: #333;">${paymentMethodLabels[body.paymentMethod || 'cash'] || 'Наличными при доставке'}</p>
+
               <h2 style="color: #333; border-bottom: 2px solid #62bb46; padding-bottom: 10px; margin-top: 30px;">Товары в заказе</h2>
               <table style="width: 100%; border-collapse: collapse;">
                 <thead>
@@ -271,6 +298,12 @@ export async function POST(request: NextRequest) {
                   ${itemsHtml}
                 </tbody>
                 <tfoot>
+                  ${(body.discountAmount && body.discountAmount > 0) ? `
+                  <tr style="background: #e8f5e9;">
+                    <td colspan="4" style="padding: 12px 8px; text-align: right; color: #2e7d32;">Скидка ${body.promoDiscount}% (${body.promoCode}):</td>
+                    <td style="padding: 12px 8px; text-align: right; color: #2e7d32; font-weight: bold;">-${body.discountAmount.toLocaleString('ru-RU')} ₽</td>
+                  </tr>
+                  ` : ''}
                   <tr style="background: #62bb46; color: white;">
                     <td colspan="4" style="padding: 12px 8px; font-weight: bold; text-align: right;">ИТОГО:</td>
                     <td style="padding: 12px 8px; font-weight: bold; text-align: right;">${body.totalPrice.toLocaleString('ru-RU')} ₽</td>
@@ -300,6 +333,83 @@ export async function POST(request: NextRequest) {
           `UPDATE cart_orders SET email_sent = true WHERE id = $1`,
           [orderId]
         );
+
+        // Send confirmation email to customer if email provided
+        if (body.customerEmail) {
+          try {
+            const customerHtmlContent = `
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <meta charset="utf-8">
+                <title>Ваш заказ #${orderId} принят</title>
+              </head>
+              <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: linear-gradient(135deg, #62bb46 0%, #4a9935 100%); padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
+                  <h1 style="color: white; margin: 0; font-size: 24px;">Заказ #${orderId} принят!</h1>
+                </div>
+
+                <div style="background: #f9f9f9; padding: 20px; border: 1px solid #e5e5e5; border-top: none;">
+                  <p style="font-size: 16px; margin-bottom: 20px;">Здравствуйте, ${body.customerName}!</p>
+                  <p style="margin-bottom: 20px;">Благодарим вас за заказ. Мы свяжемся с вами в ближайшее время для подтверждения.</p>
+
+                  <h2 style="color: #333; border-bottom: 2px solid #62bb46; padding-bottom: 10px;">Детали заказа</h2>
+                  <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                      <td style="padding: 8px 0; color: #666;">Номер заказа:</td>
+                      <td style="padding: 8px 0; font-weight: bold;">#${orderId}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #666;">Способ оплаты:</td>
+                      <td style="padding: 8px 0;">${paymentMethodLabels[body.paymentMethod || 'cash'] || 'Наличными при доставке'}</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 8px 0; color: #666;">Доставка:</td>
+                      <td style="padding: 8px 0;">${body.delivery?.type === 'pickup' ? 'Самовывоз' : body.delivery?.address || 'Доставка'}</td>
+                    </tr>
+                    ${(body.discountAmount && body.discountAmount > 0) ? `
+                    <tr>
+                      <td style="padding: 8px 0; color: #2e7d32;">Скидка (${body.promoCode}):</td>
+                      <td style="padding: 8px 0; color: #2e7d32; font-weight: bold;">-${body.discountAmount.toLocaleString('ru-RU')} ₽</td>
+                    </tr>
+                    ` : ''}
+                    <tr style="border-top: 2px solid #62bb46;">
+                      <td style="padding: 12px 0; font-weight: bold; font-size: 18px;">Итого:</td>
+                      <td style="padding: 12px 0; font-weight: bold; font-size: 18px; color: #62bb46;">${body.totalPrice.toLocaleString('ru-RU')} ₽</td>
+                    </tr>
+                  </table>
+
+                  <h3 style="color: #333; margin-top: 20px;">Товары:</h3>
+                  <ul style="padding-left: 20px;">
+                    ${body.items.map(item => `<li style="margin-bottom: 8px;">${item.name} × ${item.quantity} шт.</li>`).join('')}
+                  </ul>
+                </div>
+
+                <div style="background: #333; color: #999; padding: 15px; border-radius: 0 0 10px 10px; text-align: center; font-size: 12px;">
+                  <p style="margin: 0;">Е1 — Шкафы и гардеробные</p>
+                  <p style="margin: 5px 0 0 0;">Телефон: 8-800-100-XX-XX</p>
+                </div>
+              </body>
+              </html>
+            `;
+
+            await transporter.sendMail({
+              from: `"${smtpFromName}" <${smtpFrom}>`,
+              to: body.customerEmail,
+              subject: `Заказ #${orderId} принят — Е1 Шкафы`,
+              html: customerHtmlContent,
+            });
+
+            // Update order with customer email status
+            await pool.query(
+              `UPDATE cart_orders SET customer_email_sent = true WHERE id = $1`,
+              [orderId]
+            );
+          } catch (customerEmailError) {
+            console.error('Failed to send customer email:', customerEmailError);
+            // Don't fail the request - main email was sent
+          }
+        }
       } catch (emailError) {
         console.error('Failed to send email:', emailError);
         // Log error but don't fail the request - order is already saved
