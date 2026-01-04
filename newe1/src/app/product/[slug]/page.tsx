@@ -209,7 +209,7 @@ export default function ProductPage() {
   useEffect(() => {
     const fetchAssemblyPercent = async () => {
       try {
-        const response = await fetch(`/api/e1admin/service-prices?city=${encodeURIComponent(selectedCity.name)}`);
+        const response = await fetch(`/api/e1admin/service-prices?city=${encodeURIComponent(city?.name || '')}`);
         const data = await response.json();
         if (data.success && data.data && data.data.length > 0) {
           const percent = parseFloat(data.data[0].assembly_percent) || 12;
@@ -220,7 +220,7 @@ export default function ProductPage() {
       }
     };
     fetchAssemblyPercent();
-  }, [selectedCity.name]);
+  }, [city?.name]);
 
   // Цены (пока заглушки)
   const basePrice = 35990;
