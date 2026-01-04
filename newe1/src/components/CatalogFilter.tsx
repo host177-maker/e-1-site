@@ -37,7 +37,7 @@ const doorTypeLabels: Record<string, string> = {
   'kupe': 'Шкаф-купе',
   'raspashnoy': 'Шкаф распашной',
   'garmoshka': 'Шкаф гармошка',
-  'tolkatel': 'Гардероб',
+  'garderob': 'Гардероб',
 };
 // Функция для получения отображаемого имени типа шкафа
 const getDoorTypeLabel = (dt: { slug: string; name: string }): string => {

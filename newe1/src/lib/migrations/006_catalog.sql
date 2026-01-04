@@ -144,7 +144,7 @@ INSERT INTO catalog_door_types (name, slug, sort_order) VALUES
     ('Купе', 'kupe', 1),
     ('Распашной', 'raspashnoy', 2),
     ('Гармошка', 'garmoshka', 3),
-    ('Толкатель', 'tolkatel', 4),
+    ('Гардероб', 'garderob', 4),
     ('Без дверей', 'bez-dverey', 5)
 ON CONFLICT (name) DO NOTHING;
 
