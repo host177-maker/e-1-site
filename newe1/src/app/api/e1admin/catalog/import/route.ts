@@ -7,12 +7,40 @@ import * as XLSX from 'xlsx';
 // Максимальный размер файла - 10 МБ
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
+// Применить миграцию для рекламных плашек (если колонки ещё не существуют)
+async function ensurePromoBadgeColumns() {
+  const pool = getPool();
+  try {
+    // Проверяем существование колонок
+    const checkResult = await pool.query(`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'catalog_products'
+      AND column_name IN ('discount_percent', 'promo_badge')
+    `);
+
+    const existingColumns = checkResult.rows.map(r => r.column_name);
+
+    // Добавляем недостающие колонки
+    if (!existingColumns.includes('discount_percent')) {
+      await pool.query(`ALTER TABLE catalog_products ADD COLUMN discount_percent DECIMAL(5,2) DEFAULT NULL`);
+    }
+    if (!existingColumns.includes('promo_badge')) {
+      await pool.query(`ALTER TABLE catalog_products ADD COLUMN promo_badge VARCHAR(100) DEFAULT NULL`);
+    }
+  } catch (e) {
+    console.error('Error ensuring promo badge columns:', e);
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Применяем миграцию для рекламных плашек перед импортом
+    await ensurePromoBadgeColumns();
 
     const formData = await request.formData();
     const file = formData.get('file') as File | null;

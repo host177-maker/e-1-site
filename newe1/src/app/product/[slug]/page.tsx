@@ -8,6 +8,7 @@ import { useCity } from '@/context/CityContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useCart } from '@/context/CartContext';
 import QuickOrderModal from '@/components/QuickOrderModal';
+import MeasurerBanner from '@/components/MeasurerBanner';
 
 interface CatalogProduct {
   id: number;
@@ -1173,6 +1174,11 @@ export default function ProductPage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Баннер "Вызвать замерщика" */}
+      <div className="mt-12">
+        <MeasurerBanner />
       </div>
 
       {/* Модальное окно наполнения */}
