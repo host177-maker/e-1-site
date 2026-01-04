@@ -247,7 +247,7 @@ export default function Header() {
               </Link>
 
               {/* Center section - City, Phone, Order Status (desktop only) */}
-              <div className="hidden lg:flex items-center gap-8 xl:gap-12 flex-1 justify-center">
+              <div className="hidden lg:flex items-center gap-12 xl:gap-20 flex-1 justify-center">
                 {/* City selector */}
                 <button
                   onClick={() => setIsCitySelectorOpen(true)}
