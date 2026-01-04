@@ -123,7 +123,6 @@ function CatalogPageContent() {
   const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [measurementModalOpen, setMeasurementModalOpen] = useState(false);
-  const [isLoadMoreMode, setIsLoadMoreMode] = useState(false); // Режим "показать ещё" - без рекламного модуля
 
   // Базовый лимит для отображения (включая рекламный модуль)
   const baseDisplayLimit = 20;
@@ -268,18 +267,15 @@ function CatalogPageContent() {
   const handleFiltersChange = (newFilters: FilterValues) => {
     setFilters(newFilters);
     setCurrentPage(1);
-    setIsLoadMoreMode(false); // Сброс режима при смене фильтров
   };
 
   const handleLoadMore = () => {
-    setIsLoadMoreMode(true); // Включаем режим "показать ещё"
     // Передаём offset = количество уже загруженных товаров
     fetchProducts(true, 1, products.length);
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    setIsLoadMoreMode(false); // Сброс режима при переходе на другую страницу
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -416,8 +412,8 @@ function CatalogPageContent() {
                 {products.map((product, index) => {
                   const inWishlist = isInWishlist(product.id);
 
-                  // Рекламный модуль на 4-й позиции (только если товаров >= 3 и не режим "показать ещё")
-                  const showPromoCard = products.length >= 3 && index === 3 && !isLoadMoreMode;
+                  // Рекламный модуль на 4-й позиции (только если товаров >= 3)
+                  const showPromoCard = products.length >= 3 && index === 3;
 
                   return (
                     <Fragment key={product.id}>
