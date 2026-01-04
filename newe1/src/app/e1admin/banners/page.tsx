@@ -518,7 +518,7 @@ export default function BannersPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Изображение для мобильных <span className="text-red-500">*</span>
                 </label>
-                <p className="text-xs text-gray-500 mb-2">Рекомендуемый размер: 800×600 px (4:3)</p>
+                <p className="text-xs text-gray-500 mb-2">Рекомендуемый размер: 600×800 px (3:4)</p>
                 <input
                   ref={mobileInputRef}
                   type="file"

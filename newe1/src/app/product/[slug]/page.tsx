@@ -203,11 +203,29 @@ export default function ProductPage() {
 
   // Сборка
   const [includeAssembly, setIncludeAssembly] = useState(false);
+  const [assemblyPercent, setAssemblyPercent] = useState(12);
+
+  // Загрузка процента сборки из прайса услуг
+  useEffect(() => {
+    const fetchAssemblyPercent = async () => {
+      try {
+        const response = await fetch(`/api/e1admin/service-prices?city=${encodeURIComponent(selectedCity.name)}`);
+        const data = await response.json();
+        if (data.success && data.data && data.data.length > 0) {
+          const percent = parseFloat(data.data[0].assembly_percent) || 12;
+          setAssemblyPercent(percent);
+        }
+      } catch {
+        // Use default 12%
+      }
+    };
+    fetchAssemblyPercent();
+  }, [selectedCity.name]);
 
   // Цены (пока заглушки)
   const basePrice = 35990;
   const oldPrice = 72000;
-  const assemblyPrice = Math.round(basePrice * 0.12);
+  const assemblyPrice = Math.round(basePrice * (assemblyPercent / 100));
 
   // Все уникальные цвета профиля из вариантов (для проверки наличия)
   // Связываем с полными данными из profileColors

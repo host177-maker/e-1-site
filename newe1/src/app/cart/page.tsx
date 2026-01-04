@@ -87,6 +87,26 @@ export default function CartPage() {
     { id: 'invoice', label: 'Безналичная оплата по реквизитам' },
   ];
 
+  // Assembly settings from service prices
+  const [minAssemblyAmount, setMinAssemblyAmount] = useState(3000);
+
+  // Fetch assembly settings
+  useEffect(() => {
+    const fetchAssemblySettings = async () => {
+      try {
+        const response = await fetch(`/api/e1admin/service-prices?city=${encodeURIComponent(city || '')}`);
+        const data = await response.json();
+        if (data.success && data.data && data.data.length > 0) {
+          const minAmount = parseFloat(data.data[0].min_assembly_amount) || 3000;
+          setMinAssemblyAmount(minAmount);
+        }
+      } catch {
+        // Use default
+      }
+    };
+    fetchAssemblySettings();
+  }, [city]);
+
   // Promo code state
   const [promoCode, setPromoCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(0);
@@ -174,8 +194,9 @@ export default function CartPage() {
     setDeliveryData(data);
   }, []);
 
-  // Calculate assembly cost (from cart items)
-  const assemblyTotal = items.reduce((sum, item) => sum + (item.includeAssembly ? item.assemblyPrice * item.quantity : 0), 0);
+  // Calculate assembly cost (from cart items) with minimum amount applied
+  const rawAssemblyTotal = items.reduce((sum, item) => sum + (item.includeAssembly ? item.assemblyPrice * item.quantity : 0), 0);
+  const assemblyTotal = hasAssembly && rawAssemblyTotal < minAssemblyAmount ? minAssemblyAmount : rawAssemblyTotal;
 
   // Calculate total with discount (discount only on products, not assembly)
   const totalProductsAfterDiscount = totalAfterDiscount + assemblyTotal;

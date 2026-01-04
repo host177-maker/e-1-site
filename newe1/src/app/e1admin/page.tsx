@@ -40,6 +40,17 @@ interface DashboardData {
       created_at: string;
     }>;
   };
+  orders: {
+    today: { count: number; sum: number };
+    yesterday: { count: number; sum: number };
+    week: { count: number; sum: number };
+    month: { count: number; sum: number };
+  };
+  warehouses: {
+    total: number;
+    active: number;
+  };
+  citiesWithoutWarehouses: number;
 }
 
 function formatDate(dateString: string | null): string {
@@ -58,6 +69,16 @@ function pluralize(n: number, forms: [string, string, string]): string {
   if (n10 > 1 && n10 < 5) return forms[1];
   if (n10 === 1) return forms[0];
   return forms[2];
+}
+
+function formatCurrency(amount: number): string {
+  if (amount >= 1000000) {
+    return (amount / 1000000).toFixed(1).replace('.0', '') + ' млн ₽';
+  }
+  if (amount >= 1000) {
+    return Math.round(amount / 1000) + ' тыс ₽';
+  }
+  return amount.toLocaleString('ru-RU') + ' ₽';
 }
 
 export default function AdminDashboard() {
@@ -94,6 +115,46 @@ export default function AdminDashboard() {
           </div>
         ) : data ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Orders Statistics */}
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden lg:col-span-2">
+              <Link
+                href="/e1admin/orders"
+                className="flex items-center justify-between p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  <span className="font-semibold text-gray-900">Заказы</span>
+                </div>
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+              <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Сегодня</div>
+                  <div className="text-xl font-bold text-gray-900">{data.orders.today.count}</div>
+                  <div className="text-sm text-green-600 font-medium">{formatCurrency(data.orders.today.sum)}</div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">Вчера</div>
+                  <div className="text-xl font-bold text-gray-900">{data.orders.yesterday.count}</div>
+                  <div className="text-sm text-gray-600">{formatCurrency(data.orders.yesterday.sum)}</div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">7 дней</div>
+                  <div className="text-xl font-bold text-gray-900">{data.orders.week.count}</div>
+                  <div className="text-sm text-gray-600">{formatCurrency(data.orders.week.sum)}</div>
+                </div>
+                <div className="p-4 text-center">
+                  <div className="text-xs text-gray-500 mb-1">30 дней</div>
+                  <div className="text-xl font-bold text-gray-900">{data.orders.month.count}</div>
+                  <div className="text-sm text-gray-600">{formatCurrency(data.orders.month.sum)}</div>
+                </div>
+              </div>
+            </div>
+
             {/* Reviews & Promotions */}
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="border-b border-gray-100">
@@ -249,7 +310,7 @@ export default function AdminDashboard() {
                   <span className="font-semibold text-gray-900">География</span>
                 </div>
               </div>
-              <div className="grid grid-cols-3 divide-x divide-gray-100">
+              <div className="grid grid-cols-2 md:grid-cols-5 divide-x divide-gray-100">
                 <Link href="/e1admin/regions" className="p-4 hover:bg-gray-50 transition-colors text-center">
                   <div className="text-2xl font-bold text-gray-900">
                     {data.regions.active}<span className="text-base font-normal text-gray-400">/{data.regions.total}</span>
@@ -262,12 +323,24 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-sm text-gray-500">Городов</div>
                 </Link>
+                <Link href="/e1admin/warehouses" className="p-4 hover:bg-gray-50 transition-colors text-center">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {data.warehouses.active}<span className="text-base font-normal text-gray-400">/{data.warehouses.total}</span>
+                  </div>
+                  <div className="text-sm text-gray-500">Складов</div>
+                </Link>
                 <Link href="/e1admin/salons" className="p-4 hover:bg-gray-50 transition-colors text-center">
                   <div className="text-2xl font-bold text-gray-900">
                     {data.salons.active}<span className="text-base font-normal text-gray-400">/{data.salons.total}</span>
                   </div>
                   <div className="text-sm text-gray-500">Салонов</div>
                 </Link>
+                <div className="p-4 text-center">
+                  <div className="text-2xl font-bold text-orange-500">
+                    {data.citiesWithoutWarehouses}
+                  </div>
+                  <div className="text-sm text-gray-500">Без складов</div>
+                </div>
               </div>
             </div>
           </div>

@@ -11,6 +11,8 @@ interface ServicePrice {
   floor_lift_price: number;
   elevator_lift_price: number;
   assembly_per_km: number;
+  min_assembly_amount: number;
+  assembly_percent: number;
   is_active: boolean;
   sort_order: number;
   created_at: string;
@@ -33,6 +35,8 @@ export default function ServicePricesPage() {
   const [formFloorLift, setFormFloorLift] = useState(0);
   const [formElevatorLift, setFormElevatorLift] = useState(0);
   const [formAssemblyPerKm, setFormAssemblyPerKm] = useState(0);
+  const [formMinAssembly, setFormMinAssembly] = useState(3000);
+  const [formAssemblyPercent, setFormAssemblyPercent] = useState(12);
   const [formSortOrder, setFormSortOrder] = useState(500);
   const [formIsActive, setFormIsActive] = useState(true);
 
@@ -66,6 +70,8 @@ export default function ServicePricesPage() {
     setFormFloorLift(350);
     setFormElevatorLift(550);
     setFormAssemblyPerKm(45);
+    setFormMinAssembly(3000);
+    setFormAssemblyPercent(12);
     setFormSortOrder(500);
     setFormIsActive(true);
     setModalOpen(true);
@@ -79,6 +85,8 @@ export default function ServicePricesPage() {
     setFormFloorLift(Number(price.floor_lift_price));
     setFormElevatorLift(Number(price.elevator_lift_price));
     setFormAssemblyPerKm(Number(price.assembly_per_km));
+    setFormMinAssembly(Number(price.min_assembly_amount) || 3000);
+    setFormAssemblyPercent(Number(price.assembly_percent) || 12);
     setFormSortOrder(price.sort_order);
     setFormIsActive(price.is_active);
     setModalOpen(true);
@@ -99,6 +107,8 @@ export default function ServicePricesPage() {
         floor_lift_price: formFloorLift,
         elevator_lift_price: formElevatorLift,
         assembly_per_km: formAssemblyPerKm,
+        min_assembly_amount: formMinAssembly,
+        assembly_percent: formAssemblyPercent,
         sort_order: formSortOrder,
         is_active: formIsActive,
       };
@@ -290,6 +300,8 @@ export default function ServicePricesPage() {
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Подъём (этаж)</th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Подъём (лифт)</th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Сборщик/км</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Сборка %</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Мин. сборка</th>
                   <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
                   <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
                 </tr>
@@ -324,6 +336,12 @@ export default function ServicePricesPage() {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-center text-sm">
                       <span className="font-medium">{formatPrice(price.assembly_per_km)}</span> <span className="text-gray-500">₽</span>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-center text-sm">
+                      <span className="font-medium">{price.assembly_percent || 12}</span><span className="text-gray-500">%</span>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-center text-sm">
+                      <span className="font-medium">{formatPrice(price.min_assembly_amount || 3000)}</span> <span className="text-gray-500">₽</span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-center">
                       <button
@@ -465,6 +483,33 @@ export default function ServicePricesPage() {
                   onChange={(e) => setFormAssemblyPerKm(parseFloat(e.target.value) || 0)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7cb342] focus:border-transparent outline-none"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Стоимость сборки (%)
+                  </label>
+                  <input
+                    type="number"
+                    value={formAssemblyPercent}
+                    onChange={(e) => setFormAssemblyPercent(parseFloat(e.target.value) || 0)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7cb342] focus:border-transparent outline-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">% от стоимости товаров</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Минимальная сборка (₽)
+                  </label>
+                  <input
+                    type="number"
+                    value={formMinAssembly}
+                    onChange={(e) => setFormMinAssembly(parseFloat(e.target.value) || 0)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7cb342] focus:border-transparent outline-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Мин. сумма за весь заказ</p>
+                </div>
               </div>
 
               <div>

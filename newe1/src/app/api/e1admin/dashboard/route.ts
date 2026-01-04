@@ -26,7 +26,10 @@ export async function GET() {
       citiesResult,
       salonsResult,
       usersResult,
-      inactiveUsersResult
+      inactiveUsersResult,
+      ordersResult,
+      warehousesResult,
+      citiesWithoutWarehousesResult
     ] = await Promise.all([
       // Reviews counts
       pool.query(`
@@ -88,6 +91,39 @@ export async function GET() {
         WHERE last_login IS NULL
            OR last_login < NOW() - INTERVAL '3 months'
         ORDER BY last_login ASC NULLS FIRST
+      `),
+
+      // Orders statistics
+      pool.query(`
+        SELECT
+          COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE) as today_count,
+          COALESCE(SUM(total_amount) FILTER (WHERE created_at::date = CURRENT_DATE), 0) as today_sum,
+          COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE - INTERVAL '1 day') as yesterday_count,
+          COALESCE(SUM(total_amount) FILTER (WHERE created_at::date = CURRENT_DATE - INTERVAL '1 day'), 0) as yesterday_sum,
+          COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days') as week_count,
+          COALESCE(SUM(total_amount) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'), 0) as week_sum,
+          COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') as month_count,
+          COALESCE(SUM(total_amount) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'), 0) as month_sum
+        FROM cart_orders
+      `),
+
+      // Warehouses count
+      pool.query(`
+        SELECT
+          COUNT(*) as total,
+          COUNT(*) FILTER (WHERE is_active = true) as active
+        FROM warehouses
+      `),
+
+      // Cities without warehouses
+      pool.query(`
+        SELECT COUNT(*) as count
+        FROM cities c
+        WHERE c.is_active = true
+          AND NOT EXISTS (
+            SELECT 1 FROM warehouses w
+            WHERE w.city_id = c.id AND w.is_active = true
+          )
       `)
     ]);
 
@@ -142,6 +178,29 @@ export async function GET() {
           total: parseInt(usersResult.rows[0].total) || 0,
           inactive: inactiveUsersResult.rows,
         },
+        orders: {
+          today: {
+            count: parseInt(ordersResult.rows[0].today_count) || 0,
+            sum: parseFloat(ordersResult.rows[0].today_sum) || 0,
+          },
+          yesterday: {
+            count: parseInt(ordersResult.rows[0].yesterday_count) || 0,
+            sum: parseFloat(ordersResult.rows[0].yesterday_sum) || 0,
+          },
+          week: {
+            count: parseInt(ordersResult.rows[0].week_count) || 0,
+            sum: parseFloat(ordersResult.rows[0].week_sum) || 0,
+          },
+          month: {
+            count: parseInt(ordersResult.rows[0].month_count) || 0,
+            sum: parseFloat(ordersResult.rows[0].month_sum) || 0,
+          },
+        },
+        warehouses: {
+          total: parseInt(warehousesResult.rows[0].total) || 0,
+          active: parseInt(warehousesResult.rows[0].active) || 0,
+        },
+        citiesWithoutWarehouses: parseInt(citiesWithoutWarehousesResult.rows[0].count) || 0,
       },
     });
   } catch (error) {

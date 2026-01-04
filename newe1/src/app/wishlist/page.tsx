@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useWishlist } from '@/context/WishlistContext';
 import { useCart } from '@/context/CartContext';
+import { useCity } from '@/context/CityContext';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -10,6 +12,25 @@ const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 export default function WishlistPage() {
   const { items, removeFromWishlist, clearWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { selectedCity } = useCity();
+  const [assemblyPercent, setAssemblyPercent] = useState(12);
+
+  // Fetch assembly percent from service prices
+  useEffect(() => {
+    const fetchAssemblyPercent = async () => {
+      try {
+        const response = await fetch(`/api/e1admin/service-prices?city=${encodeURIComponent(selectedCity.name)}`);
+        const data = await response.json();
+        if (data.success && data.data && data.data.length > 0) {
+          const percent = parseFloat(data.data[0].assembly_percent) || 12;
+          setAssemblyPercent(percent);
+        }
+      } catch {
+        // Use default 12%
+      }
+    };
+    fetchAssemblyPercent();
+  }, [selectedCity.name]);
 
   const handleAddToCart = (item: typeof items[0]) => {
     addToCart({
@@ -25,7 +46,7 @@ export default function WishlistPage() {
       bodyColor: item.bodyColor,
       profileColor: item.profileColor,
       filling: item.filling,
-      assemblyPrice: Math.round(item.price * 0.12),
+      assemblyPrice: Math.round(item.price * (assemblyPercent / 100)),
     });
   };
 

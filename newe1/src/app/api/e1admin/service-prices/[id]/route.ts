@@ -55,6 +55,8 @@ export async function PATCH(
       floor_lift_price,
       elevator_lift_price,
       assembly_per_km,
+      min_assembly_amount,
+      assembly_percent,
       sort_order,
       is_active
     } = body;
@@ -98,6 +100,14 @@ export async function PATCH(
     if (assembly_per_km !== undefined) {
       updates.push(`assembly_per_km = $${paramIndex++}`);
       values.push(assembly_per_km);
+    }
+    if (min_assembly_amount !== undefined) {
+      updates.push(`min_assembly_amount = $${paramIndex++}`);
+      values.push(min_assembly_amount);
+    }
+    if (assembly_percent !== undefined) {
+      updates.push(`assembly_percent = $${paramIndex++}`);
+      values.push(assembly_percent);
     }
     if (sort_order !== undefined) {
       updates.push(`sort_order = $${paramIndex++}`);

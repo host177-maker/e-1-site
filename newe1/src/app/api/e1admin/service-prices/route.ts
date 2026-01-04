@@ -17,11 +17,21 @@ async function ensureServicePricesTable() {
       floor_lift_price DECIMAL(10, 2) DEFAULT 0,
       elevator_lift_price DECIMAL(10, 2) DEFAULT 0,
       assembly_per_km DECIMAL(10, 2) DEFAULT 0,
+      min_assembly_amount DECIMAL(10, 2) DEFAULT 3000,
+      assembly_percent DECIMAL(5, 2) DEFAULT 12,
       is_active BOOLEAN DEFAULT true,
       sort_order INTEGER DEFAULT 500,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     )
+  `);
+
+  // Add new columns if they don't exist
+  await pool.query(`
+    ALTER TABLE service_prices ADD COLUMN IF NOT EXISTS min_assembly_amount DECIMAL(10, 2) DEFAULT 3000
+  `);
+  await pool.query(`
+    ALTER TABLE service_prices ADD COLUMN IF NOT EXISTS assembly_percent DECIMAL(5, 2) DEFAULT 12
   `);
 }
 
@@ -213,6 +223,8 @@ export async function POST(request: NextRequest) {
       floor_lift_price,
       elevator_lift_price,
       assembly_per_km,
+      min_assembly_amount,
+      assembly_percent,
       sort_order,
       is_active
     } = body;
@@ -238,8 +250,8 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await pool.query(
-      `INSERT INTO service_prices (region_group, delivery_base_price, delivery_per_km, floor_lift_price, elevator_lift_price, assembly_per_km, sort_order, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO service_prices (region_group, delivery_base_price, delivery_per_km, floor_lift_price, elevator_lift_price, assembly_per_km, min_assembly_amount, assembly_percent, sort_order, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
       [
         region_group.trim(),
@@ -248,6 +260,8 @@ export async function POST(request: NextRequest) {
         floor_lift_price || 0,
         elevator_lift_price || 0,
         assembly_per_km || 0,
+        min_assembly_amount || 3000,
+        assembly_percent || 12,
         sort_order || 500,
         is_active !== false,
       ]

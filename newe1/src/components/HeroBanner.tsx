@@ -99,7 +99,7 @@ export default function HeroBanner() {
           {banners.map((banner, index) => {
             const imageUrl = isMobile ? banner.mobile_image : banner.desktop_image;
             const content = (
-              <div className="relative w-full aspect-[4/3] md:aspect-auto md:h-[400px] lg:h-[450px] xl:h-[500px]">
+              <div className="relative w-full aspect-[3/4] md:aspect-auto md:h-[400px] lg:h-[450px] xl:h-[500px]">
                 <img
                   src={imageUrl}
                   alt={`Баннер ${index + 1}`}
