@@ -7,6 +7,7 @@ interface CartItem {
   name: string;
   slug: string;
   price: number;
+  oldPrice?: number;
   quantity: number;
   width?: number;
   height?: number;
@@ -35,6 +36,9 @@ interface CartOrderRequest {
   promoCode?: string;
   promoDiscount?: number;
   discountAmount?: number;
+  productDiscountAmount?: number;
+  baseTotalPrice?: number;
+  assemblyTotal?: number;
   comment?: string;
   city?: string;
   paymentMethod?: string;
@@ -90,6 +94,9 @@ async function ensureOrdersTable() {
   await pool.query(`ALTER TABLE cart_orders ADD COLUMN IF NOT EXISTS promo_discount INTEGER DEFAULT 0`);
   await pool.query(`ALTER TABLE cart_orders ADD COLUMN IF NOT EXISTS discount_amount DECIMAL(10, 2) DEFAULT 0`);
   await pool.query(`ALTER TABLE cart_orders ADD COLUMN IF NOT EXISTS customer_email_sent BOOLEAN DEFAULT false`);
+  await pool.query(`ALTER TABLE cart_orders ADD COLUMN IF NOT EXISTS product_discount_amount DECIMAL(10, 2) DEFAULT 0`);
+  await pool.query(`ALTER TABLE cart_orders ADD COLUMN IF NOT EXISTS base_total_price DECIMAL(10, 2) DEFAULT 0`);
+  await pool.query(`ALTER TABLE cart_orders ADD COLUMN IF NOT EXISTS assembly_total DECIMAL(10, 2) DEFAULT 0`);
 }
 
 export async function POST(request: NextRequest) {
@@ -111,10 +118,11 @@ export async function POST(request: NextRequest) {
     // Save order to database
     const orderResult = await pool.query(
       `INSERT INTO cart_orders (
-        customer_name, customer_phone, customer_email, promo_code, promo_discount, discount_amount, comment,
+        customer_name, customer_phone, customer_email, promo_code, promo_discount, discount_amount,
+        product_discount_amount, base_total_price, assembly_total, comment,
         city, payment_method, delivery_type, delivery_address, lift_type, floor,
         delivery_cost, lift_cost, assembly_cost, items, total_price
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
       RETURNING id`,
       [
         body.customerName,
@@ -123,6 +131,9 @@ export async function POST(request: NextRequest) {
         body.promoCode || null,
         body.promoDiscount || 0,
         body.discountAmount || 0,
+        body.productDiscountAmount || 0,
+        body.baseTotalPrice || 0,
+        body.assemblyTotal || 0,
         body.comment || null,
         body.city || null,
         body.paymentMethod || 'cash',
@@ -184,7 +195,10 @@ export async function POST(request: NextRequest) {
               </span>
             </td>
             <td style="padding: 12px 8px; text-align: center;">${item.quantity}</td>
-            <td style="padding: 12px 8px; text-align: right;">${item.price.toLocaleString('ru-RU')} ₽</td>
+            <td style="padding: 12px 8px; text-align: right;">
+              ${item.oldPrice && item.oldPrice > item.price ? `<span style="text-decoration: line-through; color: #999;">${item.oldPrice.toLocaleString('ru-RU')} ₽</span><br/>` : ''}
+              ${item.price.toLocaleString('ru-RU')} ₽
+            </td>
             <td style="padding: 12px 8px; text-align: right; font-weight: bold;">
               ${((item.price + (item.includeAssembly ? item.assemblyPrice : 0)) * item.quantity).toLocaleString('ru-RU')} ₽
             </td>
@@ -225,7 +239,7 @@ export async function POST(request: NextRequest) {
             ` : ''}
             ${(body.delivery.assemblyCost || 0) > 0 ? `
             <tr>
-              <td style="padding: 8px 0; color: #666;">Выезд сборщика:</td>
+              <td style="padding: 8px 0; color: #666;">Транспортные сборщика:</td>
               <td style="padding: 8px 0; font-weight: bold;">${body.delivery.assemblyCost?.toLocaleString('ru-RU')} ₽</td>
             </tr>
             ` : ''}
@@ -298,10 +312,28 @@ export async function POST(request: NextRequest) {
                   ${itemsHtml}
                 </tbody>
                 <tfoot>
+                  ${(body.baseTotalPrice && body.baseTotalPrice > 0) ? `
+                  <tr>
+                    <td colspan="4" style="padding: 12px 8px; text-align: right; color: #666;">Товары:</td>
+                    <td style="padding: 12px 8px; text-align: right;">${body.baseTotalPrice.toLocaleString('ru-RU')} ₽</td>
+                  </tr>
+                  ` : ''}
+                  ${(body.productDiscountAmount && body.productDiscountAmount > 0) ? `
+                  <tr style="background: #fff3e0;">
+                    <td colspan="4" style="padding: 12px 8px; text-align: right; color: #e65100;">Скидка по акции:</td>
+                    <td style="padding: 12px 8px; text-align: right; color: #e65100; font-weight: bold;">-${body.productDiscountAmount.toLocaleString('ru-RU')} ₽</td>
+                  </tr>
+                  ` : ''}
                   ${(body.discountAmount && body.discountAmount > 0) ? `
                   <tr style="background: #e8f5e9;">
-                    <td colspan="4" style="padding: 12px 8px; text-align: right; color: #2e7d32;">Скидка ${body.promoDiscount}% (${body.promoCode}):</td>
+                    <td colspan="4" style="padding: 12px 8px; text-align: right; color: #2e7d32;">Скидка по промокоду ${body.promoDiscount}% (${body.promoCode}):</td>
                     <td style="padding: 12px 8px; text-align: right; color: #2e7d32; font-weight: bold;">-${body.discountAmount.toLocaleString('ru-RU')} ₽</td>
+                  </tr>
+                  ` : ''}
+                  ${(body.assemblyTotal && body.assemblyTotal > 0) ? `
+                  <tr>
+                    <td colspan="4" style="padding: 12px 8px; text-align: right; color: #666;">Сборка:</td>
+                    <td style="padding: 12px 8px; text-align: right;">${body.assemblyTotal.toLocaleString('ru-RU')} ₽</td>
                   </tr>
                   ` : ''}
                   <tr style="background: #62bb46; color: white;">
@@ -367,9 +399,15 @@ export async function POST(request: NextRequest) {
                       <td style="padding: 8px 0; color: #666;">Доставка:</td>
                       <td style="padding: 8px 0;">${body.delivery?.type === 'pickup' ? 'Самовывоз' : body.delivery?.address || 'Доставка'}</td>
                     </tr>
+                    ${(body.productDiscountAmount && body.productDiscountAmount > 0) ? `
+                    <tr>
+                      <td style="padding: 8px 0; color: #e65100;">Скидка по акции:</td>
+                      <td style="padding: 8px 0; color: #e65100; font-weight: bold;">-${body.productDiscountAmount.toLocaleString('ru-RU')} ₽</td>
+                    </tr>
+                    ` : ''}
                     ${(body.discountAmount && body.discountAmount > 0) ? `
                     <tr>
-                      <td style="padding: 8px 0; color: #2e7d32;">Скидка (${body.promoCode}):</td>
+                      <td style="padding: 8px 0; color: #2e7d32;">Скидка по промокоду (${body.promoCode}):</td>
                       <td style="padding: 8px 0; color: #2e7d32; font-weight: bold;">-${body.discountAmount.toLocaleString('ru-RU')} ₽</td>
                     </tr>
                     ` : ''}

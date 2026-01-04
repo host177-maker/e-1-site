@@ -157,7 +157,21 @@ export default function CartPage() {
     setPromoError('');
   };
 
-  // Calculate discount amount (only on products, not assembly)
+  // Calculate product discount from DB (items with oldPrice - discounted products from xlsx)
+  const productDiscountAmount = items.reduce((sum, item) => {
+    if (item.oldPrice && item.oldPrice > item.price) {
+      return sum + (item.oldPrice - item.price) * item.quantity;
+    }
+    return sum;
+  }, 0);
+
+  // Calculate base price (without product discounts from DB)
+  const baseTotalPrice = items.reduce((sum, item) => {
+    const itemBasePrice = item.oldPrice || item.price;
+    return sum + itemBasePrice * item.quantity;
+  }, 0);
+
+  // Calculate promo code discount amount (only on products after DB discount, not assembly)
   const discountAmount = promoDiscount > 0 ? Math.round(totalPrice * promoDiscount / 100) : 0;
   const totalAfterDiscount = totalPrice - discountAmount;
 
@@ -226,6 +240,9 @@ export default function CartPage() {
           promoCode: promoApplied ? promoCode : '',
           promoDiscount: promoDiscount,
           discountAmount: discountAmount,
+          productDiscountAmount: productDiscountAmount,
+          baseTotalPrice: baseTotalPrice,
+          assemblyTotal: assemblyTotal,
           comment: formData.comment,
           city: city.name,
           paymentMethod: paymentMethod,
@@ -242,6 +259,7 @@ export default function CartPage() {
             name: item.name,
             slug: item.slug,
             price: item.price,
+            oldPrice: item.oldPrice,
             quantity: item.quantity,
             width: item.width,
             height: item.height,
@@ -534,11 +552,17 @@ export default function CartPage() {
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between text-gray-600">
                         <span>Товары ({items.reduce((sum, i) => sum + i.quantity, 0)} шт.)</span>
-                        <span>{totalPrice.toLocaleString('ru-RU')} ₽</span>
+                        <span>{baseTotalPrice.toLocaleString('ru-RU')} ₽</span>
                       </div>
+                      {productDiscountAmount > 0 && (
+                        <div className="flex justify-between text-orange-600">
+                          <span>Скидка по акции</span>
+                          <span>-{productDiscountAmount.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
                       {discountAmount > 0 && (
                         <div className="flex justify-between text-green-600">
-                          <span>Скидка {promoDiscount}%</span>
+                          <span>Скидка по промокоду {promoDiscount}%</span>
                           <span>-{discountAmount.toLocaleString('ru-RU')} ₽</span>
                         </div>
                       )}
@@ -585,11 +609,17 @@ export default function CartPage() {
                     <div className="border-t border-gray-200 mt-6 pt-4 space-y-2">
                       <div className="flex justify-between text-gray-600">
                         <span>Товары</span>
-                        <span>{totalPrice.toLocaleString('ru-RU')} ₽</span>
+                        <span>{baseTotalPrice.toLocaleString('ru-RU')} ₽</span>
                       </div>
+                      {productDiscountAmount > 0 && (
+                        <div className="flex justify-between text-orange-600">
+                          <span>Скидка по акции</span>
+                          <span>-{productDiscountAmount.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
                       {discountAmount > 0 && (
                         <div className="flex justify-between text-green-600">
-                          <span>Скидка {promoDiscount}%</span>
+                          <span>Скидка по промокоду {promoDiscount}%</span>
                           <span>-{discountAmount.toLocaleString('ru-RU')} ₽</span>
                         </div>
                       )}
@@ -599,10 +629,22 @@ export default function CartPage() {
                           <span>{assemblyTotal.toLocaleString('ru-RU')} ₽</span>
                         </div>
                       )}
-                      {(deliveryData.deliveryCost > 0 || deliveryData.liftCost > 0 || deliveryData.assemblyCost > 0) && (
+                      {deliveryData.deliveryCost > 0 && (
                         <div className="flex justify-between text-gray-600">
-                          <span>Доставка{deliveryData.assemblyCost > 0 ? ', подъём и сборщик' : ' и подъём'}</span>
-                          <span>{(deliveryData.deliveryCost + deliveryData.liftCost + deliveryData.assemblyCost).toLocaleString('ru-RU')} ₽</span>
+                          <span>{deliveryData.type === 'pickup' ? 'Самовывоз' : 'Доставка'}</span>
+                          <span>{deliveryData.deliveryCost.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      {deliveryData.liftCost > 0 && (
+                        <div className="flex justify-between text-gray-600">
+                          <span>Подъём на этаж</span>
+                          <span>{deliveryData.liftCost.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      {deliveryData.assemblyCost > 0 && (
+                        <div className="flex justify-between text-gray-600">
+                          <span>Транспортные сборщика</span>
+                          <span>{deliveryData.assemblyCost.toLocaleString('ru-RU')} ₽</span>
                         </div>
                       )}
                       <div className="flex justify-between text-xl font-bold text-gray-900 pt-2">
@@ -785,11 +827,17 @@ export default function CartPage() {
                     <div className="border-t border-gray-200 pt-4 space-y-2">
                       <div className="flex justify-between text-sm text-gray-600">
                         <span>Товары</span>
-                        <span>{totalPrice.toLocaleString('ru-RU')} ₽</span>
+                        <span>{baseTotalPrice.toLocaleString('ru-RU')} ₽</span>
                       </div>
+                      {productDiscountAmount > 0 && (
+                        <div className="flex justify-between text-sm text-orange-600">
+                          <span>Скидка по акции</span>
+                          <span>-{productDiscountAmount.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
                       {discountAmount > 0 && (
                         <div className="flex justify-between text-sm text-green-600">
-                          <span>Скидка {promoDiscount}%</span>
+                          <span>Скидка по промокоду {promoDiscount}%</span>
                           <span>-{discountAmount.toLocaleString('ru-RU')} ₽</span>
                         </div>
                       )}
@@ -807,6 +855,12 @@ export default function CartPage() {
                         <div className="flex justify-between text-sm text-gray-600">
                           <span>Подъём на этаж</span>
                           <span>{deliveryData.liftCost.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      {deliveryData.assemblyCost > 0 && (
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Транспортные сборщика</span>
+                          <span>{deliveryData.assemblyCost.toLocaleString('ru-RU')} ₽</span>
                         </div>
                       )}
                       <div className="flex justify-between text-xl font-bold text-gray-900 pt-2">
