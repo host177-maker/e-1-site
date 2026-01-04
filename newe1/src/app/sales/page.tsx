@@ -182,7 +182,7 @@ export default function PromotionsPage() {
   };
 
   return (
-    <div className="bg-white font-[var(--font-open-sans)]">
+    <div className="bg-white font-[var(--font-inter)]">
       {/* Hero section */}
       <div className="bg-[#f5f5f5] py-8">
         <div className="container-custom">

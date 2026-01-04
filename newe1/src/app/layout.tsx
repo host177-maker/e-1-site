@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
-import { Open_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import ConditionalLayout from "@/components/ConditionalLayout";
 
-const openSans = Open_Sans({
+const inter = Inter({
   subsets: ["latin", "cyrillic"],
-  variable: "--font-open-sans",
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" className={openSans.variable}>
+    <html lang="ru" className={inter.variable}>
       <body className="antialiased flex flex-col min-h-screen">
         <Providers>
           <ConditionalLayout>{children}</ConditionalLayout>

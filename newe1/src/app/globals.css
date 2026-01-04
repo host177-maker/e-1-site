@@ -23,9 +23,9 @@
   --color-border: #e5e5e5;
   --color-border-light: #eeeeee;
 
-  /* Fonts - Open Sans */
-  --font-heading: var(--font-open-sans), "Open Sans", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: var(--font-open-sans), "Open Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Fonts - Inter */
+  --font-heading: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Container */
   --container-max: 1348px;

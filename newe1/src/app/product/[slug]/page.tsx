@@ -649,7 +649,7 @@ export default function ProductPage() {
         {/* Заголовок - мобильная версия (над изображением) */}
         <div className="lg:hidden mb-4">
           <div className="flex items-start gap-2">
-            <h1 className="text-xl font-normal text-gray-900 line-clamp-2 font-[var(--font-open-sans)] flex-1">
+            <h1 className="text-xl font-normal text-gray-900 line-clamp-2 font-[var(--font-inter)] flex-1">
               {product.name}
             </h1>
             <button
@@ -748,7 +748,7 @@ export default function ProductPage() {
           <div className="space-y-4">
             {/* Заголовок - только десктоп (скрыт на мобильных) */}
             <div className="hidden lg:flex items-start gap-3">
-              <h1 className="text-2xl font-normal text-gray-900 min-h-[3rem] line-clamp-2 font-[var(--font-open-sans)] flex-1">
+              <h1 className="text-2xl font-normal text-gray-900 min-h-[3rem] line-clamp-2 font-[var(--font-inter)] flex-1">
                 {product.name}
               </h1>
               <button

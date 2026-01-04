@@ -123,7 +123,7 @@ export default function TopSalesSection() {
                       }}
                     />
                   </div>
-                  <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2 h-8 font-[var(--font-open-sans)] font-normal">
+                  <h3 className="text-xs text-gray-700 leading-tight group-hover:text-[#62bb46] transition-colors line-clamp-2 mb-2 h-8 font-[var(--font-inter)] font-normal">
                     {product.name}
                   </h3>
                 </Link>
