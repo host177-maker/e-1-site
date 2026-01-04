@@ -855,12 +855,11 @@ export default function ProductPage() {
                     className="w-5 h-5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
                   />
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900">Добавить сборку</div>
-                    <div className="text-sm text-gray-500">Сборка изделия</div>
+                    <div className="font-medium text-gray-900">Сборка изделия</div>
                   </div>
                   <div className="text-right">
                     <div className="font-bold text-gray-900">+{assemblyPrice.toLocaleString('ru-RU')} ₽</div>
-                    <div className="text-xs text-gray-400">12% от стоимости</div>
+                    <div className="text-xs text-gray-400">{assemblyPercent}% от стоимости</div>
                   </div>
                 </label>
               </div>
