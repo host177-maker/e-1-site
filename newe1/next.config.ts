@@ -15,17 +15,12 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Disable automatic static optimization for error pages
-  // This prevents useContext errors during prerendering
+  // Configure server actions
   experimental: {
-    // Force App Router error handling
     serverActions: {
       bodySizeLimit: '2mb',
     },
   },
-
-  // Exclude pg from client-side bundling
-  serverExternalPackages: ['pg'],
 
   // Redirects for backward compatibility with old site
   async redirects() {

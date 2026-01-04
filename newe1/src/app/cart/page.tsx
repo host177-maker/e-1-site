@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
+import { useCity } from '@/context/CityContext';
 import Link from 'next/link';
 import Image from 'next/image';
+import DeliveryOptions from '@/components/DeliveryOptions';
 
 const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
@@ -30,16 +32,140 @@ const formatPhone = (value: string): string => {
   return formatted;
 };
 
+interface DeliveryData {
+  type: 'delivery' | 'pickup';
+  address?: string;
+  liftType: 'none' | 'stairs' | 'elevator';
+  floor?: number;
+  deliveryCost: number;
+  liftCost: number;
+  assemblyCost: number;
+}
+
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, toggleAssembly, clearCart, totalPrice, totalWithAssembly } = useCart();
+  const { city } = useCity();
+
+  // Order step: 'cart' -> 'delivery' -> 'checkout' -> 'payment'
+  const [orderStep, setOrderStep] = useState<'cart' | 'delivery' | 'checkout' | 'payment'>('cart');
+
+  // Delivery data
+  const [deliveryData, setDeliveryData] = useState<DeliveryData>({
+    type: 'delivery',
+    liftType: 'none',
+    deliveryCost: 0,
+    liftCost: 0,
+    assemblyCost: 0,
+  });
+
+  // Check if any item has assembly selected
+  const hasAssembly = items.some(item => item.includeAssembly);
+
+  // Ref for order summary section
+  const orderSummaryRef = useRef<HTMLDivElement>(null);
+
+  // Change step with scroll
+  const changeStep = useCallback((step: 'cart' | 'delivery' | 'checkout' | 'payment') => {
+    setOrderStep(step);
+    // Scroll to order summary section
+    setTimeout(() => {
+      orderSummaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }, []);
+
+  // Payment method state
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+
+  // Payment options
+  const paymentOptions = [
+    { id: 'cash', label: 'Наличными при доставке' },
+    { id: 'card', label: 'Оплата картой Мир или QR на сайте' },
+    { id: 'yandex_pay', label: 'Яндекс Пэй' },
+    { id: 'yandex_split', label: 'Яндекс Сплит' },
+    { id: 'dolyame', label: 'Долями' },
+    { id: 'credit', label: 'Кредит или рассрочка' },
+    { id: 'invoice', label: 'Безналичная оплата по реквизитам' },
+  ];
+
+  // Assembly settings from service prices
+  const [minAssemblyAmount, setMinAssemblyAmount] = useState(3000);
+
+  // Fetch assembly settings
+  useEffect(() => {
+    const fetchAssemblySettings = async () => {
+      try {
+        const response = await fetch(`/api/e1admin/service-prices?city=${encodeURIComponent(city?.name || '')}`);
+        const data = await response.json();
+        if (data.success && data.data && data.data.length > 0) {
+          const minAmount = parseFloat(data.data[0].min_assembly_amount) || 3000;
+          setMinAssemblyAmount(minAmount);
+        }
+      } catch {
+        // Use default
+      }
+    };
+    fetchAssemblySettings();
+  }, [city?.name]);
+
+  // Promo code state
+  const [promoCode, setPromoCode] = useState('');
+  const [promoDiscount, setPromoDiscount] = useState(0);
+  const [promoApplied, setPromoApplied] = useState(false);
+  const [promoError, setPromoError] = useState('');
+  const [promoLoading, setPromoLoading] = useState(false);
+
+  // Apply promo code
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) {
+      setPromoError('Введите промокод');
+      return;
+    }
+
+    setPromoLoading(true);
+    setPromoError('');
+
+    try {
+      const response = await fetch('/api/verify-promo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ promo_code: promoCode }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setPromoDiscount(data.data.discount_percent);
+        setPromoApplied(true);
+        setPromoError('');
+      } else {
+        setPromoError(data.error || 'Промокод не найден');
+        setPromoDiscount(0);
+        setPromoApplied(false);
+      }
+    } catch {
+      setPromoError('Ошибка проверки промокода');
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  // Remove promo code
+  const handleRemovePromo = () => {
+    setPromoCode('');
+    setPromoDiscount(0);
+    setPromoApplied(false);
+    setPromoError('');
+  };
+
+  // Calculate discount amount (only on products, not assembly)
+  const discountAmount = promoDiscount > 0 ? Math.round(totalPrice * promoDiscount / 100) : 0;
+  const totalAfterDiscount = totalPrice - discountAmount;
 
   // Checkout form state
-  const [showCheckout, setShowCheckout] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
-    promoCode: '',
     comment: '',
     agreeToPrivacy: false,
   });
@@ -63,6 +189,21 @@ export default function CartPage() {
     }));
   };
 
+  // Handle delivery options change
+  const handleDeliveryChange = useCallback((data: DeliveryData) => {
+    setDeliveryData(data);
+  }, []);
+
+  // Calculate assembly cost (from cart items) with minimum amount applied
+  const rawAssemblyTotal = items.reduce((sum, item) => sum + (item.includeAssembly ? item.assemblyPrice * item.quantity : 0), 0);
+  const assemblyTotal = hasAssembly && rawAssemblyTotal < minAssemblyAmount ? minAssemblyAmount : rawAssemblyTotal;
+
+  // Calculate total with discount (discount only on products, not assembly)
+  const totalProductsAfterDiscount = totalAfterDiscount + assemblyTotal;
+
+  // Calculate total with delivery
+  const totalWithDelivery = totalProductsAfterDiscount + deliveryData.deliveryCost + deliveryData.liftCost + deliveryData.assemblyCost;
+
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -82,8 +223,21 @@ export default function CartPage() {
           customerName: formData.name,
           customerPhone: formData.phone,
           customerEmail: formData.email,
-          promoCode: formData.promoCode,
+          promoCode: promoApplied ? promoCode : '',
+          promoDiscount: promoDiscount,
+          discountAmount: discountAmount,
           comment: formData.comment,
+          city: city.name,
+          paymentMethod: paymentMethod,
+          delivery: {
+            type: deliveryData.type,
+            address: deliveryData.address,
+            liftType: deliveryData.liftType,
+            floor: deliveryData.floor,
+            deliveryCost: deliveryData.deliveryCost,
+            liftCost: deliveryData.liftCost,
+            assemblyCost: deliveryData.assemblyCost,
+          },
           items: items.map(item => ({
             name: item.name,
             slug: item.slug,
@@ -98,7 +252,7 @@ export default function CartPage() {
             includeAssembly: item.includeAssembly,
             assemblyPrice: item.assemblyPrice,
           })),
-          totalPrice: totalWithAssembly,
+          totalPrice: totalWithDelivery,
         }),
       });
 
@@ -287,21 +441,111 @@ export default function CartPage() {
             </div>
 
             {/* Order summary */}
-            <div className="lg:col-span-1">
+            <div ref={orderSummaryRef} className="lg:col-span-1">
               <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4">
-                {!showCheckout ? (
+                {/* Step indicator */}
+                <div className="flex items-center justify-between mb-6 text-xs">
+                  <div className="flex flex-col items-center gap-1">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${orderStep === 'cart' ? 'bg-[#62bb46] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      1
+                    </div>
+                    <span className={`${orderStep === 'cart' ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>Корзина</span>
+                  </div>
+                  <div className="flex-1 h-px bg-gray-200 mx-1" />
+                  <div className="flex flex-col items-center gap-1">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${orderStep === 'delivery' ? 'bg-[#62bb46] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      2
+                    </div>
+                    <span className={`${orderStep === 'delivery' ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>Доставка</span>
+                  </div>
+                  <div className="flex-1 h-px bg-gray-200 mx-1" />
+                  <div className="flex flex-col items-center gap-1">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${orderStep === 'checkout' ? 'bg-[#62bb46] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      3
+                    </div>
+                    <span className={`${orderStep === 'checkout' ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>Данные</span>
+                  </div>
+                  <div className="flex-1 h-px bg-gray-200 mx-1" />
+                  <div className="flex flex-col items-center gap-1">
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${orderStep === 'payment' ? 'bg-[#62bb46] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                      4
+                    </div>
+                    <span className={`${orderStep === 'payment' ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>Оплата</span>
+                  </div>
+                </div>
+
+                {/* Step 1: Cart summary */}
+                {orderStep === 'cart' && (
                   <>
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Итого</h3>
+
+                    {/* Promo code input */}
+                    <div className="mb-4 pb-4 border-b border-gray-200">
+                      <label className="block text-sm text-gray-600 mb-2">Промокод</label>
+                      {promoApplied ? (
+                        <div className="flex items-center justify-between bg-green-50 rounded-lg p-3">
+                          <div>
+                            <span className="text-green-600 font-medium">{promoCode}</span>
+                            <span className="text-green-600 text-sm ml-2">(-{promoDiscount}%)</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleRemovePromo}
+                            className="text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={promoCode}
+                            onChange={(e) => {
+                              setPromoCode(e.target.value.toUpperCase());
+                              setPromoError('');
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleApplyPromo();
+                              }
+                            }}
+                            placeholder="Введите промокод"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-[#62bb46] focus:border-[#62bb46] outline-none text-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleApplyPromo}
+                            disabled={promoLoading || !promoCode.trim()}
+                            className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 text-sm"
+                          >
+                            {promoLoading ? '...' : 'Применить'}
+                          </button>
+                        </div>
+                      )}
+                      {promoError && (
+                        <p className="text-red-500 text-xs mt-1">{promoError}</p>
+                      )}
+                    </div>
 
                     <div className="space-y-2 mb-4">
                       <div className="flex justify-between text-gray-600">
                         <span>Товары ({items.reduce((sum, i) => sum + i.quantity, 0)} шт.)</span>
                         <span>{totalPrice.toLocaleString('ru-RU')} ₽</span>
                       </div>
-                      {totalWithAssembly > totalPrice && (
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                          <span>Скидка {promoDiscount}%</span>
+                          <span>-{discountAmount.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      {assemblyTotal > 0 && (
                         <div className="flex justify-between text-gray-600">
                           <span>Сборка</span>
-                          <span>{(totalWithAssembly - totalPrice).toLocaleString('ru-RU')} ₽</span>
+                          <span>{assemblyTotal.toLocaleString('ru-RU')} ₽</span>
                         </div>
                       )}
                     </div>
@@ -309,20 +553,87 @@ export default function CartPage() {
                     <div className="border-t border-gray-200 pt-4 mb-6">
                       <div className="flex justify-between text-xl font-bold text-gray-900">
                         <span>К оплате</span>
-                        <span>{totalWithAssembly.toLocaleString('ru-RU')} ₽</span>
+                        <span>{totalProductsAfterDiscount.toLocaleString('ru-RU')} ₽</span>
                       </div>
                     </div>
 
                     <button
-                      onClick={() => setShowCheckout(true)}
+                      onClick={() => changeStep('delivery')}
                       className="w-full py-3 bg-[#62bb46] text-white font-bold rounded-xl hover:bg-[#55a83d] transition-colors"
                     >
                       Оформить заказ
                     </button>
                   </>
-                ) : (
-                  <form onSubmit={handleSubmitOrder}>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Оформление заказа</h3>
+                )}
+
+                {/* Step 2: Delivery options */}
+                {orderStep === 'delivery' && (
+                  <>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Доставка</h3>
+
+                    <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="text-sm text-gray-500">Ваш город:</div>
+                      <div className="font-medium text-gray-900">{city.name}</div>
+                    </div>
+
+                    <DeliveryOptions
+                      cityName={city.name}
+                      hasAssembly={hasAssembly}
+                      onDeliveryChange={handleDeliveryChange}
+                    />
+
+                    <div className="border-t border-gray-200 mt-6 pt-4 space-y-2">
+                      <div className="flex justify-between text-gray-600">
+                        <span>Товары</span>
+                        <span>{totalPrice.toLocaleString('ru-RU')} ₽</span>
+                      </div>
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                          <span>Скидка {promoDiscount}%</span>
+                          <span>-{discountAmount.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      {assemblyTotal > 0 && (
+                        <div className="flex justify-between text-gray-600">
+                          <span>Сборка</span>
+                          <span>{assemblyTotal.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      {(deliveryData.deliveryCost > 0 || deliveryData.liftCost > 0 || deliveryData.assemblyCost > 0) && (
+                        <div className="flex justify-between text-gray-600">
+                          <span>Доставка{deliveryData.assemblyCost > 0 ? ', подъём и сборщик' : ' и подъём'}</span>
+                          <span>{(deliveryData.deliveryCost + deliveryData.liftCost + deliveryData.assemblyCost).toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xl font-bold text-gray-900 pt-2">
+                        <span>Итого</span>
+                        <span>{totalWithDelivery.toLocaleString('ru-RU')} ₽</span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 mt-6">
+                      <button
+                        type="button"
+                        onClick={() => changeStep('cart')}
+                        className="flex-1 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                      >
+                        Назад
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => changeStep('checkout')}
+                        className="flex-1 py-3 bg-[#62bb46] text-white font-bold rounded-xl hover:bg-[#55a83d] transition-colors"
+                      >
+                        Далее
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* Step 3: Checkout form */}
+                {orderStep === 'checkout' && (
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Контактные данные</h3>
 
                     <div className="space-y-4">
                       <div>
@@ -334,7 +645,6 @@ export default function CartPage() {
                           name="name"
                           value={formData.name}
                           onChange={handleInputChange}
-                          required
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent"
                           placeholder="Иванов Иван Иванович"
                         />
@@ -349,7 +659,6 @@ export default function CartPage() {
                           name="phone"
                           value={formData.phone}
                           onChange={handleInputChange}
-                          required
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent"
                           placeholder="+7 (999) 123-45-67"
                         />
@@ -366,20 +675,6 @@ export default function CartPage() {
                           onChange={handleInputChange}
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent"
                           placeholder="email@example.com"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Промокод
-                        </label>
-                        <input
-                          type="text"
-                          name="promoCode"
-                          value={formData.promoCode}
-                          onChange={(e) => setFormData(prev => ({ ...prev, promoCode: e.target.value.toUpperCase() }))}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#62bb46] focus:border-transparent"
-                          placeholder="Введите промокод"
                         />
                       </div>
 
@@ -403,7 +698,6 @@ export default function CartPage() {
                           name="agreeToPrivacy"
                           checked={formData.agreeToPrivacy}
                           onChange={handleInputChange}
-                          required
                           className="w-4 h-4 mt-0.5 text-[#62bb46] rounded border-gray-300 focus:ring-[#62bb46]"
                         />
                         <span className="text-xs text-gray-600">
@@ -421,17 +715,116 @@ export default function CartPage() {
                       </div>
                     )}
 
-                    <div className="border-t border-gray-200 mt-4 pt-4 mb-4">
-                      <div className="flex justify-between text-xl font-bold text-gray-900">
+                    <div className="flex gap-2 mt-6">
+                      <button
+                        type="button"
+                        onClick={() => changeStep('delivery')}
+                        className="flex-1 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                      >
+                        Назад
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!formData.name || !formData.phone) {
+                            setErrorMessage('Заполните ФИО и телефон');
+                            return;
+                          }
+                          if (!formData.agreeToPrivacy) {
+                            setErrorMessage('Необходимо согласие на обработку данных');
+                            return;
+                          }
+                          setErrorMessage('');
+                          changeStep('payment');
+                        }}
+                        className="flex-1 py-3 bg-[#62bb46] text-white font-bold rounded-xl hover:bg-[#55a83d] transition-colors"
+                      >
+                        Далее
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: Payment method */}
+                {orderStep === 'payment' && (
+                  <form onSubmit={handleSubmitOrder}>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Способ оплаты</h3>
+
+                    <div className="space-y-2 mb-6">
+                      {paymentOptions.map((option) => (
+                        <label
+                          key={option.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                            paymentMethod === option.id
+                              ? 'border-[#62bb46] bg-green-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value={option.id}
+                            checked={paymentMethod === option.id}
+                            onChange={(e) => setPaymentMethod(e.target.value)}
+                            className="w-4 h-4 text-[#62bb46] focus:ring-[#62bb46]"
+                          />
+                          <span className="text-sm text-gray-700">{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
+
+                    {/* Promo code shown if applied */}
+                    {promoApplied && (
+                      <div className="bg-green-50 rounded-lg p-3 mb-4">
+                        <span className="text-green-600 font-medium">Промокод: {promoCode}</span>
+                        <span className="text-green-600 text-sm ml-2">(-{promoDiscount}%)</span>
+                      </div>
+                    )}
+
+                    {/* Order summary */}
+                    <div className="border-t border-gray-200 pt-4 space-y-2">
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>Товары</span>
+                        <span>{totalPrice.toLocaleString('ru-RU')} ₽</span>
+                      </div>
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-sm text-green-600">
+                          <span>Скидка {promoDiscount}%</span>
+                          <span>-{discountAmount.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      {assemblyTotal > 0 && (
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Сборка</span>
+                          <span>{assemblyTotal.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>{deliveryData.type === 'pickup' ? 'Самовывоз' : 'Доставка'}</span>
+                        <span>{deliveryData.deliveryCost.toLocaleString('ru-RU')} ₽</span>
+                      </div>
+                      {deliveryData.liftCost > 0 && (
+                        <div className="flex justify-between text-sm text-gray-600">
+                          <span>Подъём на этаж</span>
+                          <span>{deliveryData.liftCost.toLocaleString('ru-RU')} ₽</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xl font-bold text-gray-900 pt-2">
                         <span>К оплате</span>
-                        <span>{totalWithAssembly.toLocaleString('ru-RU')} ₽</span>
+                        <span>{totalWithDelivery.toLocaleString('ru-RU')} ₽</span>
                       </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    {errorMessage && (
+                      <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                        {errorMessage}
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 mt-4">
                       <button
                         type="button"
-                        onClick={() => setShowCheckout(false)}
+                        onClick={() => changeStep('checkout')}
                         className="flex-1 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
                       >
                         Назад
@@ -441,7 +834,7 @@ export default function CartPage() {
                         disabled={isSubmitting}
                         className="flex-1 py-3 bg-[#62bb46] text-white font-bold rounded-xl hover:bg-[#55a83d] transition-colors disabled:opacity-50"
                       >
-                        {isSubmitting ? 'Отправка...' : 'Подтвердить'}
+                        {isSubmitting ? 'Отправка...' : 'Оформить заказ'}
                       </button>
                     </div>
                   </form>

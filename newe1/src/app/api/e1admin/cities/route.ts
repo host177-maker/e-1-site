@@ -4,19 +4,39 @@ import { getPool } from '@/lib/db';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+// Ensure warehouse_id and price_group columns exist
+async function ensureCityColumns() {
+  const pool = getPool();
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'cities' AND column_name = 'warehouse_id') THEN
+        ALTER TABLE cities ADD COLUMN warehouse_id INTEGER;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'cities' AND column_name = 'price_group') THEN
+        ALTER TABLE cities ADD COLUMN price_group VARCHAR(100);
+      END IF;
+    END $$;
+  `);
+}
+
 // GET: List all cities
 export async function GET(request: NextRequest) {
   try {
     const pool = getPool();
+    await ensureCityColumns();
+
     const { searchParams } = new URL(request.url);
     const regionId = searchParams.get('region_id');
 
     let query = `
       SELECT c.*,
              r.name as region_name,
+             w.name as warehouse_name,
              COUNT(DISTINCT s.id) as salon_count
       FROM cities c
       LEFT JOIN regions r ON r.id = c.region_id
+      LEFT JOIN warehouses w ON w.id = c.warehouse_id
       LEFT JOIN salons s ON s.city_id = c.id
     `;
 
@@ -28,7 +48,7 @@ export async function GET(request: NextRequest) {
     }
 
     query += `
-      GROUP BY c.id, r.name
+      GROUP BY c.id, r.name, w.name
       ORDER BY r.name ASC, c.sort_order ASC, c.name ASC
     `;
 
@@ -65,7 +85,7 @@ export async function POST(request: NextRequest) {
     const pool = getPool();
     const body = await request.json();
 
-    const { name, name_prepositional, region_id, external_code, sort_order, is_active } = body;
+    const { name, name_prepositional, region_id, external_code, sort_order, is_active, warehouse_id, price_group } = body;
 
     if (!name || !name.trim()) {
       return NextResponse.json(
@@ -108,10 +128,10 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await pool.query(
-      `INSERT INTO cities (name, name_prepositional, region_id, external_code, sort_order, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO cities (name, name_prepositional, region_id, external_code, sort_order, is_active, warehouse_id, price_group)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
-      [name.trim(), name_prepositional?.trim() || null, region_id, external_code || null, sort_order || 500, is_active !== false]
+      [name.trim(), name_prepositional?.trim() || null, region_id, external_code || null, sort_order || 500, is_active !== false, warehouse_id || null, price_group || null]
     );
 
     // Get region name for response

@@ -203,11 +203,29 @@ export default function ProductPage() {
 
   // Сборка
   const [includeAssembly, setIncludeAssembly] = useState(false);
+  const [assemblyPercent, setAssemblyPercent] = useState(12);
+
+  // Загрузка процента сборки из прайса услуг
+  useEffect(() => {
+    const fetchAssemblyPercent = async () => {
+      try {
+        const response = await fetch(`/api/e1admin/service-prices?city=${encodeURIComponent(city?.name || '')}`);
+        const data = await response.json();
+        if (data.success && data.data && data.data.length > 0) {
+          const percent = parseFloat(data.data[0].assembly_percent) || 12;
+          setAssemblyPercent(percent);
+        }
+      } catch {
+        // Use default 12%
+      }
+    };
+    fetchAssemblyPercent();
+  }, [city?.name]);
 
   // Цены (пока заглушки)
   const basePrice = 35990;
   const oldPrice = 72000;
-  const assemblyPrice = Math.round(basePrice * 0.12);
+  const assemblyPrice = Math.round(basePrice * (assemblyPercent / 100));
 
   // Все уникальные цвета профиля из вариантов (для проверки наличия)
   // Связываем с полными данными из profileColors
@@ -649,7 +667,7 @@ export default function ProductPage() {
         {/* Заголовок - мобильная версия (над изображением) */}
         <div className="lg:hidden mb-4">
           <div className="flex items-start gap-2">
-            <h1 className="text-xl font-normal text-gray-900 line-clamp-2 font-[var(--font-open-sans)] flex-1">
+            <h1 className="text-xl font-normal text-gray-900 line-clamp-2 font-[var(--font-inter)] flex-1">
               {product.name}
             </h1>
             <button
@@ -748,7 +766,7 @@ export default function ProductPage() {
           <div className="space-y-4">
             {/* Заголовок - только десктоп (скрыт на мобильных) */}
             <div className="hidden lg:flex items-start gap-3">
-              <h1 className="text-2xl font-normal text-gray-900 min-h-[3rem] line-clamp-2 font-[var(--font-open-sans)] flex-1">
+              <h1 className="text-2xl font-normal text-gray-900 min-h-[3rem] line-clamp-2 font-[var(--font-inter)] flex-1">
                 {product.name}
               </h1>
               <button
@@ -837,12 +855,11 @@ export default function ProductPage() {
                     className="w-5 h-5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
                   />
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900">Добавить сборку</div>
-                    <div className="text-sm text-gray-500">Сборка изделия</div>
+                    <div className="font-medium text-gray-900">Сборка изделия</div>
                   </div>
                   <div className="text-right">
                     <div className="font-bold text-gray-900">+{assemblyPrice.toLocaleString('ru-RU')} ₽</div>
-                    <div className="text-xs text-gray-400">12% от стоимости</div>
+                    <div className="text-xs text-gray-400">{assemblyPercent}% от стоимости</div>
                   </div>
                 </label>
               </div>

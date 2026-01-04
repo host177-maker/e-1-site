@@ -186,6 +186,16 @@ async function ensureDesignersTable(): Promise<void> {
     ON designers (UPPER(promo_code))
     WHERE promo_code IS NOT NULL AND promo_code != ''
   `);
+
+  // Migration: Add discount_percent column if it doesn't exist (default 0%)
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'designers' AND column_name = 'discount_percent') THEN
+        ALTER TABLE designers ADD COLUMN discount_percent DECIMAL(5, 2) DEFAULT 0;
+      END IF;
+    END $$;
+  `);
 }
 
 // POST: Create new designer (Step 1) or update with promo code (Step 2)

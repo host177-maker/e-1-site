@@ -17,6 +17,28 @@ export async function GET() {
 
     const pool = getPool();
 
+    // Check which tables exist
+    const tableCheck = await pool.query(`
+      SELECT table_name FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_name IN (
+        'reviews', 'promotions', 'banners', 'regions', 'cities', 'salons',
+        'admin_users', 'cart_orders', 'warehouses', 'designers'
+      )
+    `);
+    const existingTables = new Set(tableCheck.rows.map(r => r.table_name));
+    const has = (name: string) => existingTables.has(name);
+
+    // Default empty results
+    const emptyCount = { rows: [{ total: 0, active: 0 }] };
+    const emptyReviews = { rows: [{ active: 0, pending: 0, total: 0 }] };
+    const emptyPromotions = { rows: [{ active_count: 0, nearest_end_date: null, farthest_end_date: null }] };
+    const emptyBanners = { rows: [{ active: 0, inactive: 0 }] };
+    const emptyOrders = { rows: [{ today_count: 0, today_sum: 0, yesterday_count: 0, yesterday_sum: 0, week_count: 0, week_sum: 0, month_count: 0, month_sum: 0 }] };
+    const emptyUsers = { rows: [{ total: 0 }] };
+    const emptyInactiveUsers = { rows: [] };
+    const emptyDesigners = { rows: [{ total: 0, active: 0 }] };
+    const emptyPromoOrders = { rows: [{ week_count: 0, week_sum: 0, month_count: 0, month_sum: 0 }] };
+
     // Execute all queries in parallel
     const [
       reviewsResult,
@@ -26,69 +48,164 @@ export async function GET() {
       citiesResult,
       salonsResult,
       usersResult,
-      inactiveUsersResult
+      inactiveUsersResult,
+      ordersResult,
+      warehousesResult,
+      citiesWithoutWarehousesResult,
+      citiesWithoutPriceGroupResult,
+      designersResult,
+      promoOrdersResult
     ] = await Promise.all([
       // Reviews counts
-      pool.query(`
-        SELECT
-          COUNT(*) FILTER (WHERE is_active = true AND (is_rejected = false OR is_rejected IS NULL)) as active,
-          COUNT(*) FILTER (WHERE is_active = false AND (is_rejected = false OR is_rejected IS NULL)) as pending,
-          COUNT(*) as total
-        FROM reviews
-      `),
+      has('reviews')
+        ? pool.query(`
+            SELECT
+              COUNT(*) FILTER (WHERE is_active = true AND (is_rejected = false OR is_rejected IS NULL)) as active,
+              COUNT(*) FILTER (WHERE is_active = false AND (is_rejected = false OR is_rejected IS NULL)) as pending,
+              COUNT(*) as total
+            FROM reviews
+          `)
+        : Promise.resolve(emptyReviews),
 
       // Promotions: active count, nearest end date, farthest end date
-      pool.query(`
-        SELECT
-          COUNT(*) FILTER (WHERE is_active = true AND end_date >= CURRENT_DATE) as active_count,
-          MIN(end_date) FILTER (WHERE is_active = true AND end_date >= CURRENT_DATE) as nearest_end_date,
-          MAX(end_date) FILTER (WHERE is_active = true AND end_date >= CURRENT_DATE) as farthest_end_date
-        FROM promotions
-      `),
+      has('promotions')
+        ? pool.query(`
+            SELECT
+              COUNT(*) FILTER (WHERE is_active = true AND end_date >= CURRENT_DATE) as active_count,
+              MIN(end_date) FILTER (WHERE is_active = true AND end_date >= CURRENT_DATE) as nearest_end_date,
+              MAX(end_date) FILTER (WHERE is_active = true AND end_date >= CURRENT_DATE) as farthest_end_date
+            FROM promotions
+          `)
+        : Promise.resolve(emptyPromotions),
 
       // Banners: active/inactive counts
-      pool.query(`
-        SELECT
-          COUNT(*) FILTER (WHERE is_active = true) as active,
-          COUNT(*) FILTER (WHERE is_active = false) as inactive
-        FROM banners
-      `),
+      has('banners')
+        ? pool.query(`
+            SELECT
+              COUNT(*) FILTER (WHERE is_active = true) as active,
+              COUNT(*) FILTER (WHERE is_active = false) as inactive
+            FROM banners
+          `)
+        : Promise.resolve(emptyBanners),
 
       // Regions: total and active
-      pool.query(`
-        SELECT
-          COUNT(*) as total,
-          COUNT(*) FILTER (WHERE is_active = true) as active
-        FROM regions
-      `),
+      has('regions')
+        ? pool.query(`
+            SELECT
+              COUNT(*) as total,
+              COUNT(*) FILTER (WHERE is_active = true) as active
+            FROM regions
+          `)
+        : Promise.resolve(emptyCount),
 
       // Cities: total and active
-      pool.query(`
-        SELECT
-          COUNT(*) as total,
-          COUNT(*) FILTER (WHERE is_active = true) as active
-        FROM cities
-      `),
+      has('cities')
+        ? pool.query(`
+            SELECT
+              COUNT(*) as total,
+              COUNT(*) FILTER (WHERE is_active = true) as active
+            FROM cities
+          `)
+        : Promise.resolve(emptyCount),
 
       // Salons: total and active
-      pool.query(`
-        SELECT
-          COUNT(*) as total,
-          COUNT(*) FILTER (WHERE is_active = true) as active
-        FROM salons
-      `),
+      has('salons')
+        ? pool.query(`
+            SELECT
+              COUNT(*) as total,
+              COUNT(*) FILTER (WHERE is_active = true) as active
+            FROM salons
+          `)
+        : Promise.resolve(emptyCount),
 
       // Total admin users count
-      pool.query(`SELECT COUNT(*) as total FROM admin_users`),
+      has('admin_users')
+        ? pool.query(`SELECT COUNT(*) as total FROM admin_users`)
+        : Promise.resolve(emptyUsers),
 
       // Users who haven't logged in for 3+ months
-      pool.query(`
-        SELECT id, username, last_login, created_at
-        FROM admin_users
-        WHERE last_login IS NULL
-           OR last_login < NOW() - INTERVAL '3 months'
-        ORDER BY last_login ASC NULLS FIRST
-      `)
+      has('admin_users')
+        ? pool.query(`
+            SELECT id, username, last_login, created_at
+            FROM admin_users
+            WHERE last_login IS NULL
+               OR last_login < NOW() - INTERVAL '3 months'
+            ORDER BY last_login ASC NULLS FIRST
+          `)
+        : Promise.resolve(emptyInactiveUsers),
+
+      // Orders statistics (only if table exists)
+      has('cart_orders')
+        ? pool.query(`
+            SELECT
+              COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE) as today_count,
+              COALESCE(SUM(total_price) FILTER (WHERE created_at::date = CURRENT_DATE), 0) as today_sum,
+              COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE - INTERVAL '1 day') as yesterday_count,
+              COALESCE(SUM(total_price) FILTER (WHERE created_at::date = CURRENT_DATE - INTERVAL '1 day'), 0) as yesterday_sum,
+              COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days') as week_count,
+              COALESCE(SUM(total_price) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days'), 0) as week_sum,
+              COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') as month_count,
+              COALESCE(SUM(total_price) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'), 0) as month_sum
+            FROM cart_orders
+          `)
+        : Promise.resolve(emptyOrders),
+
+      // Warehouses count (only if table exists)
+      has('warehouses')
+        ? pool.query(`
+            SELECT
+              COUNT(*) as total,
+              COUNT(*) FILTER (WHERE is_active = true) as active
+            FROM warehouses
+          `)
+        : Promise.resolve(emptyCount),
+
+      // Cities without warehouses (only if warehouses table exists)
+      has('warehouses') && has('cities')
+        ? pool.query(`
+            SELECT c.id, c.name
+            FROM cities c
+            WHERE c.is_active = true
+              AND (c.warehouse_id IS NULL OR NOT EXISTS (
+                SELECT 1 FROM warehouses w
+                WHERE w.id = c.warehouse_id AND w.is_active = true
+              ))
+            ORDER BY c.name
+          `)
+        : Promise.resolve({ rows: [] }),
+
+      // Cities without price_group (service group)
+      has('cities')
+        ? pool.query(`
+            SELECT c.id, c.name
+            FROM cities c
+            WHERE c.is_active = true
+              AND (c.price_group IS NULL OR c.price_group = '')
+            ORDER BY c.name
+          `)
+        : Promise.resolve({ rows: [] }),
+
+      // Designers count
+      has('designers')
+        ? pool.query(`
+            SELECT
+              COUNT(*) as total,
+              COUNT(*) FILTER (WHERE is_active = true) as active
+            FROM designers
+          `)
+        : Promise.resolve(emptyDesigners),
+
+      // Orders with promo codes (designer promo codes usage)
+      has('cart_orders')
+        ? pool.query(`
+            SELECT
+              COUNT(*) FILTER (WHERE promo_code IS NOT NULL AND promo_code != '' AND created_at >= CURRENT_DATE - INTERVAL '7 days') as week_count,
+              COALESCE(SUM(total_price) FILTER (WHERE promo_code IS NOT NULL AND promo_code != '' AND created_at >= CURRENT_DATE - INTERVAL '7 days'), 0) as week_sum,
+              COUNT(*) FILTER (WHERE promo_code IS NOT NULL AND promo_code != '' AND created_at >= CURRENT_DATE - INTERVAL '30 days') as month_count,
+              COALESCE(SUM(total_price) FILTER (WHERE promo_code IS NOT NULL AND promo_code != '' AND created_at >= CURRENT_DATE - INTERVAL '30 days'), 0) as month_sum
+            FROM cart_orders
+          `)
+        : Promise.resolve(emptyPromoOrders)
     ]);
 
     // Calculate days until promotion ends
@@ -141,6 +258,44 @@ export async function GET() {
         users: {
           total: parseInt(usersResult.rows[0].total) || 0,
           inactive: inactiveUsersResult.rows,
+        },
+        orders: {
+          today: {
+            count: parseInt(ordersResult.rows[0].today_count) || 0,
+            sum: parseFloat(ordersResult.rows[0].today_sum) || 0,
+          },
+          yesterday: {
+            count: parseInt(ordersResult.rows[0].yesterday_count) || 0,
+            sum: parseFloat(ordersResult.rows[0].yesterday_sum) || 0,
+          },
+          week: {
+            count: parseInt(ordersResult.rows[0].week_count) || 0,
+            sum: parseFloat(ordersResult.rows[0].week_sum) || 0,
+          },
+          month: {
+            count: parseInt(ordersResult.rows[0].month_count) || 0,
+            sum: parseFloat(ordersResult.rows[0].month_sum) || 0,
+          },
+        },
+        warehouses: {
+          total: parseInt(warehousesResult.rows[0].total) || 0,
+          active: parseInt(warehousesResult.rows[0].active) || 0,
+        },
+        citiesWithoutWarehouses: citiesWithoutWarehousesResult.rows.map((r: { id: number; name: string }) => ({ id: r.id, name: r.name })),
+        citiesWithoutPriceGroup: citiesWithoutPriceGroupResult.rows.map((r: { id: number; name: string }) => ({ id: r.id, name: r.name })),
+        designers: {
+          total: parseInt(designersResult.rows[0].total) || 0,
+          active: parseInt(designersResult.rows[0].active) || 0,
+          promoOrders: {
+            week: {
+              count: parseInt(promoOrdersResult.rows[0].week_count) || 0,
+              sum: parseFloat(promoOrdersResult.rows[0].week_sum) || 0,
+            },
+            month: {
+              count: parseInt(promoOrdersResult.rows[0].month_count) || 0,
+              sum: parseFloat(promoOrdersResult.rows[0].month_sum) || 0,
+            },
+          },
         },
       },
     });

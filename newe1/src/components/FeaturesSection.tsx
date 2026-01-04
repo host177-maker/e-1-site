@@ -26,7 +26,7 @@ const categories = [
     badgeStyle: 'bg-[#62bb46] text-white',
     image: '/uploads/frame_gard.jpg',
     buttonText: 'Популярные решения',
-    buttonHref: '/catalog/garderobnye',
+    buttonHref: '/catalog?doorTypes=garderob',
     buttonStyle: 'primary',
   },
   {

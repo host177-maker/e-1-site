@@ -23,6 +23,16 @@ async function ensureDesignersTable(): Promise<void> {
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Migration: Add discount_percent column if it doesn't exist (default 0%)
+  await pool.query(`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'designers' AND column_name = 'discount_percent') THEN
+        ALTER TABLE designers ADD COLUMN discount_percent DECIMAL(5, 2) DEFAULT 0;
+      END IF;
+    END $$;
+  `);
 }
 
 // GET: List all designers
@@ -139,7 +149,8 @@ export async function POST(request: NextRequest) {
       email,
       portfolio_link,
       promo_code,
-      is_active
+      is_active,
+      discount_percent
     } = body;
 
     if (!business_type || !full_name || !phone || !email) {
@@ -181,8 +192,8 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await pool.query(
-      `INSERT INTO designers (business_type, full_name, phone, email, portfolio_link, promo_code, is_active, step_completed)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO designers (business_type, full_name, phone, email, portfolio_link, promo_code, is_active, step_completed, discount_percent)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
       [
         business_type,
@@ -192,7 +203,8 @@ export async function POST(request: NextRequest) {
         portfolio_link?.trim() || null,
         promo_code ? promo_code.trim().toUpperCase() : null,
         is_active || false,
-        promo_code ? 2 : 1
+        promo_code ? 2 : 1,
+        discount_percent || 0
       ]
     );
 

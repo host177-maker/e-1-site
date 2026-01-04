@@ -8,6 +8,17 @@ interface Region {
   name: string;
 }
 
+interface Warehouse {
+  id: number;
+  name: string;
+  display_name: string | null;
+}
+
+interface ServicePrice {
+  id: number;
+  region_group: string;
+}
+
 interface City {
   id: number;
   name: string;
@@ -19,6 +30,9 @@ interface City {
   is_active: boolean;
   created_at: string;
   salon_count: number;
+  warehouse_id: number | null;
+  warehouse_name: string | null;
+  price_group: string | null;
 }
 
 interface Counts {
@@ -30,6 +44,8 @@ interface Counts {
 export default function CitiesPage() {
   const [cities, setCities] = useState<City[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [servicePrices, setServicePrices] = useState<ServicePrice[]>([]);
   const [counts, setCounts] = useState<Counts>({ active: 0, inactive: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
@@ -50,6 +66,8 @@ export default function CitiesPage() {
   const [formExternalCode, setFormExternalCode] = useState('');
   const [formSortOrder, setFormSortOrder] = useState(500);
   const [formIsActive, setFormIsActive] = useState(true);
+  const [formWarehouseId, setFormWarehouseId] = useState<number | null>(null);
+  const [formPriceGroup, setFormPriceGroup] = useState('');
 
   // Auto-fill loading state
   const [autoFillLoading, setAutoFillLoading] = useState(false);
@@ -63,6 +81,30 @@ export default function CitiesPage() {
       }
     } catch (error) {
       console.error('Error fetching regions:', error);
+    }
+  }, []);
+
+  const fetchWarehouses = useCallback(async () => {
+    try {
+      const response = await fetch('/api/e1admin/warehouses');
+      const data = await response.json();
+      if (data.success) {
+        setWarehouses(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching warehouses:', error);
+    }
+  }, []);
+
+  const fetchServicePrices = useCallback(async () => {
+    try {
+      const response = await fetch('/api/e1admin/service-prices');
+      const data = await response.json();
+      if (data.success) {
+        setServicePrices(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching service prices:', error);
     }
   }, []);
 
@@ -87,7 +129,9 @@ export default function CitiesPage() {
 
   useEffect(() => {
     fetchRegions();
-  }, [fetchRegions]);
+    fetchWarehouses();
+    fetchServicePrices();
+  }, [fetchRegions, fetchWarehouses, fetchServicePrices]);
 
   useEffect(() => {
     setLoading(true);
@@ -102,6 +146,8 @@ export default function CitiesPage() {
     setFormExternalCode('');
     setFormSortOrder(500);
     setFormIsActive(true);
+    setFormWarehouseId(null);
+    setFormPriceGroup('');
     setModalOpen(true);
   };
 
@@ -113,6 +159,8 @@ export default function CitiesPage() {
     setFormExternalCode(city.external_code || '');
     setFormSortOrder(city.sort_order);
     setFormIsActive(city.is_active);
+    setFormWarehouseId(city.warehouse_id);
+    setFormPriceGroup(city.price_group || '');
     setModalOpen(true);
   };
 
@@ -136,6 +184,8 @@ export default function CitiesPage() {
         external_code: formExternalCode || null,
         sort_order: formSortOrder,
         is_active: formIsActive,
+        warehouse_id: formWarehouseId || null,
+        price_group: formPriceGroup || null,
       };
 
       let response;
@@ -524,6 +574,44 @@ export default function CitiesPage() {
                   placeholder="Код из внешней системы"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7cb342] focus:border-transparent outline-none"
                 />
+              </div>
+
+              {/* Warehouse */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Склад для самовывоза
+                </label>
+                <select
+                  value={formWarehouseId || ''}
+                  onChange={(e) => setFormWarehouseId(e.target.value ? parseInt(e.target.value) : null)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7cb342] focus:border-transparent outline-none"
+                >
+                  <option value="">Не выбран</option>
+                  {warehouses.map((warehouse) => (
+                    <option key={warehouse.id} value={warehouse.id}>
+                      {warehouse.display_name || warehouse.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Price Group */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Группа прайса услуг
+                </label>
+                <select
+                  value={formPriceGroup}
+                  onChange={(e) => setFormPriceGroup(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#7cb342] focus:border-transparent outline-none"
+                >
+                  <option value="">Не выбрана</option>
+                  {servicePrices.map((price) => (
+                    <option key={price.id} value={price.region_group}>
+                      {price.region_group}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Sort Order */}

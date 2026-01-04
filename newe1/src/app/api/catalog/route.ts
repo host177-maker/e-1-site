@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
 
     // Параметры фильтров (мультивыбор)
     const doorTypesParam = searchParams.get('doorTypes');
+    const wardrobeTypesParam = searchParams.get('wardrobeTypes');
     const seriesParam = searchParams.get('series');
     const widthMin = searchParams.get('widthMin') ? parseInt(searchParams.get('widthMin')!) : undefined;
     const widthMax = searchParams.get('widthMax') ? parseInt(searchParams.get('widthMax')!) : undefined;
@@ -19,6 +20,7 @@ export async function GET(request: NextRequest) {
 
     // Парсим массивы
     const doorTypes = doorTypesParam ? doorTypesParam.split(',').filter(Boolean) : undefined;
+    const wardrobeTypes = wardrobeTypesParam ? wardrobeTypesParam.split(',').filter(Boolean) : undefined;
     const seriesSlugs = seriesParam ? seriesParam.split(',').filter(Boolean) : undefined;
     const heights = heightsParam ? heightsParam.split(',').map(h => parseInt(h)).filter(h => !isNaN(h)) : undefined;
     const depths = depthsParam ? depthsParam.split(',').map(d => parseInt(d)).filter(d => !isNaN(d)) : undefined;
@@ -47,6 +49,7 @@ export async function GET(request: NextRequest) {
     const [{ products, total }, series, filterOptions] = await Promise.all([
       getProducts({
         doorTypeSlugs: doorTypes,
+        wardrobeTypes,
         seriesSlugs,
         widthMin,
         widthMax,

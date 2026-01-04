@@ -16,12 +16,14 @@ export async function GET(
     const result = await pool.query(
       `SELECT c.*,
               r.name as region_name,
+              w.name as warehouse_name,
               COUNT(DISTINCT s.id) as salon_count
        FROM cities c
        LEFT JOIN regions r ON r.id = c.region_id
+       LEFT JOIN warehouses w ON w.id = c.warehouse_id
        LEFT JOIN salons s ON s.city_id = c.id
        WHERE c.id = $1
-       GROUP BY c.id, r.name`,
+       GROUP BY c.id, r.name, w.name`,
       [id]
     );
 
@@ -109,7 +111,7 @@ export async function PATCH(
     const values: (string | boolean | number | null)[] = [];
     let paramIndex = 1;
 
-    const allowedFields = ['name', 'name_prepositional', 'region_id', 'external_code', 'sort_order', 'is_active'];
+    const allowedFields = ['name', 'name_prepositional', 'region_id', 'external_code', 'sort_order', 'is_active', 'warehouse_id', 'price_group'];
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
