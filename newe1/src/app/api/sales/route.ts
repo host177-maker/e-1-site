@@ -57,12 +57,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get list of active promotions
+    // Get list of active promotions (sorted by admin-defined order)
     const result = await pool.query(
       `SELECT id, title, slug, content, images, start_date, end_date, published_at, created_at
        FROM promotions
        WHERE is_active = true AND end_date >= CURRENT_DATE
-       ORDER BY start_date DESC, created_at DESC
+       ORDER BY sort_order ASC, created_at DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset]
     );
