@@ -682,7 +682,7 @@ export default function ProductPage() {
                 </span>
               )}
               {product.promo_badge && (
-                <span className="inline-block px-2 py-0.5 text-[11px] rounded bg-amber-500/80 text-white">
+                <span className="inline-block px-2 py-0.5 text-[11px] rounded bg-emerald-600/70 text-white">
                   {product.promo_badge}
                 </span>
               )}
@@ -797,7 +797,7 @@ export default function ProductPage() {
                     </span>
                   )}
                   {product.promo_badge && (
-                    <span className="inline-block px-2.5 py-0.5 text-xs rounded bg-amber-500/80 text-white">
+                    <span className="inline-block px-2.5 py-0.5 text-xs rounded bg-emerald-600/70 text-white">
                       {product.promo_badge}
                     </span>
                   )}

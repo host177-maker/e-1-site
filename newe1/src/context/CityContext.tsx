@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 interface City {
   name: string;
   region: string;
+  name_prepositional?: string | null;
 }
 
 interface CityContextType {
@@ -16,6 +17,7 @@ interface CityContextType {
 const defaultCity: City = {
   name: 'Москва',
   region: 'Московская область',
+  name_prepositional: 'Москве',
 };
 
 const CityContext = createContext<CityContextType>({

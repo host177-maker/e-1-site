@@ -11,17 +11,18 @@ export async function GET(request: NextRequest) {
     const pool = getPool();
 
     let query = `
-      SELECT city, region, COUNT(*) as count
-      FROM salons
+      SELECT s.city, s.region, COUNT(*) as count, c.name_prepositional
+      FROM salons s
+      LEFT JOIN cities c ON LOWER(c.name) = LOWER(s.city)
     `;
     const params: string[] = [];
 
     if (regionFilter) {
-      query += ` WHERE region = $1`;
+      query += ` WHERE s.region = $1`;
       params.push(regionFilter);
     }
 
-    query += ` GROUP BY city, region ORDER BY region, city`;
+    query += ` GROUP BY s.city, s.region, c.name_prepositional ORDER BY s.region, s.city`;
 
     const result = await pool.query(query, params);
 
@@ -46,6 +47,7 @@ export async function GET(request: NextRequest) {
           city: r.city,
           region: r.region,
           count: parseInt(r.count),
+          name_prepositional: r.name_prepositional || null,
         })),
         byRegion,
       },

@@ -7,6 +7,7 @@ interface CityData {
   city: string;
   region: string;
   count: number;
+  name_prepositional?: string | null;
 }
 
 interface CitySelectorProps {
@@ -99,6 +100,7 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
     setCity({
       name: cityData.city,
       region: cityData.region,
+      name_prepositional: cityData.name_prepositional || null,
     });
     onClose();
   };
@@ -168,6 +170,7 @@ export default function CitySelector({ isOpen, onClose }: CitySelectorProps) {
           setCity({
             name: nearestCity.city,
             region: nearestCity.region,
+            name_prepositional: nearestCity.name_prepositional || null,
           });
           onClose();
         } else {
