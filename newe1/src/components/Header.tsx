@@ -30,7 +30,7 @@ const businessSubmenu = [
 
 const menuItems = [
   { label: 'КАТАЛОГ', href: '/catalog' },
-  { label: 'ШКАФЫ НА ЗАКАЗ', href: '/custom' },
+  { label: 'ШКАФЫ НА ЗАКАЗ', href: '/catalog' },
   { label: 'ГАРДЕРОБНЫЕ', href: '/catalog?doorTypes=garderob' },
   { label: 'АКЦИИ', href: '/sales', hasLightning: true },
   { label: 'ПОКУПАТЕЛЮ', href: '/service', hasSubmenu: true, submenuType: 'service' },
