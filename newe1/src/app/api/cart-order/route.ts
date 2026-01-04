@@ -387,7 +387,7 @@ export async function POST(request: NextRequest) {
 
                 <div style="background: #333; color: #999; padding: 15px; border-radius: 0 0 10px 10px; text-align: center; font-size: 12px;">
                   <p style="margin: 0;">Е1 — Шкафы и гардеробные</p>
-                  <p style="margin: 5px 0 0 0;">Телефон: 8-800-100-XX-XX</p>
+                  <p style="margin: 5px 0 0 0;">Телефон: 8-800-100-12-11</p>
                 </div>
               </body>
               </html>
