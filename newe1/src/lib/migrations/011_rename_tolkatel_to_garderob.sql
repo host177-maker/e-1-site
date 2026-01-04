@@ -1,4 +1,3 @@
--- Переименование типа двери "Толкатель" в "Гардероб"
-UPDATE catalog_door_types
-SET name = 'Гардероб', slug = 'garderob'
-WHERE slug = 'tolkatel';
+-- Удаление старого типа "Толкатель" (заменён на "Гардероб")
+-- Гардероб уже существует в базе, поэтому просто удаляем tolkatel
+DELETE FROM catalog_door_types WHERE slug = 'tolkatel';

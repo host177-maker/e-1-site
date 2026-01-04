@@ -1,12 +1,13 @@
-import { Pool } from 'pg';
-import * as fs from 'fs';
-import * as path from 'path';
-
 async function runMigrations() {
   if (!process.env.POSTGRES_HOST) {
     console.log('Skipping migrations: POSTGRES_HOST not set');
     return;
   }
+
+  // Dynamic imports for Node.js only modules
+  const { Pool } = await import('pg');
+  const fs = await import('fs');
+  const path = await import('path');
 
   const pool = new Pool({
     host: process.env.POSTGRES_HOST,
