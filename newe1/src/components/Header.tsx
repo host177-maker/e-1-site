@@ -246,8 +246,8 @@ export default function Header() {
                 />
               </Link>
 
-              {/* Center section - City, Order Status, Phone (desktop only) */}
-              <div className="hidden lg:flex items-center gap-4 xl:gap-6 flex-1 justify-center">
+              {/* Center section - City, Phone, Order Status (desktop only) */}
+              <div className="hidden lg:flex items-center gap-8 xl:gap-12 flex-1 justify-center">
                 {/* City selector */}
                 <button
                   onClick={() => setIsCitySelectorOpen(true)}
@@ -263,19 +263,6 @@ export default function Header() {
                   </svg>
                 </button>
 
-                {/* Order status */}
-                <a
-                  href="https://booking.e-1.ru/check/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-sm text-gray-700 hover:text-[#62bb46] transition-colors"
-                >
-                  <svg className="w-4 h-4 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                  </svg>
-                  <span className="font-medium">Статус заказа</span>
-                </a>
-
                 {/* Phone with hours */}
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,14 +273,53 @@ export default function Header() {
                   </a>
                   <span className="text-xs text-gray-400">7:00–20:00</span>
                 </div>
+
+                {/* Order status */}
+                <a
+                  href="https://booking.e-1.ru/check/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm text-gray-700 hover:text-[#62bb46] transition-colors"
+                >
+                  <svg className="w-4 h-4 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  <span className="font-medium text-center leading-tight">Узнать<br/>статус заказа</span>
+                </a>
               </div>
 
               {/* Right side: Messenger + Cart */}
               <div className="flex items-center gap-1 ml-auto">
-                {/* Messenger Video Button */}
+                {/* Messenger with phone - desktop */}
+                <div className="hidden lg:flex flex-col items-center mr-2">
+                  <button
+                    onClick={() => setIsMessengerModalOpen(true)}
+                    className="w-9 h-9 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#62bb46] focus:ring-offset-2 cursor-pointer"
+                    title="Написать нам"
+                    aria-label="Открыть мессенджеры"
+                  >
+                    <video
+                      className="w-full h-full object-cover cursor-pointer"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                    >
+                      <source src="/images/messenger.mp4" type="video/mp4" />
+                    </video>
+                  </button>
+                  <button
+                    onClick={() => setIsMessengerModalOpen(true)}
+                    className="text-[10px] text-gray-500 hover:text-[#62bb46] transition-colors mt-0.5 cursor-pointer"
+                  >
+                    +7 938 422-21-11
+                  </button>
+                </div>
+
+                {/* Messenger - mobile only */}
                 <button
                   onClick={() => setIsMessengerModalOpen(true)}
-                  className="w-9 h-9 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#62bb46] focus:ring-offset-2 cursor-pointer"
+                  className="lg:hidden w-9 h-9 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#62bb46] focus:ring-offset-2 cursor-pointer"
                   title="Написать нам"
                   aria-label="Открыть мессенджеры"
                 >
