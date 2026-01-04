@@ -364,7 +364,7 @@ export default function Header() {
                 {/* Messenger Video Button */}
                 <button
                   onClick={() => setIsMessengerModalOpen(true)}
-                  className="w-9 h-9 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#62bb46] focus:ring-offset-2 cursor-pointer bg-gradient-to-br from-[#25D366] to-[#128C7E] flex items-center justify-center relative"
+                  className="w-9 h-9 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#62bb46] focus:ring-offset-2 cursor-pointer bg-gradient-to-br from-[#25D366] to-[#128C7E] flex items-center justify-center relative"
                   title="Написать нам"
                   aria-label="Открыть мессенджеры"
                 >
