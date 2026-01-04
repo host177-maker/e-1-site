@@ -458,15 +458,15 @@ function CatalogPageContent() {
                       <div className="group bg-white rounded-lg p-3 hover:shadow-md transition-shadow relative">
                         {/* Рекламные плашки */}
                         {(product.promo_badge || product.discount_percent) && (
-                          <div className="absolute top-2 left-2 z-10 flex flex-col items-start gap-0.5">
-                            {product.discount_percent && product.discount_percent > 0 && (
-                              <span className="px-1.5 py-0.5 text-[10px] rounded bg-rose-500/80 text-white">
-                                -{Math.round(product.discount_percent)}%
-                              </span>
-                            )}
+                          <div className="absolute top-2 left-2 z-10 flex flex-wrap gap-0.5">
                             {product.promo_badge && (
                               <span className="px-1.5 py-0.5 text-[10px] rounded bg-emerald-600/70 text-white">
                                 {product.promo_badge}
+                              </span>
+                            )}
+                            {product.discount_percent && product.discount_percent > 0 && (
+                              <span className="px-1.5 py-0.5 text-[10px] rounded bg-rose-500/80 text-white">
+                                -{Math.round(product.discount_percent)}%
                               </span>
                             )}
                           </div>

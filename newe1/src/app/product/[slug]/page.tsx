@@ -676,14 +676,14 @@ export default function ProductPage() {
           {/* Рекламные плашки */}
           {(product.promo_badge || hasPromoDiscount) && (
             <div className="flex flex-wrap gap-1.5 mb-2">
-              {hasPromoDiscount && (
-                <span className="inline-block px-2 py-0.5 text-[11px] rounded bg-rose-500/80 text-white">
-                  Скидка {Math.round(product.discount_percent!)}%
-                </span>
-              )}
               {product.promo_badge && (
                 <span className="inline-block px-2 py-0.5 text-[11px] rounded bg-emerald-600/70 text-white">
                   {product.promo_badge}
+                </span>
+              )}
+              {hasPromoDiscount && (
+                <span className="inline-block px-2 py-0.5 text-[11px] rounded bg-rose-500/80 text-white">
+                  Скидка {Math.round(product.discount_percent!)}%
                 </span>
               )}
             </div>
@@ -791,14 +791,14 @@ export default function ProductPage() {
               {/* Рекламные плашки */}
               {(product.promo_badge || hasPromoDiscount) && (
                 <div className="flex flex-wrap gap-1.5">
-                  {hasPromoDiscount && (
-                    <span className="inline-block px-2.5 py-0.5 text-xs rounded bg-rose-500/80 text-white">
-                      Скидка {Math.round(product.discount_percent!)}%
-                    </span>
-                  )}
                   {product.promo_badge && (
                     <span className="inline-block px-2.5 py-0.5 text-xs rounded bg-emerald-600/70 text-white">
                       {product.promo_badge}
+                    </span>
+                  )}
+                  {hasPromoDiscount && (
+                    <span className="inline-block px-2.5 py-0.5 text-xs rounded bg-rose-500/80 text-white">
+                      Скидка {Math.round(product.discount_percent!)}%
                     </span>
                   )}
                 </div>
