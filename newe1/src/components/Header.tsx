@@ -29,14 +29,15 @@ const businessSubmenu = [
 ];
 
 const menuItems = [
-  { label: 'ШКАФЫ НА ЗАКАЗ', href: '/catalog' },
-  { label: 'ГАРДЕРОБНЫЕ', href: '/catalog?doorTypes=garderob' },
-  { label: 'АКЦИИ', href: '/sales', hasLightning: true },
-  { label: 'ПОКУПАТЕЛЮ', href: '/service', hasSubmenu: true, submenuType: 'service' },
-  { label: 'ОТЗЫВЫ', href: '/reviews' },
-  { label: 'АДРЕСА САЛОНОВ', href: '/stores' },
-  { label: 'ГЕОГРАФИЯ ДОСТАВКИ', href: '/delivery' },
-  { label: '...', mobileLabel: 'СОТРУДНИЧЕСТВО', href: '/business', hasSubmenu: true, submenuType: 'business', showLastOnMobile: true },
+  { id: 'catalog', label: 'КАТАЛОГ', href: '/catalog' },
+  { id: 'custom', label: 'ШКАФЫ НА ЗАКАЗ', href: '/catalog' },
+  { id: 'garderob', label: 'ГАРДЕРОБНЫЕ', href: '/catalog?doorTypes=garderob' },
+  { id: 'sales', label: 'АКЦИИ', href: '/sales', hasLightning: true },
+  { id: 'service', label: 'ПОКУПАТЕЛЮ', href: '/service', hasSubmenu: true, submenuType: 'service' },
+  { id: 'reviews', label: 'ОТЗЫВЫ', href: '/reviews' },
+  { id: 'stores', label: 'АДРЕСА САЛОНОВ', href: '/stores' },
+  { id: 'delivery', label: 'ГЕОГРАФИЯ ДОСТАВКИ', href: '/delivery' },
+  { id: 'business', label: '...', mobileLabel: 'СОТРУДНИЧЕСТВО', href: '/business', hasSubmenu: true, submenuType: 'business', showLastOnMobile: true },
 ];
 
 // Mobile-only menu item
@@ -366,7 +367,7 @@ export default function Header() {
               {menuItems.map((item) => {
                 const isLastItem = item.showLastOnMobile; // This is the "..." item
                 return (
-                  <li key={item.href} className={item.hasSubmenu ? 'relative group' : ''}>
+                  <li key={item.id} className={item.hasSubmenu ? 'relative group' : ''}>
                     {item.hasSubmenu ? (
                       <span
                         className="flex items-center gap-1.5 px-2 xl:px-3 py-3 font-bold hover:bg-[#55a83d] transition-colors text-[12px] xl:text-[13px] whitespace-nowrap cursor-pointer"
@@ -453,7 +454,7 @@ export default function Header() {
                 const submenuItems = isBusinessMenu ? businessSubmenu : serviceSubmenu;
 
                 return (
-                <li key={item.href}>
+                <li key={item.id}>
                   {item.hasSubmenu ? (
                     <div>
                       <button
@@ -556,7 +557,7 @@ export default function Header() {
                 const submenuItems = isBusinessMenu ? businessSubmenu : serviceSubmenu;
 
                 return (
-                <li key={item.href}>
+                <li key={item.id}>
                   <div>
                     <button
                       onClick={() => setIsOpen(!isOpen)}
