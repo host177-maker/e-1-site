@@ -40,6 +40,7 @@ interface FilterOptions {
 
 interface FilterValues {
   doorTypes: string[];
+  wardrobeTypes: string[];
   series: string[];
   widthRanges: string[];
   heights: number[];
@@ -78,6 +79,7 @@ const PLACEHOLDER_IMAGE = '/images/placeholder-product.svg';
 
 const DEFAULT_FILTERS: FilterValues = {
   doorTypes: [],
+  wardrobeTypes: [],
   series: [],
   widthRanges: [],
   heights: [],
@@ -98,6 +100,7 @@ function CatalogPageContent() {
     if (!searchParams) return DEFAULT_FILTERS;
     return {
       doorTypes: searchParams.get('doorTypes')?.split(',').filter(Boolean) || [],
+      wardrobeTypes: searchParams.get('wardrobeTypes')?.split(',').filter(Boolean) || [],
       series: searchParams.get('series')?.split(',').filter(Boolean) || [],
       widthRanges: searchParams.get('widthRanges')?.split(',').filter(Boolean) || [],
       heights: searchParams.get('heights')?.split(',').map(h => parseInt(h)).filter(h => !isNaN(h)) || [],
@@ -139,6 +142,7 @@ function CatalogPageContent() {
       const params = new URLSearchParams();
       if (filters.series.length > 0) params.set('series', filters.series.join(','));
       if (filters.doorTypes.length > 0) params.set('doorTypes', filters.doorTypes.join(','));
+      if (filters.wardrobeTypes.length > 0) params.set('wardrobeTypes', filters.wardrobeTypes.join(','));
 
       // Парсим диапазоны ширины (мультивыбор)
       if (filters.widthRanges.length > 0) {
@@ -244,6 +248,7 @@ function CatalogPageContent() {
 
     const params = new URLSearchParams();
     if (filters.doorTypes.length > 0) params.set('doorTypes', filters.doorTypes.join(','));
+    if (filters.wardrobeTypes.length > 0) params.set('wardrobeTypes', filters.wardrobeTypes.join(','));
     if (filters.series.length > 0) params.set('series', filters.series.join(','));
     if (filters.widthRanges.length > 0) params.set('widthRanges', filters.widthRanges.join(','));
     if (filters.heights.length > 0) params.set('heights', filters.heights.join(','));
@@ -325,6 +330,7 @@ function CatalogPageContent() {
   // Count active filters
   const activeFiltersCount = [
     filters.doorTypes.length > 0,
+    filters.wardrobeTypes.length > 0,
     filters.series.length > 0,
     filters.heights.length > 0,
     filters.depthRanges.length > 0,

@@ -363,6 +363,7 @@ export async function getProducts(options: {
   doorTypeId?: number;
   doorTypeSlug?: string;
   doorTypeSlugs?: string[];
+  wardrobeTypes?: string[];
   widthMin?: number;
   widthMax?: number;
   heights?: number[];
@@ -377,10 +378,15 @@ export async function getProducts(options: {
   const params: (string | number | string[] | number[])[] = [];
   let paramIndex = 1;
 
+  // Специальные типы шкафов, требующие variant JOIN
+  const wardrobeTypesNeedingVariant = ['bedroom', 'hallway', 'living', 'mirror'];
+  const hasWardrobeVariantFilter = options.wardrobeTypes?.some(wt => wardrobeTypesNeedingVariant.includes(wt));
+
   // Условия, требующие JOIN с variants
   const needsVariantJoin = options.widthMin || options.widthMax ||
     (options.heights && options.heights.length > 0) ||
-    (options.depths && options.depths.length > 0);
+    (options.depths && options.depths.length > 0) ||
+    hasWardrobeVariantFilter;
 
   if (options.seriesId) {
     conditions.push(`p.series_id = $${paramIndex++}`);
@@ -414,6 +420,22 @@ export async function getProducts(options: {
     params.push(options.doorTypeSlugs);
   }
 
+  // Специальные типы шкафов (wardrobeTypes)
+  if (options.wardrobeTypes && options.wardrobeTypes.length > 0) {
+    // Фильтр по названию: угловые
+    if (options.wardrobeTypes.includes('corner')) {
+      conditions.push(`LOWER(p.name) LIKE '%угловой%'`);
+    }
+
+    // Фильтр по количеству дверей
+    if (options.wardrobeTypes.includes('two-door')) {
+      conditions.push(`p.door_count = 2`);
+    }
+    if (options.wardrobeTypes.includes('three-door')) {
+      conditions.push(`p.door_count = 3`);
+    }
+  }
+
   // Фильтры по размерам (через подзапрос к variants)
   if (needsVariantJoin) {
     const variantConditions: string[] = [];
@@ -433,6 +455,31 @@ export async function getProducts(options: {
     if (options.depths && options.depths.length > 0) {
       variantConditions.push(`v.depth = ANY($${paramIndex++}::int[])`);
       params.push(options.depths);
+    }
+
+    // Специальные wardrobeTypes, требующие variant JOIN
+    if (options.wardrobeTypes && options.wardrobeTypes.length > 0) {
+      // В спальню: глубина > 57 см (570 мм)
+      if (options.wardrobeTypes.includes('bedroom')) {
+        variantConditions.push(`v.depth > 570`);
+      }
+
+      // В гостиную: высота > 230 см (2300 мм)
+      if (options.wardrobeTypes.includes('living')) {
+        variantConditions.push(`v.height > 2300`);
+      }
+
+      // С зеркалом / В прихожую: материал двери содержит "зеркало"
+      if (options.wardrobeTypes.includes('mirror') || options.wardrobeTypes.includes('hallway')) {
+        variantConditions.push(`(
+          LOWER(COALESCE(v.door_material1, '')) LIKE '%зеркало%' OR
+          LOWER(COALESCE(v.door_material2, '')) LIKE '%зеркало%' OR
+          LOWER(COALESCE(v.door_material3, '')) LIKE '%зеркало%' OR
+          LOWER(COALESCE(v.door_material4, '')) LIKE '%зеркало%' OR
+          LOWER(COALESCE(v.door_material5, '')) LIKE '%зеркало%' OR
+          LOWER(COALESCE(v.door_material6, '')) LIKE '%зеркало%'
+        )`);
+      }
     }
 
     if (variantConditions.length > 0) {

@@ -15,12 +15,24 @@ interface FilterOptions {
 
 interface FilterValues {
   doorTypes: string[];
+  wardrobeTypes: string[];
   series: string[];
   widthRanges: string[];
   heights: number[];
   depthRanges: string[];
   priceRanges: string[];
 }
+
+// Специальные типы шкафов (фильтруются по характеристикам)
+const wardrobeTypesList = [
+  { key: 'bedroom', label: 'В спальню', description: 'глубина > 57 см' },
+  { key: 'hallway', label: 'В прихожую', description: 'с зеркалом' },
+  { key: 'living', label: 'В гостиную', description: 'высота > 230 см' },
+  { key: 'mirror', label: 'С зеркалом', description: '' },
+  { key: 'corner', label: 'Угловые', description: '' },
+  { key: 'two-door', label: 'Двухдверные', description: '' },
+  { key: 'three-door', label: 'Трёхдверные', description: '' },
+];
 
 interface CatalogFilterProps {
   filterOptions: FilterOptions | null;
@@ -96,6 +108,15 @@ export default function CatalogFilter({
     onFiltersChange(newFilters);
   };
 
+  const handleWardrobeTypeToggle = (key: string) => {
+    const newWardrobeTypes = localFilters.wardrobeTypes.includes(key)
+      ? localFilters.wardrobeTypes.filter(wt => wt !== key)
+      : [...localFilters.wardrobeTypes, key];
+    const newFilters = { ...localFilters, wardrobeTypes: newWardrobeTypes };
+    setLocalFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
+
   const handleSeriesToggle = (slug: string) => {
     const newSeries = localFilters.series.includes(slug)
       ? localFilters.series.filter(s => s !== slug)
@@ -144,6 +165,7 @@ export default function CatalogFilter({
   const resetFilters = () => {
     const defaultFilters: FilterValues = {
       doorTypes: [],
+      wardrobeTypes: [],
       series: [],
       widthRanges: [],
       heights: [],
@@ -156,6 +178,7 @@ export default function CatalogFilter({
 
   const hasActiveFilters =
     localFilters.doorTypes.length > 0 ||
+    localFilters.wardrobeTypes.length > 0 ||
     localFilters.series.length > 0 ||
     localFilters.heights.length > 0 ||
     localFilters.depthRanges.length > 0 ||
@@ -202,6 +225,24 @@ export default function CatalogFilter({
                 <span className="text-[10px] text-gray-400">({dt.count})</span>
               </label>
             ))}
+        </div>
+      </div>
+
+      {/* Назначение (специальные типы) */}
+      <div>
+        <h3 className="font-medium text-gray-900 mb-1.5 text-xs">Назначение</h3>
+        <div className="space-y-1">
+          {wardrobeTypesList.map(wt => (
+            <label key={wt.key} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={localFilters.wardrobeTypes.includes(wt.key)}
+                onChange={() => handleWardrobeTypeToggle(wt.key)}
+                className="w-3.5 h-3.5 rounded border-gray-300 text-[#62bb46] focus:ring-[#62bb46]"
+              />
+              <span className="text-xs text-gray-700 flex-1">{wt.label}</span>
+            </label>
+          ))}
         </div>
       </div>
 
