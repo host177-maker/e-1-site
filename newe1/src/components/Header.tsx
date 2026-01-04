@@ -47,7 +47,6 @@ const mobileOnlyItems = [
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [mobileServiceOpen, setMobileServiceOpen] = useState(false);
   const [mobileBusinessOpen, setMobileBusinessOpen] = useState(false);
   const [isCitySelectorOpen, setIsCitySelectorOpen] = useState(false);
@@ -324,35 +323,6 @@ export default function Header() {
                 />
               </Link>
 
-              {/* Catalog button */}
-              <Link
-                href="/catalog"
-                className="hidden lg:flex items-center gap-2 px-5 py-2.5 bg-[#62bb46] text-white font-bold rounded hover:bg-[#55a83d] transition-colors text-sm ml-4"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                КАТАЛОГ
-              </Link>
-
-              {/* Search */}
-              <div className="hidden lg:flex flex-1 max-w-[400px] xl:max-w-[480px] mx-4">
-                <div className="flex w-full border border-gray-300 rounded overflow-hidden focus-within:border-[#62bb46] transition-colors">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Поиск по каталогу..."
-                    className="flex-1 px-4 py-2.5 text-sm focus:outline-none"
-                  />
-                  <button className="px-5 py-2.5 bg-[#62bb46] text-white font-medium hover:bg-[#55a83d] transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
               {/* Right side: Messenger + Cart (mobile) / Full icons (desktop) */}
               <div className="flex items-center gap-1 ml-auto">
                 {/* Messenger Video Button */}
@@ -491,22 +461,6 @@ export default function Header() {
           />
           {/* Menu panel - 70% width on left */}
           <div className="lg:hidden fixed left-0 top-0 bottom-0 w-[70%] bg-white overflow-y-auto z-50 shadow-xl pt-14">
-          {/* Mobile search */}
-          <div className="px-4 py-3">
-            <div className="flex border border-gray-300 rounded overflow-hidden">
-              <input
-                type="text"
-                placeholder="Поиск по каталогу..."
-                className="flex-1 px-4 py-2.5 text-sm focus:outline-none"
-              />
-              <button className="px-4 py-2.5 bg-[#62bb46] text-white">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
           {/* Mobile nav */}
           <nav className="bg-[#62bb46]">
             <ul className="divide-y divide-[#55a83d]">
