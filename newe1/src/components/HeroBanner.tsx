@@ -73,10 +73,8 @@ export default function HeroBanner() {
   // Loading state
   if (loading) {
     return (
-      <section className="relative bg-[#f5f5f5] py-4">
-        <div className="container-custom">
-          <div className="relative w-full h-[300px] sm:h-[220px] md:h-[280px] lg:h-[340px] xl:h-[380px] bg-gray-200 animate-pulse" />
-        </div>
+      <section className="relative bg-[#f5f5f5]">
+        <div className="w-full h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] xl:h-[500px] bg-gray-200 animate-pulse" />
       </section>
     );
   }
@@ -87,85 +85,83 @@ export default function HeroBanner() {
   }
 
   return (
-    <section className="relative bg-[#f5f5f5] py-4">
-      <div className="container-custom">
+    <section className="relative bg-[#f5f5f5]">
+      <div
+        className="relative overflow-hidden w-full"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {/* Slides container */}
         <div
-          className="relative overflow-hidden"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
+          className="flex transition-transform duration-500 ease-out"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
         >
-          {/* Slides container */}
-          <div
-            className="flex transition-transform duration-500 ease-out"
-            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-          >
-            {banners.map((banner, index) => {
-              const imageUrl = isMobile ? banner.mobile_image : banner.desktop_image;
-              const content = (
-                <div className="relative w-full h-[300px] sm:h-[220px] md:h-[280px] lg:h-[340px] xl:h-[380px]">
-                  <img
-                    src={imageUrl}
-                    alt={`Баннер ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              );
-
-              return (
-                <div key={banner.id} className="w-full flex-shrink-0">
-                  {banner.link ? (
-                    <Link href={banner.link} className="block">
-                      {content}
-                    </Link>
-                  ) : (
-                    content
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Navigation arrows - only show if more than 1 banner */}
-          {banners.length > 1 && (
-            <>
-              <button
-                onClick={prevSlide}
-                className="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-9 h-9 md:w-11 md:h-11 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all z-10 group"
-                aria-label="Предыдущий слайд"
-              >
-                <svg className="w-4 h-4 md:w-5 md:h-5 text-[#3d4543] group-hover:text-[#62bb46] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-
-              <button
-                onClick={nextSlide}
-                className="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-9 h-9 md:w-11 md:h-11 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all z-10 group"
-                aria-label="Следующий слайд"
-              >
-                <svg className="w-4 h-4 md:w-5 md:h-5 text-[#3d4543] group-hover:text-[#62bb46] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-
-              {/* Dots navigation */}
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                {banners.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={`h-2 rounded-full transition-all ${
-                      index === currentSlide
-                        ? 'bg-[#62bb46] w-5'
-                        : 'bg-white/70 hover:bg-white w-2'
-                    }`}
-                    aria-label={`Слайд ${index + 1}`}
-                  />
-                ))}
+          {banners.map((banner, index) => {
+            const imageUrl = isMobile ? banner.mobile_image : banner.desktop_image;
+            const content = (
+              <div className="relative w-full h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] xl:h-[500px]">
+                <img
+                  src={imageUrl}
+                  alt={`Баннер ${index + 1}`}
+                  className="w-full h-full object-cover object-center"
+                />
               </div>
-            </>
-          )}
+            );
+
+            return (
+              <div key={banner.id} className="w-full flex-shrink-0">
+                {banner.link ? (
+                  <Link href={banner.link} className="block">
+                    {content}
+                  </Link>
+                ) : (
+                  content
+                )}
+              </div>
+            );
+          })}
         </div>
+
+        {/* Navigation arrows - only show if more than 1 banner */}
+        {banners.length > 1 && (
+          <>
+            <button
+              onClick={prevSlide}
+              className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all z-10 group"
+              aria-label="Предыдущий слайд"
+            >
+              <svg className="w-5 h-5 md:w-6 md:h-6 text-[#3d4543] group-hover:text-[#62bb46] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            <button
+              onClick={nextSlide}
+              className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all z-10 group"
+              aria-label="Следующий слайд"
+            >
+              <svg className="w-5 h-5 md:w-6 md:h-6 text-[#3d4543] group-hover:text-[#62bb46] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+
+            {/* Dots navigation */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+              {banners.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`h-2.5 rounded-full transition-all ${
+                    index === currentSlide
+                      ? 'bg-[#62bb46] w-6'
+                      : 'bg-white/70 hover:bg-white w-2.5'
+                  }`}
+                  aria-label={`Слайд ${index + 1}`}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </section>
   );
