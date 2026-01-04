@@ -190,108 +190,6 @@ export default function Header() {
 
       {/* Full header - hides when compact mode is active */}
       <div className={`transition-opacity duration-200 ${isCompactMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-        {/* Top bar - graphite color */}
-        <div className="bg-[#3d4543] text-white">
-          <div className="container-custom">
-            <div className="flex items-center justify-between py-2 text-xs">
-              {/* Left side badges */}
-              <div className="hidden lg:flex items-center gap-3 xl:gap-5">
-                {/* City selector */}
-                <button
-                  onClick={() => setIsCitySelectorOpen(true)}
-                  className="flex items-center gap-1.5 hover:text-[#62bb46] transition-colors px-2 py-1 rounded hover:bg-white/10"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span>Город: <strong>{isLoading ? '...' : city.name}</strong></span>
-                  <span className="text-[#62bb46] underline ml-1">сменить</span>
-                </button>
-
-                <div className="w-px h-4 bg-white/20"></div>
-
-                {/* Sales badge */}
-                <Link href="/sales" className="flex items-center gap-1.5 hover:text-[#62bb46] transition-colors px-2 py-1 rounded hover:bg-white/10">
-                  <svg className="w-4 h-4 text-[#f5b800]" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                  <span className="text-white font-bold">Скидки недели</span>
-                </Link>
-
-                <div className="w-px h-4 bg-white/20"></div>
-
-                {/* Fast delivery */}
-                <div className="flex items-center gap-1.5 px-2 py-1">
-                  <svg className="w-4 h-4 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  <span>Быстрые сроки доставки</span>
-                </div>
-
-                <div className="w-px h-4 bg-white/20"></div>
-
-                {/* Installment */}
-                <Link href="/service/installment" className="flex items-center gap-1.5 hover:text-[#62bb46] transition-colors px-2 py-1 rounded hover:bg-white/10">
-                  <svg className="w-4 h-4 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                  <span>Рассрочка 0-0-6</span>
-                </Link>
-
-                <div className="w-px h-4 bg-white/20"></div>
-
-                {/* Order status */}
-                <a
-                  href="https://booking.e-1.ru/check/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 hover:text-[#62bb46] transition-colors px-2 py-1 rounded hover:bg-white/10"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                  </svg>
-                  <span className="text-white font-bold">Проверить статус заказа</span>
-                </a>
-              </div>
-
-              {/* Right side - phone (desktop) */}
-              <div className="hidden lg:flex items-center gap-3 ml-auto">
-                <span className="text-gray-400 text-[11px]">7:00–20:00</span>
-                <div className="flex items-center gap-2 bg-[#62bb46] px-4 py-1.5 rounded">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  <a href="tel:+78001001211" className="font-bold hover:underline">
-                    8-800-100-12-11
-                  </a>
-                </div>
-              </div>
-
-              {/* Mobile: city selector + phone */}
-              <div className="lg:hidden flex items-center justify-between w-full text-[11px]">
-                {/* City selector - left */}
-                <button
-                  onClick={() => setIsMobileCitySelectorOpen(true)}
-                  className="flex items-center gap-1 hover:text-[#62bb46] transition-colors"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span>{isLoading ? '...' : city.name}</span>
-                  <span className="text-[#62bb46] underline">сменить</span>
-                </button>
-
-                {/* Phone - right */}
-                <a href="tel:+78001001211" className="font-bold hover:text-[#62bb46] transition-colors whitespace-nowrap">
-                  8-800-100-12-11
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Main header row - white */}
         <div className="bg-white border-b border-gray-100 shadow-sm">
           <div className="container-custom">
@@ -323,7 +221,61 @@ export default function Header() {
                 />
               </Link>
 
-              {/* Right side: Messenger + Cart (mobile) / Full icons (desktop) */}
+              {/* Center section - City, Order Status, Phone (desktop only) */}
+              <div className="hidden lg:flex items-center gap-4 xl:gap-6 flex-1 justify-center">
+                {/* City selector */}
+                <button
+                  onClick={() => setIsCitySelectorOpen(true)}
+                  className="flex items-center gap-1.5 text-sm text-gray-700 hover:text-[#62bb46] transition-colors"
+                >
+                  <svg className="w-4 h-4 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span className="font-medium">{isLoading ? '...' : city.name}</span>
+                  <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Order status */}
+                <a
+                  href="https://booking.e-1.ru/check/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm text-gray-700 hover:text-[#62bb46] transition-colors"
+                >
+                  <svg className="w-4 h-4 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  <span className="font-medium">Статус заказа</span>
+                </a>
+
+                {/* Phone with hours */}
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  <a href="tel:+78001001211" className="font-bold text-[#3d4543] hover:text-[#62bb46] transition-colors">
+                    8-800-100-12-11
+                  </a>
+                  <span className="text-xs text-gray-400">7:00–20:00</span>
+                </div>
+              </div>
+
+              {/* Mobile: City selector */}
+              <button
+                onClick={() => setIsMobileCitySelectorOpen(true)}
+                className="lg:hidden flex items-center gap-1 text-xs text-gray-600 hover:text-[#62bb46] transition-colors ml-2"
+              >
+                <svg className="w-3.5 h-3.5 text-[#62bb46]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="font-medium">{isLoading ? '...' : city.name}</span>
+              </button>
+
+              {/* Right side: Messenger + Cart */}
               <div className="flex items-center gap-1 ml-auto">
                 {/* Messenger Video Button */}
                 <button
@@ -342,17 +294,6 @@ export default function Header() {
                     <source src="/images/messenger.mp4" type="video/mp4" />
                   </video>
                 </button>
-
-                {/* Contact info - desktop only */}
-                <div className="hidden xl:flex flex-col text-right shrink-0 ml-2 mr-2">
-                  <span className="text-[11px] text-gray-500 uppercase tracking-wide">Напишите нам</span>
-                  <button
-                    onClick={() => setIsMessengerModalOpen(true)}
-                    className="text-sm text-[#3d4543] hover:text-[#62bb46] transition-colors font-bold cursor-pointer"
-                  >
-                    8-938-422-21-11
-                  </button>
-                </div>
 
                 {/* Wishlist - all sizes */}
                 <Link href="/wishlist" className="flex flex-col items-center justify-center w-10 h-10 sm:w-12 sm:h-12 hover:text-[#62bb46] transition-colors relative group">
