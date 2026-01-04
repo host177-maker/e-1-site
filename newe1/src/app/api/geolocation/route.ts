@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getPool } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
+// Get prepositional form of city name from database
+async function getCityPrepositional(cityName: string): Promise<string | null> {
+  try {
+    const pool = getPool();
+    const result = await pool.query(
+      'SELECT name_prepositional FROM cities WHERE LOWER(name) = LOWER($1) LIMIT 1',
+      [cityName]
+    );
+    return result.rows[0]?.name_prepositional || null;
+  } catch {
+    return null;
+  }
+}
 
 // Simple IP-based geolocation using free services
 export async function GET(request: NextRequest) {
@@ -13,10 +28,12 @@ export async function GET(request: NextRequest) {
 
     // Skip geolocation for local IPs
     if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
+      const prepositional = await getCityPrepositional('Москва');
       return NextResponse.json({
         success: true,
         city: 'Москва',
         region: 'Московская область',
+        name_prepositional: prepositional || 'Москве',
         source: 'default',
       });
     }
@@ -32,11 +49,13 @@ export async function GET(request: NextRequest) {
       if (response.ok) {
         const data = await response.json();
         if (data.city && !data.error) {
+          const prepositional = await getCityPrepositional(data.city);
           return NextResponse.json({
             success: true,
             city: data.city,
             region: data.region || '',
             country: data.country_name,
+            name_prepositional: prepositional,
             source: 'ipapi',
           });
         }
@@ -52,11 +71,13 @@ export async function GET(request: NextRequest) {
       if (response.ok) {
         const data = await response.json();
         if (data.status === 'success' && data.city) {
+          const prepositional = await getCityPrepositional(data.city);
           return NextResponse.json({
             success: true,
             city: data.city,
             region: data.regionName || '',
             country: data.country,
+            name_prepositional: prepositional,
             source: 'ip-api',
           });
         }
@@ -66,10 +87,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Default fallback
+    const prepositional = await getCityPrepositional('Москва');
     return NextResponse.json({
       success: true,
       city: 'Москва',
       region: 'Московская область',
+      name_prepositional: prepositional || 'Москве',
       source: 'default',
     });
   } catch (error) {
@@ -78,6 +101,7 @@ export async function GET(request: NextRequest) {
       success: true,
       city: 'Москва',
       region: 'Московская область',
+      name_prepositional: 'Москве',
       source: 'error-fallback',
     });
   }

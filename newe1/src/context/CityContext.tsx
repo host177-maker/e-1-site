@@ -56,6 +56,7 @@ export function CityProvider({ children }: { children: ReactNode }) {
         const detectedCity = {
           name: data.city,
           region: data.region || '',
+          name_prepositional: data.name_prepositional || null,
         };
         setCityState(detectedCity);
         localStorage.setItem('selectedCity', JSON.stringify(detectedCity));
