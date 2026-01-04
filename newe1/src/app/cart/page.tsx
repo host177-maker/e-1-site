@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useCart } from '@/context/CartContext';
 import { useCity } from '@/context/CityContext';
 import Link from 'next/link';
@@ -94,7 +94,7 @@ export default function CartPage() {
   useEffect(() => {
     const fetchAssemblySettings = async () => {
       try {
-        const response = await fetch(`/api/e1admin/service-prices?city=${encodeURIComponent(city || '')}`);
+        const response = await fetch(`/api/e1admin/service-prices?city=${encodeURIComponent(city?.name || '')}`);
         const data = await response.json();
         if (data.success && data.data && data.data.length > 0) {
           const minAmount = parseFloat(data.data[0].min_assembly_amount) || 3000;
@@ -105,7 +105,7 @@ export default function CartPage() {
       }
     };
     fetchAssemblySettings();
-  }, [city]);
+  }, [city?.name]);
 
   // Promo code state
   const [promoCode, setPromoCode] = useState('');
